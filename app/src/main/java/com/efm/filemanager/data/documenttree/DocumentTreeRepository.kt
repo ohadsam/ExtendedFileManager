@@ -1,0 +1,74 @@
+package com.efm.filemanager.data.documenttree
+
+import android.content.Context
+import android.net.Uri
+import android.provider.DocumentsContract
+import androidx.documentfile.provider.DocumentFile
+import com.efm.filemanager.data.local.FileEntryDao
+import com.efm.filemanager.data.local.FileEntryEntity
+import com.efm.filemanager.data.local.toDomain
+import com.efm.filemanager.data.sourceapp.SourceAppResolver
+import com.efm.filemanager.domain.model.FileEntry
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+/**
+ * Lists folder contents via Storage Access Framework and caches the result in Room so
+ * the UI reads from a reactive local source instead of re-querying the SAF provider on
+ * every recomposition. [refresh] re-lists from SAF and replaces the cached children;
+ * [observeChildren] is what the UI actually collects.
+ */
+class DocumentTreeRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val fileEntryDao: FileEntryDao,
+    private val sourceAppResolver: SourceAppResolver,
+) {
+    fun observeChildren(parentUri: Uri): Flow<List<FileEntry>> =
+        fileEntryDao.observeChildren(parentUri.toString()).map { entries -> entries.map { it.toDomain() } }
+
+    suspend fun refresh(parentUri: Uri) {
+        val entries = listChildrenFromSaf(parentUri)
+        fileEntryDao.replaceChildren(parentUri.toString(), entries)
+    }
+
+    private suspend fun listChildrenFromSaf(parentUri: Uri): List<FileEntryEntity> =
+        withContext(Dispatchers.IO) {
+            // fromTreeUri (not fromSingleUri) is required here: it's the only factory that
+            // returns a TreeDocumentFile, whose listFiles() actually works for hierarchical
+            // navigation. It transparently accepts both the bare tree-root URI and a full
+            // tree-scoped document URI for a nested folder, so this one call covers every
+            // navigation depth. fromSingleUri's SingleDocumentFile.listFiles() throws
+            // UnsupportedOperationException -- easy mistake since both factories compile fine.
+            val parentDocument = DocumentFile.fromTreeUri(context, parentUri) ?: return@withContext emptyList()
+            val parentFolderName = parentDocument.name
+            parentDocument.listFiles().mapNotNull { child -> child.toEntity(parentUri, parentFolderName) }
+        }
+
+    private fun DocumentFile.toEntity(parentUri: Uri, parentFolderName: String?): FileEntryEntity? {
+        val childUri = uri
+        val childName = name ?: return null
+        val childSize = length()
+        val sourceApp =
+            if (isDirectory) {
+                null
+            } else {
+                sourceAppResolver.resolve(childName, childSize, parentFolderName)
+            }
+        return FileEntryEntity(
+            uri = childUri.toString(),
+            parentUri = parentUri.toString(),
+            documentId = runCatching { DocumentsContract.getDocumentId(childUri) }.getOrDefault(childUri.toString()),
+            name = childName,
+            isDirectory = isDirectory,
+            size = childSize,
+            lastModified = lastModified(),
+            mimeType = type,
+            ownerPackageName = sourceApp?.packageName,
+            sourceConfidence = sourceApp?.confidence?.name,
+        )
+    }
+}

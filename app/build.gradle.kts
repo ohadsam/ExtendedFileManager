@@ -47,6 +47,7 @@ android {
         freeCompilerArgs +=
             listOf(
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+                "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
             )
     }
 
@@ -71,6 +72,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -96,6 +98,7 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.timber)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.documentfile)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

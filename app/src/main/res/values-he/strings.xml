@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">מנהל קבצים מתקדם</string>
-    <string name="phase0_placeholder_title">מנהל קבצים מתקדם</string>
-    <string name="phase0_placeholder_subtitle">שלב 0 — הבסיס. עיון בקבצים מגיע בשלב 1.</string>
+
+    <string name="nav_drawer_open">פתח תפריט ניווט</string>
+    <string name="nav_browse">עיון בקבצים</string>
+
+    <string name="sort_menu">מיון</string>
+    <string name="sort_section_sort_by">מיין לפי</string>
+    <string name="sort_by_name">שם</string>
+    <string name="sort_by_date">תאריך שינוי</string>
+    <string name="sort_by_size">גודל</string>
+    <string name="sort_section_order">סדר</string>
+    <string name="sort_order_ascending">עולה</string>
+    <string name="sort_order_descending">יורד</string>
+
+    <string name="grant_access_title">הענקת גישה לתיקייה</string>
+    <string name="grant_access_body">בחר תיקייה כדי לאפשר למנהל הקבצים המתקדם לעיין בה. תוכל להעניק גישה לתיקיות נוספות בהמשך.</string>
+    <string name="grant_access_button">בחר תיקייה</string>
+
+    <string name="folder_empty">התיקייה ריקה</string>
 </resources>
