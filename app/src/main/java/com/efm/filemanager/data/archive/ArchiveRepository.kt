@@ -118,20 +118,32 @@ class ArchiveRepository
             onProgress: (Int) -> Unit,
         ) {
             val dirCache = mutableMapOf<String, DocumentFile>()
-            var extractedCount = 0
             context.contentResolver.openInputStream(archiveUri)?.use { rawIn ->
                 ZipInputStream(rawIn).use { zipIn ->
-                    var entry = zipIn.nextEntry
-                    while (entry != null) {
-                        if (!entry.isDirectory) {
-                            val (parent, fileName) = resolveEntryParent(targetParent, entry.name, dirCache)
-                            if (writeEntry(parent, fileName, zipIn, conflictPolicy)) extractedCount++
-                            onProgress(extractedCount)
-                        }
-                        zipIn.closeEntry()
-                        entry = zipIn.nextEntry
-                    }
+                    extractEntries(zipIn, targetParent, conflictPolicy, dirCache, onProgress)
                 }
+            }
+        }
+
+        // Split out of readZip so the while/if body isn't nested inside two stream .use{} blocks --
+        // that combination alone was enough to trip detekt's NestedBlockDepth.
+        private fun extractEntries(
+            zipIn: ZipInputStream,
+            targetParent: DocumentFile,
+            conflictPolicy: ConflictPolicy,
+            dirCache: MutableMap<String, DocumentFile>,
+            onProgress: (Int) -> Unit,
+        ) {
+            var extractedCount = 0
+            var entry = zipIn.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory) {
+                    val (parent, fileName) = resolveEntryParent(targetParent, entry.name, dirCache)
+                    if (writeEntry(parent, fileName, zipIn, conflictPolicy)) extractedCount++
+                    onProgress(extractedCount)
+                }
+                zipIn.closeEntry()
+                entry = zipIn.nextEntry
             }
         }
 
