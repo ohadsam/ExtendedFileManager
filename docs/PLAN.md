@@ -21,7 +21,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | # | Requirement | Phase |
 |---|---|---|
 | 1 | Core CRUD + compress/extract | 3, 4 |
-| 2 | Filter / group-by / sort (type, date, source app, ...) | 5 |
+| 2 | Filter / group-by / sort (type, date, source app, ...) + global free-text search | 5 |
 | 3 | Simple, comfortable UI/UX | ongoing, 8 |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
 | 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
@@ -50,7 +50,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 - **Tagging** (free-form labels) in addition to folder-based favorites, so a file can belong to multiple logical groups.
 - **Quick actions / share sheet integration** (Android share target) so other apps can send files to EFM, and EFM can share out.
 - **Cloud/network locations** (SAF-based access to Drive/Dropbox/SMB providers already exposed via Android's document provider framework) — read-only browse first, later full ops.
-- **Search** with saved searches (a filter+sort+group combination saved as a named smart folder).
+- **Saved searches** — a filter+sort+group+search-text combination saved as a named smart folder (the search bar itself is core, in Phase 5 — this is the "save it for later" extra on top).
 - **File integrity / checksum tools** exposed directly to the user (compute & compare SHA-256/MD5 of a file, verify against a known hash).
 - **Encrypted vault** — a password/biometric-gated folder for sensitive files (encrypted at rest via Keystore-wrapped key), separate from the audit-log encryption.
 - **Widgets & shortcuts** — home-screen widget for a favorite folder, app shortcuts for "Scan duplicates", "Open Downloads".
@@ -71,6 +71,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Heuristic fallback** for files MediaStore doesn't tag (older API levels, non-media files, manually-placed files): a maintained table of well-known folder-name → package patterns (`WhatsApp Images`/`WhatsApp Video` → `com.whatsapp`, `Telegram` → `org.telegram.messenger`, `Camera` → device camera, `Screenshots` → system, etc.), stored as data, not hardcoded logic, so it's easy to extend. Every heuristic match is flagged `confidence = HEURISTIC` in the model and shown differently in the UI (e.g. "likely WhatsApp" vs. a plain "WhatsApp" for exact matches) — never presented as certain when it isn't.
   - Resolved to a human label + icon via `PackageManager` when the owning app is still installed; falls back to the raw package name (or "Unknown source") when it's been uninstalled or no match exists.
   - **Known platform limit, not an app bug**: Android's scoped storage blocks any app — including this one — from browsing another app's private directory (`Android/data/<package>/…`, `Android/obb/<package>/…`) since API 30. That's Android protecting other apps' data, not something EFM can (or should try to) bypass, so "source app" is necessarily best-effort outside MediaStore's own tagging + folder heuristics — worth being upfront about rather than promising 100% attribution.
+  - **Per-chat/group attribution (e.g. "which WhatsApp conversation this photo came from") is explicitly out of scope, and not a future-phase item either — it's not technically achievable without root.** WhatsApp (and similar messaging apps) never write that association to the filesystem: every media file for every chat lands in the same shared bucket (`WhatsApp Images`, `WhatsApp Video`, etc.) with a date-encoded filename, not a per-contact/group folder. The actual chat↔media mapping lives only inside WhatsApp's own sandboxed, encrypted database (`Android/data/com.whatsapp/…`), which scoped storage blocks any other app from reading, and which is encrypted in a way a non-rooted app can't decrypt even if it could reach it. What's genuinely available and worth building instead: WhatsApp does preserve a **sent-vs-received** split (a `Sent/` subfolder) and date/time (from the filename or file metadata), so EFM can filter/group/sort a WhatsApp media bucket by that — just not by conversation.
 
 - **Phase 2 — Settings screen shell**
   A real navigable Settings screen (reached from the main app bar), with sections that light up as later phases land rather than placeholders that never get wired up:
@@ -87,8 +88,10 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 4 — Compress / extract**
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
 
-- **Phase 5 — Filter, sort, group-by engine**
-  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag) applied consistently across browse/search/duplicates. Source app is a first-class dimension here, not an afterthought: filter to "files from WhatsApp," group the current folder/search results by owning app (with a distinct "Unknown source" bucket for files with no match), and sort within a group the same as any other. The confidence flag from Phase 1's index (exact `OWNER_PACKAGE_NAME` vs. heuristic folder match) carries through to these views so a heuristic grouping is visibly marked as such, not presented with the same certainty as an exact one.
+- **Phase 5 — Filter, sort, group-by engine, and global search**
+  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag, free-text) applied consistently across browse/duplicates/favorites — search is not a bolted-on separate screen, it's the same query spec with its text field filled in, so every filter/sort/group control works identically whether the user got there by browsing or by searching.
+  - **Global free-text search bar**, reachable from anywhere in the app (persistent search icon in the top bar), matching against filename and path substrings from the Room file index — backed by SQLite FTS (Room's `@Fts4`/`Fts5` entity) rather than a `LIKE` scan, so it stays fast as the index grows into the tens of thousands of files. Results respect whatever filters are currently active (e.g. search "invoice" within "PDFs from the last month").
+  - Source app is a first-class filter/group dimension, not an afterthought: filter to "files from WhatsApp," group the current results by owning app (with a distinct "Unknown source" bucket), sort within a group like any other. The confidence flag from Phase 1's index (exact `OWNER_PACKAGE_NAME` vs. heuristic folder match) carries through to these views so a heuristic grouping is visibly marked as such, not presented with the same certainty as an exact one.
 
 - **Phase 6 — Duplicate & identical-file finder**
   Two-stage: cheap pre-filter (file size, then partial/head hash) → full SHA-256 streaming hash only on remaining candidates, to stay fast on large volumes. Cross-extension identical-content detection (hash content, ignore name/extension). Background via WorkManager with progress + cancel; results grouped for bulk review/delete.
