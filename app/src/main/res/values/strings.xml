@@ -53,4 +53,30 @@
     <string name="info_button_content_description">More information</string>
     <string name="learn_more">Learn more</string>
     <string name="close">Close</string>
+
+    <string name="create_entry_title">Create new</string>
+    <string name="create_entry_folder">Folder</string>
+    <string name="create_entry_file">File</string>
+    <string name="create_entry_confirm">Create</string>
+
+    <string name="rename_title">Rename</string>
+    <string name="rename_confirm">Rename</string>
+
+    <string name="delete_confirm_title">Delete?</string>
+    <string name="delete_confirm_message">Delete %d item(s)? You can undo this right after.</string>
+    <string name="delete_confirm_button">Delete</string>
+    <string name="delete_undo_message">Item(s) deleted</string>
+    <string name="undo">Undo</string>
+
+    <string name="operation_failed">Something went wrong. Please try again.</string>
+
+    <string name="selection_clear">Clear selection</string>
+    <string name="selection_count">%d selected</string>
+    <string name="action_move">Move</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_delete">Delete</string>
+
+    <string name="picker_title_move">Move to…</string>
+    <string name="picker_title_copy">Copy to…</string>
+    <string name="picker_choose_folder">Choose this folder</string>
 </resources>

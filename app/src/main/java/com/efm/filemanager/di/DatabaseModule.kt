@@ -2,8 +2,10 @@ package com.efm.filemanager.di
 
 import android.content.Context
 import androidx.room.Room
+import com.efm.filemanager.data.audit.AuditEventDao
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileEntryDao
+import com.efm.filemanager.data.trash.TrashedFileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,8 +20,19 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): EfmDatabase = Room.databaseBuilder(context, EfmDatabase::class.java, "efm.db").build()
+    ): EfmDatabase =
+        Room.databaseBuilder(context, EfmDatabase::class.java, "efm.db")
+            // Pre-1.0, no real user data to preserve across a schema change yet --
+            // proper migrations start once this app actually ships.
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     fun provideFileEntryDao(database: EfmDatabase): FileEntryDao = database.fileEntryDao()
+
+    @Provides
+    fun provideAuditEventDao(database: EfmDatabase): AuditEventDao = database.auditEventDao()
+
+    @Provides
+    fun provideTrashedFileDao(database: EfmDatabase): TrashedFileDao = database.trashedFileDao()
 }

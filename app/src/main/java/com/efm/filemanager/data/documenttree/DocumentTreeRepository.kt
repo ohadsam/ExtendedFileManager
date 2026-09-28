@@ -47,7 +47,9 @@ class DocumentTreeRepository
                 // UnsupportedOperationException -- easy mistake since both factories compile fine.
                 val parentDocument = DocumentFile.fromTreeUri(context, parentUri) ?: return@withContext emptyList()
                 val parentFolderName = parentDocument.name
-                parentDocument.listFiles().mapNotNull { child -> child.toEntity(parentUri, parentFolderName) }
+                parentDocument.listFiles()
+                    .filterNot { it.name == TRASH_FOLDER_NAME }
+                    .mapNotNull { child -> child.toEntity(parentUri, parentFolderName) }
             }
 
         private fun DocumentFile.toEntity(

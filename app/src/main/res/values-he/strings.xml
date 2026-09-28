@@ -53,4 +53,30 @@
     <string name="info_button_content_description">מידע נוסף</string>
     <string name="learn_more">קרא עוד</string>
     <string name="close">סגור</string>
+
+    <string name="create_entry_title">יצירה חדשה</string>
+    <string name="create_entry_folder">תיקייה</string>
+    <string name="create_entry_file">קובץ</string>
+    <string name="create_entry_confirm">צור</string>
+
+    <string name="rename_title">שינוי שם</string>
+    <string name="rename_confirm">שנה שם</string>
+
+    <string name="delete_confirm_title">למחוק?</string>
+    <string name="delete_confirm_message">למחוק %d פריטים? ניתן לבטל מיד לאחר מכן.</string>
+    <string name="delete_confirm_button">מחק</string>
+    <string name="delete_undo_message">הפריטים נמחקו</string>
+    <string name="undo">בטל</string>
+
+    <string name="operation_failed">משהו השתבש. נסה שוב.</string>
+
+    <string name="selection_clear">נקה בחירה</string>
+    <string name="selection_count">%d נבחרו</string>
+    <string name="action_move">העבר</string>
+    <string name="action_copy">העתק</string>
+    <string name="action_delete">מחק</string>
+
+    <string name="picker_title_move">העבר אל…</string>
+    <string name="picker_title_copy">העתק אל…</string>
+    <string name="picker_choose_folder">בחר תיקייה זו</string>
 </resources>

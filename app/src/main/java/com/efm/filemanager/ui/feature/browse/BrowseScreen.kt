@@ -19,6 +19,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DriveFileMove
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.InsertDriveFile
@@ -28,14 +34,20 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +65,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
+import com.efm.filemanager.ui.components.CreateEntryDialog
+import com.efm.filemanager.ui.components.NewEntryType
+import com.efm.filemanager.ui.components.TextInputDialog
 
 @Composable
 fun BrowseScreen(
@@ -60,38 +76,90 @@ fun BrowseScreen(
     viewModel: BrowseViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val pickerState by viewModel.pickerState.collectAsStateWithLifecycle()
     val treePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
             if (uri != null) viewModel.onTreeGranted(uri)
         }
     var sortMenuExpanded by remember { mutableStateOf(false) }
     val selectedUris = remember { mutableStateListOf<Uri>() }
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    val selectedEntries = uiState.files.filter { selectedUris.contains(it.uri) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val undoDeleteMessage = stringResource(R.string.delete_undo_message)
+    val undoLabel = stringResource(R.string.undo)
+    val operationFailedMessage = stringResource(R.string.operation_failed)
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is BrowseEvent.UndoDelete -> {
+                    val result =
+                        snackbarHostState.showSnackbar(
+                            message = undoDeleteMessage,
+                            actionLabel = undoLabel,
+                            duration = SnackbarDuration.Short,
+                        )
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete(event.trashedFileIds)
+                }
+                BrowseEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
-                    }
-                },
-                title = {
-                    BreadcrumbBar(
-                        breadcrumbs = uiState.breadcrumbs,
-                        onCrumbClick = viewModel::navigateToBreadcrumb,
-                    )
-                },
-                actions = {
-                    Box {
-                        IconButton(onClick = { sortMenuExpanded = true }) {
-                            Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.sort_menu))
+            if (selectedUris.isNotEmpty()) {
+                SelectionTopAppBar(
+                    selectedCount = selectedUris.size,
+                    canRename = selectedUris.size == 1,
+                    onClose = { selectedUris.clear() },
+                    onRename = { showRenameDialog = true },
+                    onMove = {
+                        viewModel.openMovePicker(selectedEntries)
+                        selectedUris.clear()
+                    },
+                    onCopy = {
+                        viewModel.openCopyPicker(selectedEntries)
+                        selectedUris.clear()
+                    },
+                    onDelete = { showDeleteConfirm = true },
+                )
+            } else {
+                TopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = onOpenDrawer) {
+                            Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
                         }
-                        // Stub: the menu's grouping/subheadings are real, but switching sort
-                        // order isn't wired up until Phase 5's filter/sort/group engine lands.
-                        SortDropdownMenu(expanded = sortMenuExpanded, onDismiss = { sortMenuExpanded = false })
-                    }
-                },
-            )
+                    },
+                    title = {
+                        BreadcrumbBar(
+                            breadcrumbs = uiState.breadcrumbs,
+                            onCrumbClick = viewModel::navigateToBreadcrumb,
+                        )
+                    },
+                    actions = {
+                        Box {
+                            IconButton(onClick = { sortMenuExpanded = true }) {
+                                Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.sort_menu))
+                            }
+                            // Stub: the menu's grouping/subheadings are real, but switching sort
+                            // order isn't wired up until Phase 5's filter/sort/group engine lands.
+                            SortDropdownMenu(expanded = sortMenuExpanded, onDismiss = { sortMenuExpanded = false })
+                        }
+                    },
+                )
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            if (uiState.hasAccess && selectedUris.isEmpty()) {
+                FloatingActionButton(onClick = { showCreateDialog = true }) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.create_entry_title))
+                }
+            }
         },
     ) { innerPadding ->
         when {
@@ -118,6 +186,58 @@ fun BrowseScreen(
                 )
         }
     }
+
+    if (showCreateDialog) {
+        CreateEntryDialog(
+            onConfirm = { name, type ->
+                when (type) {
+                    NewEntryType.FOLDER -> viewModel.createFolder(name)
+                    NewEntryType.FILE -> viewModel.createFile(name)
+                }
+                showCreateDialog = false
+            },
+            onDismiss = { showCreateDialog = false },
+        )
+    }
+
+    val renameTarget = selectedEntries.firstOrNull()
+    if (showRenameDialog && renameTarget != null) {
+        TextInputDialog(
+            title = stringResource(R.string.rename_title),
+            confirmLabel = stringResource(R.string.rename_confirm),
+            initialValue = renameTarget.name,
+            onConfirm = { newName ->
+                viewModel.rename(renameTarget, newName)
+                selectedUris.clear()
+                showRenameDialog = false
+            },
+            onDismiss = { showRenameDialog = false },
+        )
+    }
+
+    if (showDeleteConfirm) {
+        ConfirmDangerousActionDialog(
+            title = stringResource(R.string.delete_confirm_title),
+            message = stringResource(R.string.delete_confirm_message, selectedEntries.size),
+            confirmLabel = stringResource(R.string.delete_confirm_button),
+            onConfirm = {
+                viewModel.deleteEntries(selectedEntries)
+                selectedUris.clear()
+                showDeleteConfirm = false
+            },
+            onDismiss = { showDeleteConfirm = false },
+        )
+    }
+
+    if (pickerState.visible) {
+        DestinationPickerDialog(
+            state = pickerState,
+            onNavigateInto = viewModel::pickerNavigateInto,
+            onNavigateToBreadcrumb = viewModel::pickerNavigateToBreadcrumb,
+            onConfirm = viewModel::confirmPicker,
+            onDismiss = viewModel::dismissPicker,
+        )
+    }
 }
 
 private fun toggleSelection(
@@ -125,6 +245,42 @@ private fun toggleSelection(
     uri: Uri,
 ) {
     if (selected.contains(uri)) selected.remove(uri) else selected.add(uri)
+}
+
+@Composable
+private fun SelectionTopAppBar(
+    selectedCount: Int,
+    canRename: Boolean,
+    onClose: () -> Unit,
+    onRename: () -> Unit,
+    onMove: () -> Unit,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.selection_clear))
+            }
+        },
+        title = { Text(stringResource(R.string.selection_count, selectedCount)) },
+        actions = {
+            if (canRename) {
+                IconButton(onClick = onRename) {
+                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
+                }
+            }
+            IconButton(onClick = onMove) {
+                Icon(Icons.Filled.DriveFileMove, contentDescription = stringResource(R.string.action_move))
+            }
+            IconButton(onClick = onCopy) {
+                Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.action_copy))
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+            }
+        },
+    )
 }
 
 @Composable
