@@ -20,7 +20,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 
 | # | Requirement | Phase |
 |---|---|---|
-| 1 | Core CRUD + compress/extract | 3, 4 |
+| 1 | Core CRUD + compress/extract (incl. "Extract & Replace") | 3, 4 |
 | 2 | Filter / group-by / sort (type, date, source app, ...) + global free-text search | 5 |
 | 3 | Simple, comfortable UI/UX | ongoing, 8 |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
@@ -87,6 +87,10 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 
 - **Phase 4 — Compress / extract**
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
+  Two distinct extract actions, both offered wherever an archive can be extracted:
+  - **Extract** — the plain operation; archive is left in place.
+  - **Extract & Replace** — extracts, and once extraction has fully succeeded (every entry written and verified, not just "started"), deletes the original archive. Never deletes on a partial/failed/cancelled extraction. The delete step reuses Phase 3's confirmation framework and goes to trash rather than a hard delete — same as any other destructive action in the app, so it's undoable like everything else, and it emits the same audit event a manual delete would.
+  Extraction also needs a conflict policy (skip / overwrite / keep-both-rename) for when target files already exist — surfaced once per operation, not per-file, unless the user asks to decide per-file.
 
 - **Phase 5 — Filter, sort, group-by engine, and global search**
   A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag, free-text) applied consistently across browse/duplicates/favorites — search is not a bolted-on separate screen, it's the same query spec with its text field filled in, so every filter/sort/group control works identically whether the user got there by browsing or by searching.
