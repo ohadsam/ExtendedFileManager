@@ -18,21 +18,21 @@ class DocumentTreeAccessManager
     constructor(
         @ApplicationContext private val context: Context,
     ) {
-    fun grantedTreeUris(): List<Uri> =
-        context.contentResolver.persistedUriPermissions
-            .filter { it.isReadPermission }
-            .map { it.uri }
+        fun grantedTreeUris(): List<Uri> =
+            context.contentResolver.persistedUriPermissions
+                .filter { it.isReadPermission }
+                .map { it.uri }
 
-    fun persistAccess(treeUri: Uri) {
-        context.contentResolver.takePersistableUriPermission(
-            treeUri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-        )
-    }
+        fun persistAccess(treeUri: Uri) {
+            context.contentResolver.takePersistableUriPermission(
+                treeUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }
 
-    fun rootLabel(treeUri: Uri): String {
-        val documentId = runCatching { DocumentsContract.getTreeDocumentId(treeUri) }.getOrNull()
-        val label = documentId?.substringAfterLast(':')
-        return label?.ifBlank { null } ?: "Storage"
+        fun rootLabel(treeUri: Uri): String {
+            val documentId = runCatching { DocumentsContract.getTreeDocumentId(treeUri) }.getOrNull()
+            val label = documentId?.substringAfterLast(':')
+            return label?.ifBlank { null } ?: "Storage"
+        }
     }
-}

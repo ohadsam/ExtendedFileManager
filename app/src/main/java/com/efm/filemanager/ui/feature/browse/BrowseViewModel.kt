@@ -34,60 +34,60 @@ class BrowseViewModel
         private val documentTreeAccessManager: DocumentTreeAccessManager,
         private val repository: DocumentTreeRepository,
     ) : ViewModel() {
-    private val _uiState = MutableStateFlow(BrowseUiState())
-    val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
+        private val _uiState = MutableStateFlow(BrowseUiState())
+        val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 
-    private var observeJob: Job? = null
+        private var observeJob: Job? = null
 
-    init {
-        refreshAccessState()
-    }
-
-    fun refreshAccessState() {
-        val granted = documentTreeAccessManager.grantedTreeUris()
-        if (granted.isEmpty()) {
-            _uiState.update { it.copy(hasAccess = false, breadcrumbs = emptyList(), files = emptyList()) }
-            return
+        init {
+            refreshAccessState()
         }
-        _uiState.update { it.copy(hasAccess = true) }
-        if (_uiState.value.breadcrumbs.isEmpty()) {
-            val root = granted.first()
-            navigateTo(BreadcrumbEntry(root, documentTreeAccessManager.rootLabel(root)))
-        }
-    }
 
-    fun onTreeGranted(uri: Uri) {
-        documentTreeAccessManager.persistAccess(uri)
-        _uiState.update { it.copy(breadcrumbs = emptyList()) }
-        refreshAccessState()
-    }
-
-    fun openEntry(entry: FileEntry) {
-        if (!entry.isDirectory) return
-        navigateTo(BreadcrumbEntry(entry.uri, entry.name))
-    }
-
-    fun navigateToBreadcrumb(index: Int) {
-        val breadcrumbs = _uiState.value.breadcrumbs
-        val target = breadcrumbs.getOrNull(index) ?: return
-        _uiState.update { it.copy(breadcrumbs = breadcrumbs.take(index + 1)) }
-        observeFolder(target.uri)
-    }
-
-    private fun navigateTo(entry: BreadcrumbEntry) {
-        _uiState.update { it.copy(breadcrumbs = it.breadcrumbs + entry) }
-        observeFolder(entry.uri)
-    }
-
-    private fun observeFolder(uri: Uri) {
-        observeJob?.cancel()
-        _uiState.update { it.copy(isLoading = true) }
-        observeJob =
-            viewModelScope.launch {
-                launch { repository.refresh(uri) }
-                repository.observeChildren(uri).collect { files ->
-                    _uiState.update { it.copy(files = files, isLoading = false) }
-                }
+        fun refreshAccessState() {
+            val granted = documentTreeAccessManager.grantedTreeUris()
+            if (granted.isEmpty()) {
+                _uiState.update { it.copy(hasAccess = false, breadcrumbs = emptyList(), files = emptyList()) }
+                return
             }
+            _uiState.update { it.copy(hasAccess = true) }
+            if (_uiState.value.breadcrumbs.isEmpty()) {
+                val root = granted.first()
+                navigateTo(BreadcrumbEntry(root, documentTreeAccessManager.rootLabel(root)))
+            }
+        }
+
+        fun onTreeGranted(uri: Uri) {
+            documentTreeAccessManager.persistAccess(uri)
+            _uiState.update { it.copy(breadcrumbs = emptyList()) }
+            refreshAccessState()
+        }
+
+        fun openEntry(entry: FileEntry) {
+            if (!entry.isDirectory) return
+            navigateTo(BreadcrumbEntry(entry.uri, entry.name))
+        }
+
+        fun navigateToBreadcrumb(index: Int) {
+            val breadcrumbs = _uiState.value.breadcrumbs
+            val target = breadcrumbs.getOrNull(index) ?: return
+            _uiState.update { it.copy(breadcrumbs = breadcrumbs.take(index + 1)) }
+            observeFolder(target.uri)
+        }
+
+        private fun navigateTo(entry: BreadcrumbEntry) {
+            _uiState.update { it.copy(breadcrumbs = it.breadcrumbs + entry) }
+            observeFolder(entry.uri)
+        }
+
+        private fun observeFolder(uri: Uri) {
+            observeJob?.cancel()
+            _uiState.update { it.copy(isLoading = true) }
+            observeJob =
+                viewModelScope.launch {
+                    launch { repository.refresh(uri) }
+                    repository.observeChildren(uri).collect { files ->
+                        _uiState.update { it.copy(files = files, isLoading = false) }
+                    }
+                }
+        }
     }
-}
