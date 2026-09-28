@@ -10,17 +10,19 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val LightColors = lightColorScheme(
-    primary = Primary40,
-    secondary = Secondary40,
-    error = Error40,
-)
+private val LightColors =
+    lightColorScheme(
+        primary = Primary40,
+        secondary = Secondary40,
+        error = Error40,
+    )
 
-private val DarkColors = darkColorScheme(
-    primary = Primary80,
-    secondary = Secondary80,
-    error = Error80,
-)
+private val DarkColors =
+    darkColorScheme(
+        primary = Primary80,
+        secondary = Secondary80,
+        error = Error80,
+    )
 
 @Composable
 fun ExtendedFileManagerTheme(
@@ -28,14 +30,15 @@ fun ExtendedFileManagerTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    val colorScheme =
+        when {
+            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                val context = LocalContext.current
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            }
+            darkTheme -> DarkColors
+            else -> LightColors
         }
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
 
     MaterialTheme(
         colorScheme = colorScheme,
