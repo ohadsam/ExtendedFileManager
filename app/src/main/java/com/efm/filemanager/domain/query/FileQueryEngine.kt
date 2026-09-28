@@ -14,7 +14,7 @@ import com.efm.filemanager.domain.model.SortOrder
 import com.efm.filemanager.domain.model.category
 import java.util.concurrent.TimeUnit
 
-private val ONE_MB = 1024L * 1024L
+private const val ONE_MB = 1024L * 1024L
 
 /** Filters and sorts [files] per [spec] -- the one path both Browse and Search render through. */
 fun QuerySpec.applyTo(files: List<FileEntry>): List<FileEntry> = files.filterBySpec(this).sortedBySpec(this)
