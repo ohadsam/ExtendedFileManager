@@ -84,7 +84,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 17). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
   This phase also introduces the shared preferences repository (DataStore) later phases reuse instead of each inventing their own persistence.
 
-- **Phase 3 — Core CRUD + confirmation framework**
+- **Phase 3 — Core CRUD + confirmation framework** ✅ *(done)*
   Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 13). Undo/trash for delete.
 
 - **Phase 4 — Compress / extract**

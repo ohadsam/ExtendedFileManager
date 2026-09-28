@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.4.0 (2026-09-28)
+
+- Phase 3 — core file operations: create folder/file, rename, move, and copy, all
+  reachable from long-press selection's action bar and a "＋" button for new items.
+  Every mutating action confirms first for anything destructive. Delete is
+  undoable — deleted items move to a hidden per-folder trash instead of being
+  removed outright, and a snackbar offers Undo right after. Moving or copying
+  opens a destination picker that browses the same granted storage tree. Every
+  operation (successful or not) is now logged to an internal audit trail —
+  groundwork for a future audit viewer, not yet user-visible.
+- Roadmap: added a new Phase 16 (Google Drive upload including whole folders,
+  upload-status indicators, bulk upload of a selection, and Share/Send to email,
+  WhatsApp, etc. for one or more files), moving final release hardening to
+  Phase 17.
+
 ## v0.3.0 (2026-09-28)
 
 - Phase 2 — Settings screen: appearance (light/dark/system + Material You dynamic

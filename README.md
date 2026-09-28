@@ -9,11 +9,10 @@ duplicate-file detection, previews, favorites, a full audit trail, and Hebrew/En
 
 ## Status
 
-Phase 0 (project foundation), Phase 1 (core read-only browsing: SAF folder access, Room-backed
-file index, source-app detection, navigation shell), and Phase 2 (Settings screen: appearance,
-language, permissions status, in-app user guide) are done — CI is green end-to-end, including a
-successful `assembleDebug`. Phase 3 (core CRUD + confirmation framework) is next. See
-`docs/PLAN.md` for the full phase list.
+Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settings screen), and
+Phase 3 (core file operations: create/rename/move/copy/delete with confirmation, undo-able trash,
+audit logging) are done — CI is green end-to-end, including a successful `assembleDebug`. Phase 4
+(compress/extract) is next. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 
