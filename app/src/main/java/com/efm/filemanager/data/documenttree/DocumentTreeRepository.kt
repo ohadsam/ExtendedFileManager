@@ -37,7 +37,33 @@ class DocumentTreeRepository
             fileEntryDao.replaceChildren(parentUri.toString(), entries)
         }
 
-        private suspend fun listChildrenFromSaf(parentUri: Uri): List<FileEntryEntity> =
+        /** Resolves a file/folder's parent from the cached index, if it's been listed before. */
+        suspend fun parentUriOf(uri: Uri): Uri? =
+            withContext(Dispatchers.IO) { fileEntryDao.getByUri(uri.toString())?.parentUri?.let(Uri::parse) }
+
+        /**
+         * Walks [folderUri]'s ancestors up through the cached index (each folder's own row was
+         * written when its parent was listed) until it reaches a uri no row exists for -- that's
+         * necessarily a granted tree root, since only children ever get indexed, never the root
+         * itself. Used to rebuild a breadcrumb trail for a location found via search rather than
+         * by browsing down to it.
+         */
+        suspend fun ancestorChain(folderUri: Uri): LocationChain =
+            withContext(Dispatchers.IO) {
+                val chain = mutableListOf<FileEntry>()
+                var currentUri = folderUri.toString()
+                var currentEntity = fileEntryDao.getByUri(currentUri)
+                while (currentEntity != null) {
+                    chain.add(0, currentEntity.toDomain())
+                    currentUri = currentEntity.parentUri
+                    currentEntity = fileEntryDao.getByUri(currentUri)
+                }
+                LocationChain(rootUri = Uri.parse(currentUri), folders = chain)
+            }
+
+        // internal, not private: reused by SearchIndexRepository to walk the whole granted
+        // tree for its recursive search index, instead of duplicating this SAF-listing logic.
+        internal suspend fun listChildrenFromSaf(parentUri: Uri): List<FileEntryEntity> =
             withContext(Dispatchers.IO) {
                 // fromTreeUri (not fromSingleUri) is required here: it's the only factory that
                 // returns a TreeDocumentFile, whose listFiles() actually works for hierarchical

@@ -8,12 +8,14 @@ import com.efm.filemanager.data.trash.TrashedFileDao
 import com.efm.filemanager.data.trash.TrashedFileEntity
 
 @Database(
-    entities = [FileEntryEntity::class, AuditEventEntity::class, TrashedFileEntity::class],
-    version = 2,
+    entities = [FileEntryEntity::class, AuditEventEntity::class, TrashedFileEntity::class, FileEntryFtsEntity::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
     abstract fun fileEntryDao(): FileEntryDao
+
+    abstract fun fileSearchDao(): FileSearchDao
 
     abstract fun auditEventDao(): AuditEventDao
 

@@ -12,6 +12,12 @@ interface FileEntryDao {
     @Query("SELECT * FROM file_entries WHERE parentUri = :parentUri ORDER BY isDirectory DESC, name COLLATE NOCASE ASC")
     fun observeChildren(parentUri: String): Flow<List<FileEntryEntity>>
 
+    @Query("SELECT * FROM file_entries WHERE uri = :uri")
+    suspend fun getByUri(uri: String): FileEntryEntity?
+
+    @Query("SELECT * FROM file_entries WHERE uri IN (:uris)")
+    suspend fun getByUris(uris: List<String>): List<FileEntryEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<FileEntryEntity>)
 

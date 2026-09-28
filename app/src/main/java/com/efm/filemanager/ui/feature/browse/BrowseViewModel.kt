@@ -7,6 +7,7 @@ import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.QuerySpec
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,6 +30,7 @@ data class BrowseUiState(
     val breadcrumbs: List<BreadcrumbEntry> = emptyList(),
     val files: List<FileEntry> = emptyList(),
     val isLoading: Boolean = false,
+    val querySpec: QuerySpec = QuerySpec(),
 )
 
 enum class PickerPurpose {
@@ -97,6 +99,22 @@ class BrowseViewModel
         fun openEntry(entry: FileEntry) {
             if (!entry.isDirectory) return
             navigateTo(BreadcrumbEntry(entry.uri, entry.name))
+        }
+
+        fun updateQuerySpec(spec: QuerySpec) {
+            _uiState.update { it.copy(querySpec = spec) }
+        }
+
+        /** Jumps straight to a location found via search, rebuilding its breadcrumb trail. */
+        fun navigateToLocation(entry: FileEntry) {
+            viewModelScope.launch {
+                val targetFolderUri = if (entry.isDirectory) entry.uri else (repository.parentUriOf(entry.uri) ?: return@launch)
+                val chain = repository.ancestorChain(targetFolderUri)
+                val rootCrumb = BreadcrumbEntry(chain.rootUri, documentTreeAccessManager.rootLabel(chain.rootUri))
+                val folderCrumbs = chain.folders.map { folder -> BreadcrumbEntry(folder.uri, folder.name) }
+                _uiState.update { it.copy(breadcrumbs = listOf(rootCrumb) + folderCrumbs) }
+                observeFolder(targetFolderUri)
+            }
         }
 
         fun navigateToBreadcrumb(index: Int) {

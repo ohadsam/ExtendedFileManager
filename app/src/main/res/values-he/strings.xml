@@ -16,6 +16,55 @@
     <string name="sort_order_ascending">עולה</string>
     <string name="sort_order_descending">יורד</string>
 
+    <string name="group_section_title">קבץ לפי</string>
+    <string name="group_none">ללא</string>
+    <string name="group_by_type">סוג</string>
+    <string name="group_by_source_app">אפליקציית מקור</string>
+    <string name="group_by_date">תאריך שינוי</string>
+
+    <string name="filter_menu">סינון</string>
+    <string name="filter_section_show">הצג</string>
+    <string name="filter_show_all">הכול</string>
+    <string name="filter_show_files">קבצים בלבד</string>
+    <string name="filter_show_folders">תיקיות בלבד</string>
+    <string name="filter_section_category">קטגוריה</string>
+    <string name="category_all">כל הקטגוריות</string>
+    <string name="category_image">תמונות</string>
+    <string name="category_video">סרטונים</string>
+    <string name="category_audio">אודיו</string>
+    <string name="category_document">מסמכים</string>
+    <string name="category_archive">ארכיונים</string>
+    <string name="category_apk">אפליקציות</string>
+    <string name="category_folder">תיקיות</string>
+    <string name="category_other">אחר</string>
+    <string name="filter_section_size">גודל</string>
+    <string name="size_any">כל גודל</string>
+    <string name="size_under_1mb">פחות מ-1MB</string>
+    <string name="size_1_10mb">1-10MB</string>
+    <string name="size_10_100mb">10-100MB</string>
+    <string name="size_over_100mb">מעל 100MB</string>
+    <string name="filter_section_date">תאריך שינוי</string>
+    <string name="date_any">בכל זמן</string>
+    <string name="date_today">היום</string>
+    <string name="date_last_7_days">7 הימים האחרונים</string>
+    <string name="date_last_30_days">30 הימים האחרונים</string>
+    <string name="date_older_30_days">לפני יותר מ-30 יום</string>
+    <string name="filter_clear">נקה סינונים</string>
+
+    <string name="date_bucket_today">היום</string>
+    <string name="date_bucket_this_week">השבוע</string>
+    <string name="date_bucket_this_month">החודש</string>
+    <string name="date_bucket_older">ישן יותר</string>
+    <string name="source_app_unknown">מקור לא ידוע</string>
+
+    <string name="no_matches">אין קבצים התואמים לסינון</string>
+
+    <string name="search_icon">חיפוש</string>
+    <string name="search_hint">חיפוש קבצים</string>
+    <string name="search_indexing">מאנדקס את הקבצים שלך…</string>
+    <string name="search_empty_prompt">הקלד כדי לחפש בכל מה שהוענקה לך גישה אליו</string>
+    <string name="search_no_results">לא נמצאו תוצאות</string>
+
     <string name="grant_access_title">הענקת גישה לתיקייה</string>
     <string name="grant_access_body">בחר תיקייה כדי לאפשר למנהל הקבצים המתקדם לעיין בה. תוכל להעניק גישה לתיקיות נוספות בהמשך.</string>
     <string name="grant_access_button">בחר תיקייה</string>

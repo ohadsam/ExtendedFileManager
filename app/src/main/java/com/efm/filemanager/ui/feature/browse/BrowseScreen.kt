@@ -3,22 +3,14 @@ package com.efm.filemanager.ui.feature.browse
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -35,19 +27,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.query.groupResult
+import com.efm.filemanager.ui.components.GroupedFileList
 
 @Composable
 fun BrowseScreen(
     onOpenDrawer: () -> Unit,
+    onOpenSearch: () -> Unit,
     viewModel: BrowseViewModel = hiltViewModel(),
     archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
@@ -70,10 +63,14 @@ fun BrowseScreen(
     Scaffold(
         topBar = {
             BrowseTopBar(
-                breadcrumbs = uiState.breadcrumbs,
-                selectionBarState = selectionBarState,
-                onOpenDrawer = onOpenDrawer,
-                onNavigateToBreadcrumb = viewModel::navigateToBreadcrumb,
+                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec),
+                actions =
+                    BrowseTopBarActions(
+                        onOpenDrawer = onOpenDrawer,
+                        onNavigateToBreadcrumb = viewModel::navigateToBreadcrumb,
+                        onQuerySpecChanged = viewModel::updateQuerySpec,
+                        onOpenSearch = onOpenSearch,
+                    ),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -172,83 +169,21 @@ private fun BrowseBody(
     modifier: Modifier = Modifier,
     onGrantClick: () -> Unit,
 ) {
+    val groups = remember(uiState.files, uiState.querySpec) { uiState.querySpec.groupResult(uiState.files) }
     when {
         !uiState.hasAccess -> GrantAccessEmptyState(modifier = modifier, onGrantClick = onGrantClick)
         uiState.isLoading && uiState.files.isEmpty() -> LoadingState(modifier)
         uiState.files.isEmpty() -> EmptyFolderState(modifier)
+        groups.sumOf { it.files.size } == 0 -> NoMatchesState(modifier)
         else ->
-            FileList(
+            GroupedFileList(
                 modifier = modifier,
-                files = uiState.files,
+                groups = groups,
                 selectedUris = selectedUris,
                 onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel) },
                 onEntryLongClick = { entry -> toggleSelection(selectedUris, entry.uri) },
             )
     }
-}
-
-@Composable
-private fun FileList(
-    modifier: Modifier = Modifier,
-    files: List<FileEntry>,
-    selectedUris: List<Uri>,
-    onEntryClick: (FileEntry) -> Unit,
-    onEntryLongClick: (FileEntry) -> Unit,
-) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(files, key = { it.uri.toString() }) { entry ->
-            FileRow(
-                entry = entry,
-                isSelected = selectedUris.contains(entry.uri),
-                onClick = { onEntryClick(entry) },
-                onLongClick = { onEntryLongClick(entry) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun FileRow(
-    entry: FileEntry,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(backgroundColor)
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = if (entry.isDirectory) Icons.Filled.Folder else Icons.Filled.InsertDriveFile,
-            contentDescription = null,
-            modifier = Modifier.padding(end = 16.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = entry.name,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = fileMetaLabel(entry),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-private fun fileMetaLabel(entry: FileEntry): String {
-    val dateLabel = formatDate(entry.lastModified)
-    if (entry.isDirectory) return dateLabel
-    return "${formatFileSize(entry.size)} • $dateLabel"
 }
 
 @Composable
@@ -288,5 +223,12 @@ private fun LoadingState(modifier: Modifier = Modifier) {
 private fun EmptyFolderState(modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(stringResource(R.string.folder_empty))
+    }
+}
+
+@Composable
+private fun NoMatchesState(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(stringResource(R.string.no_matches))
     }
 }

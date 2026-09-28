@@ -22,3 +22,5 @@ internal fun FileEntryEntity.toSourceApp(): SourceApp? {
     val confidence = sourceConfidence?.let { runCatching { SourceConfidence.valueOf(it) }.getOrNull() }
     return confidence?.let { SourceApp(packageName, it) }
 }
+
+fun FileEntryEntity.toFtsEntity(): FileEntryFtsEntity = FileEntryFtsEntity(uri = uri, name = name)

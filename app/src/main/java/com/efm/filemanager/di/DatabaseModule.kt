@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.efm.filemanager.data.audit.AuditEventDao
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileEntryDao
+import com.efm.filemanager.data.local.FileSearchDao
 import com.efm.filemanager.data.trash.TrashedFileDao
 import dagger.Module
 import dagger.Provides
@@ -29,6 +30,9 @@ object DatabaseModule {
 
     @Provides
     fun provideFileEntryDao(database: EfmDatabase): FileEntryDao = database.fileEntryDao()
+
+    @Provides
+    fun provideFileSearchDao(database: EfmDatabase): FileSearchDao = database.fileSearchDao()
 
     @Provides
     fun provideAuditEventDao(database: EfmDatabase): AuditEventDao = database.auditEventDao()

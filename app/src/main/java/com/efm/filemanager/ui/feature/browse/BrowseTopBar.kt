@@ -11,12 +11,13 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.ui.components.query.FilterMenu
+import com.efm.filemanager.ui.components.query.SortGroupMenu
 
 internal fun buildSelectionActions(
     selectedUris: SnapshotStateList<Uri>,
@@ -68,41 +71,56 @@ internal fun buildArchiveActions(
 
 @Composable
 internal fun BrowseTopBar(
-    breadcrumbs: List<BreadcrumbEntry>,
-    selectionBarState: SelectionBarState,
-    onOpenDrawer: () -> Unit,
-    onNavigateToBreadcrumb: (Int) -> Unit,
+    state: BrowseTopBarState,
+    actions: BrowseTopBarActions,
 ) {
-    if (selectionBarState.selectedCount > 0) {
-        SelectionTopAppBar(state = selectionBarState)
+    if (state.selectionBarState.selectedCount > 0) {
+        SelectionTopAppBar(state = state.selectionBarState)
     } else {
-        BrowseNormalTopBar(breadcrumbs = breadcrumbs, onOpenDrawer = onOpenDrawer, onNavigateToBreadcrumb = onNavigateToBreadcrumb)
+        BrowseNormalTopBar(state = state, actions = actions)
     }
 }
 
 @Composable
 private fun BrowseNormalTopBar(
-    breadcrumbs: List<BreadcrumbEntry>,
-    onOpenDrawer: () -> Unit,
-    onNavigateToBreadcrumb: (Int) -> Unit,
+    state: BrowseTopBarState,
+    actions: BrowseTopBarActions,
 ) {
     var sortMenuExpanded by remember { mutableStateOf(false) }
+    var filterMenuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = onOpenDrawer) {
+            IconButton(onClick = actions.onOpenDrawer) {
                 Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
             }
         },
-        title = { BreadcrumbBar(breadcrumbs = breadcrumbs, onCrumbClick = onNavigateToBreadcrumb) },
+        title = { BreadcrumbBar(breadcrumbs = state.breadcrumbs, onCrumbClick = actions.onNavigateToBreadcrumb) },
         actions = {
+            IconButton(onClick = actions.onOpenSearch) {
+                Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_icon))
+            }
+            Box {
+                IconButton(onClick = { filterMenuExpanded = true }) {
+                    Icon(Icons.Filled.FilterList, contentDescription = stringResource(R.string.filter_menu))
+                }
+                FilterMenu(
+                    expanded = filterMenuExpanded,
+                    spec = state.querySpec,
+                    onSpecChanged = actions.onQuerySpecChanged,
+                    onDismiss = { filterMenuExpanded = false },
+                )
+            }
             Box {
                 IconButton(onClick = { sortMenuExpanded = true }) {
                     Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.sort_menu))
                 }
-                // Stub: the menu's grouping/subheadings are real, but switching sort
-                // order isn't wired up until Phase 5's filter/sort/group engine lands.
-                SortDropdownMenu(expanded = sortMenuExpanded, onDismiss = { sortMenuExpanded = false })
+                SortGroupMenu(
+                    expanded = sortMenuExpanded,
+                    spec = state.querySpec,
+                    onSpecChanged = actions.onQuerySpecChanged,
+                    onDismiss = { sortMenuExpanded = false },
+                )
             }
         },
     )
@@ -184,33 +202,6 @@ private fun SelectionMoreMenu(
             )
         }
     }
-}
-
-@Composable
-private fun SortDropdownMenu(
-    expanded: Boolean,
-    onDismiss: () -> Unit,
-) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        DropdownMenuSectionHeader(stringResource(R.string.sort_section_sort_by))
-        DropdownMenuItem(text = { Text(stringResource(R.string.sort_by_name)) }, onClick = onDismiss)
-        DropdownMenuItem(text = { Text(stringResource(R.string.sort_by_date)) }, onClick = onDismiss)
-        DropdownMenuItem(text = { Text(stringResource(R.string.sort_by_size)) }, onClick = onDismiss)
-        HorizontalDivider()
-        DropdownMenuSectionHeader(stringResource(R.string.sort_section_order))
-        DropdownMenuItem(text = { Text(stringResource(R.string.sort_order_ascending)) }, onClick = onDismiss)
-        DropdownMenuItem(text = { Text(stringResource(R.string.sort_order_descending)) }, onClick = onDismiss)
-    }
-}
-
-@Composable
-private fun DropdownMenuSectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-    )
 }
 
 @Composable
