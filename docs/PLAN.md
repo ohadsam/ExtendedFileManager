@@ -22,7 +22,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 |---|---|---|
 | 1 | Core CRUD + compress/extract (incl. "Extract & Replace") | 3, 4 |
 | 2 | Filter / group-by / sort (type, date, source app, ...) + global free-text search | 5 |
-| 3 | Simple, comfortable UI/UX | ongoing, 8 |
+| 3 | Simple, comfortable UI/UX (grouped/sorted toolbar dropdowns with subheadings, hamburger nav drawer, long-press context actions) | 1 (shell), ongoing, 8 (polish) |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
 | 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
 | 6 | Performance + security critical | ongoing, 11, 16 |
@@ -66,6 +66,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 
 - **Phase 1 — Core browsing (read-only)** *(in progress)*
   SAF/MediaStore-backed directory listing, permission request flow, breadcrumb navigation, Room-backed file index cache for performance. No mutations yet.
+  Also establishes the app's navigation shell, since retrofitting navigation onto every screen later is far more work than building it once now: a hamburger-driven `ModalNavigationDrawer` (Browse/Favorites/Duplicates/Storage Advisor/Logs/Audit/Settings, each entry added by its owning phase), grouped toolbar dropdowns with subheadings instead of flat icon rows, and a long-press-to-select contextual-action pattern on file/folder rows (most of its actions are stubs until their owning phase lands — rename/delete in Phase 3, extract in Phase 4, tag/favorite/lock/notes in Phase 9, etc.). See `CLAUDE.md`'s "Navigation & toolbar conventions" for the full rules every later phase follows.
   The index entity captures **source-app metadata** at index time, not bolted on later, since every later filter/group/sort feature (Phase 5) depends on it existing per-file:
   - **Exact**, from `MediaStore.MediaColumns.OWNER_PACKAGE_NAME` (API 29+, populated for media/downloads MediaStore indexes automatically by the OS) — this is the only source that's actually authoritative.
   - **Heuristic fallback** for files MediaStore doesn't tag (older API levels, non-media files, manually-placed files): a maintained table of well-known folder-name → package patterns (`WhatsApp Images`/`WhatsApp Video` → `com.whatsapp`, `Telegram` → `org.telegram.messenger`, `Camera` → device camera, `Screenshots` → system, etc.), stored as data, not hardcoded logic, so it's easy to extend. Every heuristic match is flagged `confidence = HEURISTIC` in the model and shown differently in the UI (e.g. "likely WhatsApp" vs. a plain "WhatsApp" for exact matches) — never presented as certain when it isn't.
@@ -105,7 +106,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   Images (Coil), video/audio (Media3/ExoPlayer), PDF (PdfRenderer). Inline preview pane + full-screen viewer, works from browse, search, and duplicate-review screens.
 
 - **Phase 8 — View modes & UI polish**
-  List / grid / compact / detailed density options, remembered per-folder or globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3).
+  List / grid / compact / detailed density options, remembered per-folder or globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3) — including auditing every screen built so far against the navigation drawer / toolbar-dropdown / long-press conventions from Phase 1, since a real-world screen doesn't always end up following its own pattern perfectly on the first pass.
 
 - **Phase 9 — Per-file metadata: favorites, tags, lock, notes**
   One Room feature, not four, since all of these are the same shape (metadata attached to a file/folder, independent of its content) and share one "file details" UI surface:

@@ -26,10 +26,38 @@ com.efm.filemanager/
 
 ## Conventions
 
-- Every mutating file operation goes through the shared confirmation component (from Phase 2 onward) and emits an audit event — no screen should call raw file-system mutations directly.
+- Every mutating file operation goes through the shared confirmation component (from Phase 3 onward) and emits an audit event — no screen should call raw file-system mutations directly.
 - Prefer Storage Access Framework / MediaStore over `MANAGE_EXTERNAL_STORAGE`; only request the broad permission where a feature genuinely can't work without it, with an in-app explanation.
-- No feature reads/writes outside the user's selected scope without going through the protected-path check (Phase 9).
-- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 14 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
+- No feature reads/writes outside the user's selected scope without going through the protected-path check (Phase 11).
+- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 16 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
+
+### Navigation & toolbar conventions
+
+Established in Phase 1 (the app shell) and followed by every screen from then on, not something
+Phase 8's polish pass retrofits:
+
+- **Toolbar actions are grouped into dropdowns, not a flat icon row.** Once a top bar or bottom bar
+  would carry more than ~3-4 actions, group them behind a labeled dropdown (Material3
+  `DropdownMenu`) rather than growing the row — a flat row of many icons is exactly the mobile
+  horizontal-overflow trap `system_diagram`'s own toolbar learned the hard way. Each dropdown has
+  **subheadings** separating its groups (e.g. a sort dropdown: "Sort by" section, then "Order"
+  section) via `DropdownMenu`'s non-clickable header text, and groups/items are ordered by how
+  often they're used, not alphabetically.
+- **One hamburger-driven navigation drawer** (`ModalNavigationDrawer`, ☰ icon in the main top bar)
+  is the app's primary cross-feature navigation — Browse, Favorites, Duplicates, Storage Advisor,
+  Logs, Audit, Settings — introduced in Phase 1 as part of the app shell, with each later phase
+  adding its own entry as it lands rather than the drawer being redesigned per phase.
+- **Long-press opens contextual actions**, the mobile equivalent of a desktop right-click, on every
+  file/folder row/tile wherever one is shown (browse, search, favorites, duplicate-review, storage
+  advisor). Long-press enters multi-select mode with a contextual action bar (or a `DropdownMenu`
+  anchored at the press point for a single item) exposing whichever actions are relevant to what's
+  selected and already built at that point in the roadmap — rename/delete/move/copy from Phase 3,
+  extract from Phase 4, tag/favorite/lock/notes from Phase 9, etc. Build the interaction shell in
+  Phase 1 even though most actions are still stubs then; wire each real action in as its owning
+  phase lands, rather than deferring the whole pattern.
+- A short tap always does the primary action for that context (open a folder, preview a file);
+  long-press/overflow is exclusively for secondary actions — never make the primary action harder
+  to reach than a secondary one.
 
 ## Sandbox constraint (important for future sessions)
 
