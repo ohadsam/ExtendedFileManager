@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.6.0 (2026-09-28)
+
+- Phase 5 — filter, sort, group-by, and global search: a single reusable
+  filter/sort/group spec now drives both browsing and search, so every
+  control works the same way wherever you got to a file list. Browse's sort
+  menu is fully wired (name/size/date, ascending/descending), with a new
+  group-by (type/source app/date modified) and a filter menu (files vs.
+  folders, category, size range, date range) alongside it. A new search
+  icon opens a dedicated search screen backed by a local full-text index,
+  so repeated searches stay fast; tapping a result jumps straight to it in
+  Browse with its breadcrumb trail rebuilt automatically.
+- Roadmap: added Phase 18 (a Statistics screen with storage/file/operations
+  widgets, each one drilling down into the underlying files), pushing
+  release hardening to Phase 19.
+
 ## v0.5.0 (2026-09-28)
 
 - Phase 4 — compress / extract: zip a selection of files and/or whole folders
