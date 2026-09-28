@@ -25,7 +25,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | 3 | Simple, comfortable UI/UX (grouped/sorted toolbar dropdowns with subheadings, hamburger nav drawer, long-press context actions) | 1 (shell), ongoing, 8 (polish) |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
 | 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
-| 6 | Performance + security critical | ongoing, 11, 16 |
+| 6 | Performance + security critical | ongoing, 11, 17 |
 | 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 12 (view entry point in Phase 2's Settings shell) |
 | 8 | Full audit mechanism with viewing | 13 |
 | 9 | Confirm/warn before file operations | 3 (built into every mutating action) |
@@ -36,20 +36,20 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | 14 | Responsive to resolutions + Hebrew/English (RTL) | 14 (theme/language toggle lands in Phase 2's shell; full RTL polish in 14) |
 | 15 | Extra capabilities — see below | woven throughout |
 | 16 | Version management, seamless upgrade, What's New | 15 |
-| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 16, ongoing |
+| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 17, ongoing |
 | 18 | Skills/CLAUDE.md for token efficiency + model-tier guidance | 0 |
-| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 16 |
+| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 17 |
 | 20 | Settings screen (display, permission status, logs, color/theme, language) | 2 (shell), then wired up by 8, 11, 12, 14 |
 | 21 | Storage optimization advisor: unused-large-file, junk, and temp-file recommendations, multi-select bulk actions, staged-for-deletion (review after 30 days) | 10 |
-| 22 | In-app HTML user guide + per-screen info button, kept in sync every batch | 2 (shell + baseline content), grown every phase, sync enforced by 16's release-checklist |
+| 22 | In-app HTML user guide + per-screen info button, kept in sync every batch | 2 (shell + baseline content), grown every phase, sync enforced by 17's release-checklist |
+| 23 | Google Drive upload (incl. whole-subtree), upload-status markers, bulk upload of the current selection, and Share/Send (email, WhatsApp, etc.) for one or more files | 16 |
 
 ## Suggested additional capabilities (item 15)
 
 - **Batch/queue operations** with progress, pause/cancel, and a single confirmation for multi-file actions instead of one dialog per file.
 - **Undo** for the last destructive action where technically possible (e.g., move-to-trash instead of hard delete, with a "Recently Deleted" area purged after N days).
 - **Storage analyzer** — treemap/sunburst view of what's eating space, drill into large files/folders (complements Phase 10's recommendations with an exploratory view).
-- **Quick actions / share sheet integration** (Android share target) so other apps can send files to EFM, and EFM can share out.
-- **Cloud/network locations** (SAF-based access to Drive/Dropbox/SMB providers already exposed via Android's document provider framework) — read-only browse first, later full ops.
+- *(Share-sheet integration and cloud/Drive access, originally suggested here, were concrete enough to become their own phase — see Phase 16 below.)*
 - **Saved searches** — a filter+sort+group+search-text combination saved as a named smart folder (the search bar itself is core, in Phase 5 — this is the "save it for later" extra on top).
 - **File integrity / checksum tools** exposed directly to the user (compute & compare SHA-256/MD5 of a file, verify against a known hash).
 - **Encrypted vault** — a password/biometric-gated folder for sensitive files (encrypted at rest via Keystore-wrapped key), separate from the audit-log encryption.
@@ -81,7 +81,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Logs** — entry point to the log viewer; the viewer itself is built in Phase 12, this phase reserves the menu item and wires navigation once it exists.
   - **Appearance** — light/dark/system + Material You dynamic color toggle (this is small enough to implement fully now, on top of the theme already in `ui/theme/Theme.kt`), persisted via a DataStore-backed preferences repository.
   - **Language** — Hebrew/English in-app override using `AppCompatDelegate`'s per-app language API (works standalone now; Phase 14 adds full RTL layout verification across the rest of the app on top of it).
-  - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 16). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
+  - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 17). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
   This phase also introduces the shared preferences repository (DataStore) later phases reuse instead of each inventing their own persistence.
 
 - **Phase 3 — Core CRUD + confirmation framework**
@@ -139,15 +139,22 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 15 — Versioning & updates**
   In-app update checker against GitHub Releases (APK signature verification before install prompt) or Play Core In-App Update API if/when published to Play; versioned "What's New" sheet shown once per upgrade, sourced from a changelog file.
 
-- **Phase 16 — Test & release hardening**
+- **Phase 16 — Cloud upload & sharing**
+  Builds directly on Phase 3's file-operation plumbing rather than inventing a parallel upload pipeline:
+  - **Google Drive upload** — Google Drive already exposes itself as a Storage Access Framework `DocumentsProvider`, so "upload to Drive" is the user granting a Drive folder the same way they grant any local folder (Phase 1's tree picker), after which it's just a destination for Phase 3's existing `copy()` — no OAuth flow, no Google Drive REST API client, no separate credential storage needed to get real uploads working. **Whole-subtree upload** falls out of this for free: Phase 3's `copyRecursively` already walks folders, so uploading a folder uploads everything under it, preserving structure.
+  - **Upload-status markers** — a small badge on the file row (and in the selection action bar while a transfer is active) showing queued/uploading/done/failed, backed by WorkManager for large transfers so they survive the app leaving the foreground (the same background-job pattern Phase 6 establishes for duplicate scanning, reused rather than reinvented). Never silently fails: a failed upload stays visibly marked until dismissed or retried.
+  - **Bulk upload of the current selection** — not a new selection mechanism: Phase 3's multi-select + destination-picker flow already generalizes to "pick N items, pick a Drive-backed folder, copy them all." This phase's job is surfacing "Upload to Drive" as an explicit action alongside Move/Copy in the selection action bar.
+  - **Share / Send** (email, WhatsApp, or any other installed app) for one or more selected files via Android's native share sheet (`ACTION_SEND` / `ACTION_SEND_MULTIPLE`), wired to the same multi-select action bar. SAF document URIs are already `content://` and directly shareable with a read-permission grant on the share `Intent` — no separate `FileProvider` needed for files already under a tree the user granted EFM.
+
+- **Phase 17 — Test & release hardening**
   Coverage gates (Jacoco) on domain/data layers, security test suite (encryption round-trip, protected-path denial, path traversal), performance benchmarks (hash throughput, duplicate-scan on large trees, cold-start time via Macrobenchmark), Compose UI + Espresso E2E suite on an emulator matrix in CI, first tagged release via the `release-checklist` skill (multi-persona review: system architect / UI expert / UX expert / QA architect, version bump, What's New, docs/skills refresh, user guide + info-button sync).
 
-Phases 3–15 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; Storage advisor (10) needs the duplicate-review UI pattern from 6 and the per-file metadata from 9; etc.) stays fixed.
+Phases 3–16 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; Storage advisor (10) needs the duplicate-review UI pattern from 6 and the per-file metadata from 9; cloud upload (16) needs Phase 3's copy/move plumbing and Phase 6's WorkManager pattern; etc.) stays fixed.
 
 ## CI/CD (GitHub Actions), from Phase 0 onward
 
 - `android-ci.yml`: on every push/PR — `assembleDebug`, unit tests (JVM, Robolectric where needed), `ktlint`, `detekt`, Android Lint.
-- `instrumented-tests.yml` (from Phase 16, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
+- `instrumented-tests.yml` (from Phase 17, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
 - `release.yml`: on version tag — signed release build (AAB/APK), changelog extraction, GitHub Release publish.
 - `security.yml`: CodeQL + dependency review, scheduled + on PR.
 

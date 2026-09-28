@@ -29,7 +29,7 @@ com.efm.filemanager/
 - Every mutating file operation goes through the shared confirmation component (from Phase 3 onward) and emits an audit event — no screen should call raw file-system mutations directly.
 - Prefer Storage Access Framework / MediaStore over `MANAGE_EXTERNAL_STORAGE`; only request the broad permission where a feature genuinely can't work without it, with an in-app explanation.
 - No feature reads/writes outside the user's selected scope without going through the protected-path check (Phase 11).
-- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 16 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
+- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 17 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
 
 ### Navigation & toolbar conventions
 
