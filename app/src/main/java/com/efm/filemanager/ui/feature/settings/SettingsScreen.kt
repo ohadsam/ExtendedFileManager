@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.AppearanceMode
+import com.efm.filemanager.ui.components.InfoButton
 
 @Composable
 fun SettingsScreen(
