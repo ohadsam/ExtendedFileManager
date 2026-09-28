@@ -37,14 +37,6 @@ import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
 
-internal data class SelectionBarActions(
-    val onClose: () -> Unit,
-    val onRename: () -> Unit,
-    val onMove: () -> Unit,
-    val onCopy: () -> Unit,
-    val onDelete: () -> Unit,
-)
-
 internal fun buildSelectionActions(
     selectedUris: SnapshotStateList<Uri>,
     selectedEntries: List<FileEntry>,

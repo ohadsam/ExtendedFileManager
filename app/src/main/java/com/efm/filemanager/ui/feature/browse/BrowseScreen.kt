@@ -88,20 +88,21 @@ fun BrowseScreen(
         BrowseBody(
             uiState = uiState,
             selectedUris = selectedUris,
+            viewModel = viewModel,
             modifier = Modifier.padding(innerPadding),
             onGrantClick = { treePickerLauncher.launch(null) },
-            onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel) },
-            onEntryLongClick = { entry -> toggleSelection(selectedUris, entry.uri) },
         )
     }
 
     BrowseDialogs(
         dialog = dialog,
-        onDismissDialog = { dialog = null },
+        onFinished = {
+            dialog = null
+            selectedUris.clear()
+        },
         viewModel = viewModel,
         selectedEntries = selectedEntries,
         pickerState = pickerState,
-        onClearSelection = { selectedUris.clear() },
     )
 }
 
@@ -127,11 +128,10 @@ private fun toggleSelection(
 @Composable
 private fun BrowseBody(
     uiState: BrowseUiState,
-    selectedUris: List<Uri>,
+    selectedUris: SnapshotStateList<Uri>,
+    viewModel: BrowseViewModel,
     modifier: Modifier = Modifier,
     onGrantClick: () -> Unit,
-    onEntryClick: (FileEntry) -> Unit,
-    onEntryLongClick: (FileEntry) -> Unit,
 ) {
     when {
         !uiState.hasAccess -> GrantAccessEmptyState(modifier = modifier, onGrantClick = onGrantClick)
@@ -142,8 +142,8 @@ private fun BrowseBody(
                 modifier = modifier,
                 files = uiState.files,
                 selectedUris = selectedUris,
-                onEntryClick = onEntryClick,
-                onEntryLongClick = onEntryLongClick,
+                onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel) },
+                onEntryLongClick = { entry -> toggleSelection(selectedUris, entry.uri) },
             )
     }
 }

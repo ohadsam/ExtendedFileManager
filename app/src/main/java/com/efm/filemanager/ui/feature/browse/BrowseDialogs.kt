@@ -13,12 +13,6 @@ import com.efm.filemanager.ui.components.CreateEntryDialog
 import com.efm.filemanager.ui.components.NewEntryType
 import com.efm.filemanager.ui.components.TextInputDialog
 
-internal enum class BrowseDialog {
-    CREATE,
-    RENAME,
-    DELETE,
-}
-
 @Composable
 internal fun BrowseSnackbarEffect(
     viewModel: BrowseViewModel,
@@ -46,31 +40,29 @@ internal fun BrowseSnackbarEffect(
     }
 }
 
+/**
+ * [onFinished] both dismisses the active dialog and clears the current selection -- every
+ * confirm handler below needs both, and Create (which has no selection to clear when it's
+ * offered, since the FAB is selection-mode-only) just no-ops on an already-empty clear.
+ */
 @Composable
 internal fun BrowseDialogs(
     dialog: BrowseDialog?,
-    onDismissDialog: () -> Unit,
+    onFinished: () -> Unit,
     viewModel: BrowseViewModel,
     selectedEntries: List<FileEntry>,
     pickerState: PickerUiState,
-    onClearSelection: () -> Unit,
 ) {
     when (dialog) {
         BrowseDialog.CREATE ->
             CreateEntryDialog(
                 onConfirm = { name, type ->
                     createEntry(viewModel, name, type)
-                    onDismissDialog()
+                    onFinished()
                 },
-                onDismiss = onDismissDialog,
+                onDismiss = onFinished,
             )
-        BrowseDialog.RENAME ->
-            RenameDialog(
-                target = selectedEntries.firstOrNull(),
-                viewModel = viewModel,
-                onClearSelection = onClearSelection,
-                onDismissDialog = onDismissDialog,
-            )
+        BrowseDialog.RENAME -> RenameDialog(target = selectedEntries.firstOrNull(), viewModel = viewModel, onFinished = onFinished)
         BrowseDialog.DELETE ->
             ConfirmDangerousActionDialog(
                 title = stringResource(R.string.delete_confirm_title),
@@ -78,10 +70,9 @@ internal fun BrowseDialogs(
                 confirmLabel = stringResource(R.string.delete_confirm_button),
                 onConfirm = {
                     viewModel.deleteEntries(selectedEntries)
-                    onClearSelection()
-                    onDismissDialog()
+                    onFinished()
                 },
-                onDismiss = onDismissDialog,
+                onDismiss = onFinished,
             )
         null -> Unit
     }
@@ -101,8 +92,7 @@ internal fun BrowseDialogs(
 private fun RenameDialog(
     target: FileEntry?,
     viewModel: BrowseViewModel,
-    onClearSelection: () -> Unit,
-    onDismissDialog: () -> Unit,
+    onFinished: () -> Unit,
 ) {
     if (target == null) return
     TextInputDialog(
@@ -111,10 +101,9 @@ private fun RenameDialog(
         initialValue = target.name,
         onConfirm = { newName ->
             viewModel.rename(target, newName)
-            onClearSelection()
-            onDismissDialog()
+            onFinished()
         },
-        onDismiss = onDismissDialog,
+        onDismiss = onFinished,
     )
 }
 
