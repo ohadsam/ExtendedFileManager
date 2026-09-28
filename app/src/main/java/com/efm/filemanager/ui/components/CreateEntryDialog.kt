@@ -18,11 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 
-enum class NewEntryType {
-    FOLDER,
-    FILE,
-}
-
 @Composable
 fun CreateEntryDialog(
     onConfirm: (name: String, type: NewEntryType) -> Unit,

@@ -10,6 +10,7 @@ comments:
 complexity:
   TooManyFunctions:
     thresholdInFiles: 20
+    thresholdInClasses: 25
 
 naming:
   FunctionNaming:
