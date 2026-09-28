@@ -64,7 +64,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 0 — Foundation** ✅ *(done)*
   Gradle/Kotlin/Compose/Hilt/Room skeleton, package structure, `.gitignore`, GitHub Actions CI (build + unit tests + lint/detekt/ktlint on every push), `CLAUDE.md`, this plan, repo-local skills stub. App builds and boots to an empty scaffold screen.
 
-- **Phase 1 — Core browsing (read-only)** *(in progress)*
+- **Phase 1 — Core browsing (read-only)** ✅ *(done)*
   SAF/MediaStore-backed directory listing, permission request flow, breadcrumb navigation, Room-backed file index cache for performance. No mutations yet.
   Also establishes the app's navigation shell, since retrofitting navigation onto every screen later is far more work than building it once now: a hamburger-driven `ModalNavigationDrawer` (Browse/Favorites/Duplicates/Storage Advisor/Logs/Audit/Settings, each entry added by its owning phase), grouped toolbar dropdowns with subheadings instead of flat icon rows, and a long-press-to-select contextual-action pattern on file/folder rows (most of its actions are stubs until their owning phase lands — rename/delete in Phase 3, extract in Phase 4, tag/favorite/lock/notes in Phase 9, etc.). See `CLAUDE.md`'s "Navigation & toolbar conventions" for the full rules every later phase follows.
   The index entity captures **source-app metadata** at index time, not bolted on later, since every later filter/group/sort feature (Phase 5) depends on it existing per-file:

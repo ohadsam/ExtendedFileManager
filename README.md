@@ -9,8 +9,10 @@ duplicate-file detection, previews, favorites, a full audit trail, and Hebrew/En
 
 ## Status
 
-Phase 0 (project foundation) in progress — see `docs/PLAN.md` for the full phase list and what's
-landed so far.
+Phase 0 (project foundation) and Phase 1 (core read-only browsing: SAF folder access, Room-backed
+file index, source-app detection, navigation shell) are done — CI is green end-to-end, including a
+successful `assembleDebug`. Phase 2 (Settings screen) is next. See `docs/PLAN.md` for the full
+phase list.
 
 ## Building
 
