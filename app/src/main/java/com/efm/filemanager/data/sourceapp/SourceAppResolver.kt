@@ -56,7 +56,7 @@ class SourceAppResolver
 
         private fun resolveHeuristic(parentFolderName: String?): SourceApp? {
             val folderName = parentFolderName ?: return null
-            val packageName = SourceAppHeuristics.packageByFolderName[folderName] ?: return null
-            return SourceApp(packageName, SourceConfidence.HEURISTIC)
+            val packageName = SourceAppHeuristics.packageByFolderName[folderName]
+            return packageName?.let { SourceApp(it, SourceConfidence.HEURISTIC) }
         }
     }

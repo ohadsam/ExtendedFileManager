@@ -19,6 +19,6 @@ fun FileEntryEntity.toDomain(): FileEntry =
 
 internal fun FileEntryEntity.toSourceApp(): SourceApp? {
     val packageName = ownerPackageName ?: return null
-    val confidence = sourceConfidence?.let { runCatching { SourceConfidence.valueOf(it) }.getOrNull() } ?: return null
-    return SourceApp(packageName, confidence)
+    val confidence = sourceConfidence?.let { runCatching { SourceConfidence.valueOf(it) }.getOrNull() }
+    return confidence?.let { SourceApp(packageName, it) }
 }
