@@ -9,10 +9,11 @@ duplicate-file detection, previews, favorites, a full audit trail, and Hebrew/En
 
 ## Status
 
-Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settings screen), and
+Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settings screen),
 Phase 3 (core file operations: create/rename/move/copy/delete with confirmation, undo-able trash,
-audit logging) are done — CI is green end-to-end, including a successful `assembleDebug`. Phase 4
-(compress/extract) is next. See `docs/PLAN.md` for the full phase list.
+audit logging), and Phase 4 (compress/extract, with a conflict policy and Extract & Replace) are
+done — CI is green end-to-end, including a successful `assembleDebug`. Phase 5
+(filter/sort/group-by + global search) is next. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

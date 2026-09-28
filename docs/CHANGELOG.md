@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.5.0 (2026-09-28)
+
+- Phase 4 — compress / extract: zip a selection of files and/or whole folders
+  (walked recursively, paths preserved) into a new archive in the current
+  folder, streamed directly against storage without a temp-file copy. Two
+  distinct actions on any selected `.zip`: **Extract** (archive left in place)
+  and **Extract & Replace** (deletes the original archive — to trash, not a
+  hard delete — only once extraction has fully succeeded). A conflict policy
+  (skip / overwrite / keep-both) is chosen once per operation, and a progress
+  dialog with Cancel tracks large archives. Move/Copy/Compress/Extract now
+  live in a grouped "more actions" dropdown on the selection bar, keeping
+  Rename/Delete as direct icons.
+- Roadmap: added Phase 17 (a daily "insights" digest — cleanup
+  recommendations, duplicates, oversized files, unclear file extensions —
+  with a summary notification, an always-reachable screen, actions performable
+  directly on the results, smart incremental scanning that avoids a full
+  rescan every run, and Settings toggles to disable the job and/or the
+  notification), pushing release hardening to Phase 18.
+- Conventions: `CLAUDE.md` and the release-checklist skill now explicitly
+  call for reusing existing repository/component logic instead of
+  duplicating it, keeping files small and single-purpose, and commenting the
+  non-obvious *why* rather than restating self-explanatory code.
+
 ## v0.4.0 (2026-09-28)
 
 - Phase 3 — core file operations: create folder/file, rename, move, and copy, all

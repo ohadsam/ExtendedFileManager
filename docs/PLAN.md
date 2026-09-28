@@ -88,7 +88,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 3 — Core CRUD + confirmation framework** ✅ *(done)*
   Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 13). Undo/trash for delete.
 
-- **Phase 4 — Compress / extract**
+- **Phase 4 — Compress / extract** ✅ *(done)*
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
   Two distinct extract actions, both offered wherever an archive can be extracted:
   - **Extract** — the plain operation; archive is left in place.
