@@ -28,7 +28,13 @@ Not one merged skim. Each persona looks for different things; do all four, in or
    justified and pinned in `gradle/libs.versions.toml` (no stray version strings inline)? Any new
    background work correctly scoped to WorkManager rather than a raw thread/coroutine that dies
    with the process? Flag anything that quietly widens permissions (a new `MANAGE_EXTERNAL_STORAGE`
-   request, a new broad `<uses-permission>`) without an in-app justification screen.
+   request, a new broad `<uses-permission>`) without an in-app justification screen. Also, per
+   `CLAUDE.md`'s conventions: is there new logic that duplicates something an existing
+   repository/component already does (should it be promoted to `internal` and reused instead)? Is
+   any file/function large enough that it's doing more than one job (a real split, like
+   `ui/feature/browse/`'s, not just a threshold dodge)? Does a non-obvious piece of logic (a
+   platform quirk, a workaround, a deliberate scope boundary) have a short comment explaining why,
+   and is anything commented that didn't need it (self-explanatory code restated in prose)?
 2. **UI expert.** Compose conventions: no business logic inside composables, state hoisted
    correctly, previews (`@Preview`) added for new non-trivial screens, Material 3 components used
    consistently with the rest of the app, dark theme and dynamic color (Android 12+) both checked.
@@ -41,7 +47,7 @@ Not one merged skim. Each persona looks for different things; do all four, in or
 4. **QA architect.** Is the change actually tested (unit tests for new domain/data logic, not
    deferred to "later")? Are edge cases covered (empty folder, permission denied, huge file,
    duplicate names, file deleted externally mid-operation)? Does anything here need a security or
-   performance test per `docs/PLAN.md` Phase 17's categories, even ahead of that phase, because this
+   performance test per `docs/PLAN.md` Phase 18's categories, even ahead of that phase, because this
    change is security/performance-sensitive on its own (hashing, encryption, protected-path checks)?
 
 Fix everything found before moving on. If a pass finds nothing, say so and continue.
@@ -80,7 +86,7 @@ Every batch checks this explicitly, even when the answer is "nothing to do":
 ## 5. User guide & info buttons
 
 This app carries its own documentation, and it goes stale exactly like code does if nobody is
-assigned to update it — so this step runs every batch, not just when Phase 2 or 17 are the ones
+assigned to update it — so this step runs every batch, not just when Phase 2 or 18 are the ones
 landing:
 
 - **`assets/help.html`** (the in-app user guide, reached from Settings → Help — see Phase 2 and
@@ -105,7 +111,7 @@ landing:
   or explicitly flagged as needing Phase 11 if this batch predates it and touches raw file I/O.
 - Any new data written to disk (prefs, cache, DB) — does it belong in `EncryptedSharedPreferences`/
   Keystore-backed storage, or is plaintext genuinely fine for this data?
-- Any new dependency checked for known vulnerabilities (once the Phase 11/17 CI scanning job exists,
+- Any new dependency checked for known vulnerabilities (once the Phase 11/18 CI scanning job exists,
   confirm it actually ran clean for this change).
 
 ## 7. Skills — including a self-review of this checklist
@@ -119,7 +125,7 @@ way this file's steps are written (specific, not generic). If not, say so explic
 
 - Add/extend unit tests for any new domain/data logic (MockK + Turbine + coroutines-test, per
   `CLAUDE.md`).
-- Note in the PR/summary which parts still need instrumented/E2E coverage (Phase 17) if this batch
+- Note in the PR/summary which parts still need instrumented/E2E coverage (Phase 18) if this batch
   can't get it yet.
 - **This sandbox cannot run any Gradle task locally** (no Android SDK, no network to Google's Maven
   repo — see `CLAUDE.md`). "Tests pass" means CI (`android-ci.yml`) is green on the pushed branch,

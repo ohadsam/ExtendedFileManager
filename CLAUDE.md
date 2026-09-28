@@ -29,7 +29,10 @@ com.efm.filemanager/
 - Every mutating file operation goes through the shared confirmation component (from Phase 3 onward) and emits an audit event — no screen should call raw file-system mutations directly.
 - Prefer Storage Access Framework / MediaStore over `MANAGE_EXTERNAL_STORAGE`; only request the broad permission where a feature genuinely can't work without it, with an in-app explanation.
 - No feature reads/writes outside the user's selected scope without going through the protected-path check (Phase 11).
-- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 17 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
+- Tests live next to the phase that introduces the behavior — don't defer test-writing to a later "testing phase" for new code (Phase 18 is for coverage *gates*, benchmarks, and E2E, not for backfilling missing unit tests).
+- **Reuse before duplicating.** Before writing new SAF/DocumentFile plumbing, audit-logging, or dialog-orchestration code, check whether an existing repository or component already does it (e.g. `FileOperationsRepository`'s `requireTreeDocument`/`requireSingleDocument`/`uniqueNameIn`) and promote it to `internal` for cross-package reuse rather than copy-pasting.
+- **Keep files small and single-purpose.** Split a screen's top bar, dialogs, and state-holder classes into their own files instead of one large screen file — see `ui/feature/browse/` (`BrowseScreen.kt`, `BrowseTopBar.kt`, `BrowseDialogs.kt`, `ArchiveDialogs.kt`, ...). This isn't just style: detekt's `TooManyFunctions`/`LongMethod`/`CyclomaticComplexMethod` thresholds actively enforce it, and a function's parameter count over ~5 is a signal to bundle related callbacks/state into a small holder class rather than growing the parameter list.
+- **Comment the non-obvious *why*, not the *what*.** A platform quirk (`fromTreeUri` vs `fromSingleUri`), a workaround, or a deliberate scope boundary deserves a short comment explaining the reasoning; code whose purpose is already clear from good naming doesn't need one restating it.
 
 ### Navigation & toolbar conventions
 

@@ -25,7 +25,7 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | 3 | Simple, comfortable UI/UX (grouped/sorted toolbar dropdowns with subheadings, hamburger nav drawer, long-press context actions) | 1 (shell), ongoing, 8 (polish) |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
 | 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
-| 6 | Performance + security critical | ongoing, 11, 17 |
+| 6 | Performance + security critical | ongoing, 11, 18 |
 | 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 12 (view entry point in Phase 2's Settings shell) |
 | 8 | Full audit mechanism with viewing | 13 |
 | 9 | Confirm/warn before file operations | 3 (built into every mutating action) |
@@ -36,13 +36,14 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | 14 | Responsive to resolutions + Hebrew/English (RTL) | 14 (theme/language toggle lands in Phase 2's shell; full RTL polish in 14) |
 | 15 | Extra capabilities — see below | woven throughout |
 | 16 | Version management, seamless upgrade, What's New | 15 |
-| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 17, ongoing |
+| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 18, ongoing |
 | 18 | Skills/CLAUDE.md for token efficiency + model-tier guidance | 0 |
-| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 17 |
+| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 18 |
 | 20 | Settings screen (display, permission status, logs, color/theme, language) | 2 (shell), then wired up by 8, 11, 12, 14 |
 | 21 | Storage optimization advisor: unused-large-file, junk, and temp-file recommendations, multi-select bulk actions, staged-for-deletion (review after 30 days) | 10 |
-| 22 | In-app HTML user guide + per-screen info button, kept in sync every batch | 2 (shell + baseline content), grown every phase, sync enforced by 17's release-checklist |
+| 22 | In-app HTML user guide + per-screen info button, kept in sync every batch | 2 (shell + baseline content), grown every phase, sync enforced by 18's release-checklist |
 | 23 | Google Drive upload (incl. whole-subtree), upload-status markers, bulk upload of the current selection, and Share/Send (email, WhatsApp, etc.) for one or more files | 16 |
+| 24 | Daily "insights" digest (cleanup recommendations, duplicates, oversized files, unclear extensions), summary notification deep-linking into the screen, always-reachable drawer entry, actions performable on the results, smart incremental scanning (no full rescan every run), Settings toggles to disable the job / the notification | 17 |
 
 ## Suggested additional capabilities (item 15)
 
@@ -81,7 +82,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Logs** — entry point to the log viewer; the viewer itself is built in Phase 12, this phase reserves the menu item and wires navigation once it exists.
   - **Appearance** — light/dark/system + Material You dynamic color toggle (this is small enough to implement fully now, on top of the theme already in `ui/theme/Theme.kt`), persisted via a DataStore-backed preferences repository.
   - **Language** — Hebrew/English in-app override using `AppCompatDelegate`'s per-app language API (works standalone now; Phase 14 adds full RTL layout verification across the rest of the app on top of it).
-  - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 17). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
+  - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 18). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
   This phase also introduces the shared preferences repository (DataStore) later phases reuse instead of each inventing their own persistence.
 
 - **Phase 3 — Core CRUD + confirmation framework** ✅ *(done)*
@@ -146,15 +147,26 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Bulk upload of the current selection** — not a new selection mechanism: Phase 3's multi-select + destination-picker flow already generalizes to "pick N items, pick a Drive-backed folder, copy them all." This phase's job is surfacing "Upload to Drive" as an explicit action alongside Move/Copy in the selection action bar.
   - **Share / Send** (email, WhatsApp, or any other installed app) for one or more selected files via Android's native share sheet (`ACTION_SEND` / `ACTION_SEND_MULTIPLE`), wired to the same multi-select action bar. SAF document URIs are already `content://` and directly shareable with a read-permission grant on the share `Intent` — no separate `FileProvider` needed for files already under a tree the user granted EFM.
 
-- **Phase 17 — Test & release hardening**
+- **Phase 17 — Daily insights & smart notifications**
+  Turns Phase 10's Storage Advisor from something the user has to remember to open into a proactive daily habit, and folds Phase 6's duplicate results into the same hub — one screen, one notification, not two separate systems:
+  - **Smart, incremental scanning — never a full rescan on every run.** A new `insights_cache` Room table stores each category's last result plus a `lastComputedAt` timestamp and the file-index `changeVersion` it was computed against (a lightweight counter, bumped by Phase 1's `refresh()` / Phase 3's mutating operations, since every write already touches the Room-cached index). On each daily run:
+    - Large/junk/temp-file and staged-for-deletion recommendations (Phase 10) are cheap to recompute since they only read the already-current file index — recomputed every run.
+    - Duplicate detection (Phase 6's hashing engine) is the expensive one — only reruns in full if the change-version has moved past a configurable threshold since the last full duplicate scan; otherwise the cached duplicate groups are re-surfaced as-is, filtered to drop any entries whose files no longer exist.
+    - **Unclear file extensions** — a new lightweight category: files with an unrecognized or unusual extension (not in a maintained known-extensions table), or a suspicious double extension (e.g. `.pdf.exe`), flagged as "worth a look," never as a security verdict — a hygiene nudge, not a malware scanner.
+  - **Daily WorkManager job** (`PeriodicWorkRequest`, ~once/day, respecting battery/charging constraints like Phase 6's scan) computes the above and, if anything's found, posts **one summary notification** ("N things worth a look") via a dedicated notification channel — never one notification per category. Tapping it deep-links straight into the Insights screen (the same screen Phase 10 already built, now also showing duplicates and unclear extensions).
+  - **Always reachable, notification or not** — Insights lives as its own entry in the nav drawer (already slated for Phase 10, as "Storage Advisor"; it becomes "Insights" once this phase lands), so dismissing or ignoring the notification never loses access to it.
+  - **Directly actionable** — the Insights screen keeps Phase 10's multi-select bulk-action pattern (select → delete/move-with-confirmation, or dismiss) across every category shown, duplicates included — never a read-only report the user has to act on from a different screen.
+  - **Settings controls** (a new Insights section in the Settings screen) — two independent switches: **"Run daily insights"** (stops the WorkManager job entirely) and **"Notify me"** (keeps the job running so the screen stays fresh, just suppresses the notification) — a user may want the data ready without being pinged. On API 33+, the notification toggle is backed by the real `POST_NOTIFICATIONS` runtime permission, requested with an in-app rationale the same way Phase 1 explains the storage-access request.
+
+- **Phase 18 — Test & release hardening**
   Coverage gates (Jacoco) on domain/data layers, security test suite (encryption round-trip, protected-path denial, path traversal), performance benchmarks (hash throughput, duplicate-scan on large trees, cold-start time via Macrobenchmark), Compose UI + Espresso E2E suite on an emulator matrix in CI, first tagged release via the `release-checklist` skill (multi-persona review: system architect / UI expert / UX expert / QA architect, version bump, What's New, docs/skills refresh, user guide + info-button sync).
 
-Phases 3–16 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; Storage advisor (10) needs the duplicate-review UI pattern from 6 and the per-file metadata from 9; cloud upload (16) needs Phase 3's copy/move plumbing and Phase 6's WorkManager pattern; etc.) stays fixed.
+Phases 3–17 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; Storage advisor (10) needs the duplicate-review UI pattern from 6 and the per-file metadata from 9; cloud upload (16) needs Phase 3's copy/move plumbing and Phase 6's WorkManager pattern; daily insights (17) needs Phase 10's recommendation categories and Phase 6's duplicate engine; etc.) stays fixed.
 
 ## CI/CD (GitHub Actions), from Phase 0 onward
 
 - `android-ci.yml`: on every push/PR — `assembleDebug`, unit tests (JVM, Robolectric where needed), `ktlint`, `detekt`, Android Lint.
-- `instrumented-tests.yml` (from Phase 17, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
+- `instrumented-tests.yml` (from Phase 18, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
 - `release.yml`: on version tag — signed release build (AAB/APK), changelog extraction, GitHub Release publish.
 - `security.yml`: CodeQL + dependency review, scheduled + on PR.
 
