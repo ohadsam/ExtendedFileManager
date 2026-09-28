@@ -1,6 +1,6 @@
 # Extended File Manager (EFM) — Master Plan
 
-**Platform:** Android (native), min SDK 26 (Android 8.0), target/compile latest stable.
+**Platform:** Android (native), mobile only, min SDK 26 (Android 8.0), target/compile latest stable.
 **Language / UI:** Kotlin, Jetpack Compose + Material 3.
 **Architecture:** Clean Architecture (data / domain / ui) inside a single `:app` module for now; split into Gradle modules later only if build time actually requires it (avoid premature multi-module complexity).
 **DI:** Hilt. **Async:** Kotlin Coroutines + Flow. **DB:** Room. **DI for background jobs:** WorkManager.
@@ -14,30 +14,32 @@ This document is the living roadmap. Each phase is a merged, working increment �
 - **Single module, package-by-feature** — 19 requirement areas is a lot of surface, but Gradle multi-module mainly pays off for build parallelism/team-scaling, not for a project this size at day one. Package boundaries (`data/`, `domain/`, `ui/feature/x`) give the same separation without the build-config overhead. Revisit if `:app` compile times become painful.
 - **Room + content hashing, not a cloud index** — everything must work fully offline; the device is the source of truth.
 - **Scoped storage / SAF, not `MANAGE_EXTERNAL_STORAGE` by default** — Google increasingly restricts broad "all files" access; EFM should request the narrowest permission that satisfies each feature, and only fall back to `MANAGE_EXTERNAL_STORAGE` (with a clear in-app justification screen, needed for a full file manager to browse arbitrary folders) where SAF genuinely can't do the job.
+- **A Settings screen scaffolded early (Phase 2), filled in incrementally** — display/permissions/logs/theme/language settings each depend on a feature landing first (view modes, log store, localization), but the screen *container* and navigation entry don't need to wait. Building the shell early means every later phase just adds a section to an existing, working screen instead of bolting on a whole new screen at the end.
 
 ## Requirement map (user's numbered list → where it lands)
 
 | # | Requirement | Phase |
 |---|---|---|
-| 1 | Core CRUD + compress/extract | 2, 3 |
-| 2 | Filter / group-by / sort (type, date, source app, ...) | 4 |
-| 3 | Simple, comfortable UI/UX | ongoing, 7 |
-| 4 | Duplicate/identical file finder (hash-based, cross-extension) | 5 |
-| 5 | Native, simple app | Phase 0 decision (Kotlin native) |
-| 6 | Performance + security critical | ongoing, 9, 14 |
-| 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 10 |
-| 8 | Full audit mechanism with viewing | 11 |
-| 9 | Confirm/warn before file operations | 2 (built into every mutating action) |
-| 10 | System-file protection | 9 |
-| 11 | Preview: video/audio/image | 6 |
-| 12 | Multiple view sizes / detail levels | 7 |
-| 13 | Favorites with editable internal hierarchy | 8 |
-| 14 | Responsive to resolutions + Hebrew/English (RTL) | 12 |
+| 1 | Core CRUD + compress/extract | 3, 4 |
+| 2 | Filter / group-by / sort (type, date, source app, ...) | 5 |
+| 3 | Simple, comfortable UI/UX | ongoing, 8 |
+| 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
+| 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
+| 6 | Performance + security critical | ongoing, 10, 15 |
+| 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 11 (view entry point in Phase 2's Settings shell) |
+| 8 | Full audit mechanism with viewing | 12 |
+| 9 | Confirm/warn before file operations | 3 (built into every mutating action) |
+| 10 | System-file protection | 10 |
+| 11 | Preview: video/audio/image | 7 |
+| 12 | Multiple view sizes / detail levels | 8 (settings control in Phase 2's shell) |
+| 13 | Favorites with editable internal hierarchy | 9 |
+| 14 | Responsive to resolutions + Hebrew/English (RTL) | 13 (theme/language toggle lands in Phase 2's shell; full RTL polish in 13) |
 | 15 | Extra capabilities — see below | woven throughout |
-| 16 | Version management, seamless upgrade, What's New | 13 |
-| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 14, ongoing |
+| 16 | Version management, seamless upgrade, What's New | 14 |
+| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 15, ongoing |
 | 18 | Skills/CLAUDE.md for token efficiency + model-tier guidance | 0 |
-| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 14 |
+| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 15 |
+| 20 | Settings screen (display, permission status, logs, color/theme, language) | 2 (shell), then wired up by 8, 10, 11, 13 |
 
 ## Suggested additional capabilities (item 15)
 
@@ -59,65 +61,74 @@ This document is the living roadmap. Each phase is a merged, working increment �
 
 Each phase = one PR into `main` (via the working branch), green CI, before the next starts.
 
-- **Phase 0 — Foundation** ✅ *(this session)*
+- **Phase 0 — Foundation** ✅ *(done)*
   Gradle/Kotlin/Compose/Hilt/Room skeleton, package structure, `.gitignore`, GitHub Actions CI (build + unit tests + lint/detekt/ktlint on every push), `CLAUDE.md`, this plan, repo-local skills stub. App builds and boots to an empty scaffold screen.
 
-- **Phase 1 — Core browsing (read-only)**
+- **Phase 1 — Core browsing (read-only)** *(in progress)*
   SAF/MediaStore-backed directory listing, permission request flow, breadcrumb navigation, Room-backed file index cache for performance. No mutations yet.
 
-- **Phase 2 — Core CRUD + confirmation framework**
-  Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 11). Undo/trash for delete.
+- **Phase 2 — Settings screen shell**
+  A real navigable Settings screen (reached from the main app bar), with sections that light up as later phases land rather than placeholders that never get wired up:
+  - **Display** — default view mode (list/grid), density; real control added in Phase 8, this phase creates the section and a no-op/default-only version.
+  - **Permissions** — shows current storage-access grant status (from Phase 1's permission flow) with a re-request/open-system-settings action; expands with the protected-path explanation in Phase 10.
+  - **Logs** — entry point to the log viewer; the viewer itself is built in Phase 11, this phase reserves the menu item and wires navigation once it exists.
+  - **Appearance** — light/dark/system + Material You dynamic color toggle (this is small enough to implement fully now, on top of the theme already in `ui/theme/Theme.kt`), persisted via a DataStore-backed preferences repository.
+  - **Language** — Hebrew/English in-app override using `AppCompatDelegate`'s per-app language API (works standalone now; Phase 13 adds full RTL layout verification across the rest of the app on top of it).
+  This phase also introduces the shared preferences repository (DataStore) later phases reuse instead of each inventing their own persistence.
 
-- **Phase 3 — Compress / extract**
+- **Phase 3 — Core CRUD + confirmation framework**
+  Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 12). Undo/trash for delete.
+
+- **Phase 4 — Compress / extract**
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
 
-- **Phase 4 — Filter, sort, group-by engine**
+- **Phase 5 — Filter, sort, group-by engine**
   A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag) applied consistently across browse/search/duplicates.
 
-- **Phase 5 — Duplicate & identical-file finder**
+- **Phase 6 — Duplicate & identical-file finder**
   Two-stage: cheap pre-filter (file size, then partial/head hash) → full SHA-256 streaming hash only on remaining candidates, to stay fast on large volumes. Cross-extension identical-content detection (hash content, ignore name/extension). Background via WorkManager with progress + cancel; results grouped for bulk review/delete.
 
-- **Phase 6 — Preview**
+- **Phase 7 — Preview**
   Images (Coil), video/audio (Media3/ExoPlayer), PDF (PdfRenderer). Inline preview pane + full-screen viewer, works from browse, search, and duplicate-review screens.
 
-- **Phase 7 — View modes & UI polish**
-  List / grid / compact / detailed density options, remembered per-folder or globally; this is also where general UI/UX passes happen continuously (item 3).
+- **Phase 8 — View modes & UI polish**
+  List / grid / compact / detailed density options, remembered per-folder or globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3).
 
-- **Phase 8 — Favorites with hierarchy**
+- **Phase 9 — Favorites with hierarchy**
   Self-referencing Room tree (nested favorite "collections"), add/rename/delete/reorder/move-between-collections, drag-and-drop where practical.
 
-- **Phase 9 — Security hardening**
-  Protected-path blocklist (Android/data, Android/obb, app-internal dirs, other apps' private storage — inherently inaccessible under scoped storage, but explicit guard + clear error rather than a silent failure), path-traversal checks, Keystore-backed encryption for sensitive prefs and the vault, R8/ProGuard release config, dependency vulnerability scanning wired into CI.
+- **Phase 10 — Security hardening**
+  Protected-path blocklist (Android/data, Android/obb, app-internal dirs, other apps' private storage — inherently inaccessible under scoped storage, but explicit guard + clear error rather than a silent failure), path-traversal checks, Keystore-backed encryption for sensitive prefs and the vault, R8/ProGuard release config, dependency vulnerability scanning wired into CI. Settings screen's Permissions section gets the protected-path explanation.
 
-- **Phase 10 — Logs**
-  Structured logging (Timber → Room-backed log store), weekly auto-purge via WorkManager `PeriodicWorkRequest`, in-app log viewer with filter, export-to-file, and manual "clear now".
+- **Phase 11 — Logs**
+  Structured logging (Timber → Room-backed log store), weekly auto-purge via WorkManager `PeriodicWorkRequest`, in-app log viewer with filter, export-to-file, and manual "clear now" — reachable from the Settings screen's Logs entry (Phase 2).
 
-- **Phase 11 — Audit trail**
-  Every mutating action (already emitting from Phase 2 onward) surfaced in a dedicated, filterable/searchable audit viewer; exportable; tamper-evident (hash-chained entries) since this is a security-sensitive log distinct from debug logs.
+- **Phase 12 — Audit trail**
+  Every mutating action (already emitting from Phase 3 onward) surfaced in a dedicated, filterable/searchable audit viewer; exportable; tamper-evident (hash-chained entries) since this is a security-sensitive log distinct from debug logs.
 
-- **Phase 12 — Localization & responsiveness**
-  Hebrew + English resource sets, full RTL verification (Compose `LayoutDirection`, mirrored icons/gestures), `WindowSizeClass`-driven adaptive layouts for phone/tablet/foldable, dynamic font-scale support.
+- **Phase 13 — Localization & responsiveness**
+  Hebrew + English resource sets, full RTL verification (Compose `LayoutDirection`, mirrored icons/gestures) across every screen built so far, `WindowSizeClass`-driven adaptive layouts for phone/foldable, dynamic font-scale support. Builds on the Settings screen's Language toggle from Phase 2.
 
-- **Phase 13 — Versioning & updates**
+- **Phase 14 — Versioning & updates**
   In-app update checker against GitHub Releases (APK signature verification before install prompt) or Play Core In-App Update API if/when published to Play; versioned "What's New" sheet shown once per upgrade, sourced from a changelog file.
 
-- **Phase 14 — Test & release hardening**
+- **Phase 15 — Test & release hardening**
   Coverage gates (Jacoco) on domain/data layers, security test suite (encryption round-trip, protected-path denial, path traversal), performance benchmarks (hash throughput, duplicate-scan on large trees, cold-start time via Macrobenchmark), Compose UI + Espresso E2E suite on an emulator matrix in CI, first tagged release via the `release-checklist` skill (multi-persona review: system architect / UI expert / UX expert / QA architect, version bump, What's New, docs/skills refresh).
 
-Phases 3–13 can reorder slightly as real constraints surface, but the dependency chain (0→1→2 first; hashing needs the file index from 1; audit viewer needs the audit events from 2; etc.) stays fixed.
+Phases 3–14 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; etc.) stays fixed.
 
 ## CI/CD (GitHub Actions), from Phase 0 onward
 
 - `android-ci.yml`: on every push/PR — `assembleDebug`, unit tests (JVM, Robolectric where needed), `ktlint`, `detekt`, Android Lint.
-- `instrumented-tests.yml` (from Phase 14, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
+- `instrumented-tests.yml` (from Phase 15, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
 - `release.yml`: on version tag — signed release build (AAB/APK), changelog extraction, GitHub Release publish.
 - `security.yml`: CodeQL + dependency review, scheduled + on PR.
 
 ## Skills & docs (item 18)
 
 - `CLAUDE.md` at repo root: architecture map, module/package conventions, how to run what's runnable locally vs. what needs CI (no Android SDK in this sandbox), and a **model-tier guide**: routine UI/text/test-scaffolding work → default/fast tier; architecture decisions, security-sensitive code (encryption, permission boundaries, hashing correctness), and release reviews → escalate reasoning effort/model tier.
-- Repo-local skill `release-checklist` (mirrors the one in `system_diagram`): version bump, What's New entry, 3-pass review (system architect / UI / UX / QA architect personas), docs+skills refresh, CI-green gate, merge.
-- Repo-local skill `add-feature`: conventions for adding a new feature package (folder layout, ViewModel/UseCase/Repository wiring, where tests go) — added once Phase 2 or 3 establishes the pattern concretely, not speculatively now.
+- Repo-local skill `release-checklist` (mirrors the one in `system_diagram`): version bump, What's New entry, 4-persona review (system architect / UI expert / UX expert / QA architect), docs+skills refresh, CI-green gate, merge.
+- Repo-local skill `add-feature`: conventions for adding a new feature package (folder layout, ViewModel/UseCase/Repository wiring, where tests go) — added once Phase 3 or 4 establishes the pattern concretely, not speculatively now.
 
 ## Known sandbox constraint
 

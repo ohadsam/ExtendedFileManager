@@ -19,8 +19,9 @@ com.efm.filemanager/
   ui/                 top-level Compose root + theme/
   ui/theme/           Color.kt, Theme.kt, Type.kt
   data/                (Phase 1+) repositories, Room entities/DAOs, SAF/MediaStore access
+  data/prefs/          (Phase 2+) DataStore-backed preferences repository (appearance, language, defaults) — shared by every settings-adjacent feature, not reinvented per screen
   domain/              (Phase 1+) use cases, models
-  ui/feature/<name>/   (Phase 1+) one package per feature screen (browse, favorites, duplicates, logs, audit, ...)
+  ui/feature/<name>/   (Phase 1+) one package per feature screen (browse, settings, favorites, duplicates, logs, audit, ...)
 ```
 
 ## Conventions
