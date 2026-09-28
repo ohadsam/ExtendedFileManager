@@ -13,9 +13,11 @@ import javax.inject.Inject
  * the durable, OS-managed source of truth for "which folders did the user grant us,"
  * so re-reading it beats maintaining a parallel copy that could drift.
  */
-class DocumentTreeAccessManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-) {
+class DocumentTreeAccessManager
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) {
     fun grantedTreeUris(): List<Uri> =
         context.contentResolver.persistedUriPermissions
             .filter { it.isReadPermission }

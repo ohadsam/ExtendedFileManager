@@ -10,11 +10,11 @@ import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.sourceapp.SourceAppResolver
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Lists folder contents via Storage Access Framework and caches the result in Room so
@@ -22,11 +22,13 @@ import kotlinx.coroutines.withContext
  * every recomposition. [refresh] re-lists from SAF and replaces the cached children;
  * [observeChildren] is what the UI actually collects.
  */
-class DocumentTreeRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val fileEntryDao: FileEntryDao,
-    private val sourceAppResolver: SourceAppResolver,
-) {
+class DocumentTreeRepository
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+        private val fileEntryDao: FileEntryDao,
+        private val sourceAppResolver: SourceAppResolver,
+    ) {
     fun observeChildren(parentUri: Uri): Flow<List<FileEntry>> =
         fileEntryDao.observeChildren(parentUri.toString()).map { entries -> entries.map { it.toDomain() } }
 

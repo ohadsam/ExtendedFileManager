@@ -7,13 +7,13 @@ import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class BreadcrumbEntry(
     val uri: Uri,
@@ -28,10 +28,12 @@ data class BrowseUiState(
 )
 
 @HiltViewModel
-class BrowseViewModel @Inject constructor(
-    private val documentTreeAccessManager: DocumentTreeAccessManager,
-    private val repository: DocumentTreeRepository,
-) : ViewModel() {
+class BrowseViewModel
+    @Inject
+    constructor(
+        private val documentTreeAccessManager: DocumentTreeAccessManager,
+        private val repository: DocumentTreeRepository,
+    ) : ViewModel() {
     private val _uiState = MutableStateFlow(BrowseUiState())
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 

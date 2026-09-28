@@ -15,9 +15,11 @@ import javax.inject.Inject
  * scoped storage means neither can ever be perfect. Never claims more certainty than
  * it has -- callers surface [SourceConfidence] to the user rather than hiding it.
  */
-class SourceAppResolver @Inject constructor(
-    @ApplicationContext private val context: Context,
-) {
+class SourceAppResolver
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) {
     fun resolve(
         fileName: String,
         size: Long,

@@ -16,8 +16,9 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): EfmDatabase =
-        Room.databaseBuilder(context, EfmDatabase::class.java, "efm.db").build()
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): EfmDatabase = Room.databaseBuilder(context, EfmDatabase::class.java, "efm.db").build()
 
     @Provides
     fun provideFileEntryDao(database: EfmDatabase): FileEntryDao = database.fileEntryDao()
