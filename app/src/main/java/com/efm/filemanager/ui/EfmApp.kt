@@ -12,6 +12,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
+import com.efm.filemanager.ui.feature.help.HelpScreen
+import com.efm.filemanager.ui.feature.settings.SettingsScreen
 import com.efm.filemanager.ui.nav.EfmDestination
 import com.efm.filemanager.ui.nav.EfmDrawerContent
 import kotlinx.coroutines.launch
@@ -47,6 +49,17 @@ fun EfmApp() {
             composable(EfmDestination.Browse.route) {
                 BrowseScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
             }
+            composable(EfmDestination.Settings.route) {
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenHelp = { navController.navigate(HELP_ROUTE) },
+                )
+            }
+            composable(HELP_ROUTE) {
+                HelpScreen(onNavigateBack = { navController.popBackStack() })
+            }
         }
     }
 }
+
+private const val HELP_ROUTE = "help"

@@ -4,6 +4,8 @@
 
     <string name="nav_drawer_open">פתח תפריט ניווט</string>
     <string name="nav_browse">עיון בקבצים</string>
+    <string name="nav_settings">הגדרות</string>
+    <string name="nav_back">חזרה</string>
 
     <string name="sort_menu">מיון</string>
     <string name="sort_section_sort_by">מיין לפי</string>
@@ -19,4 +21,36 @@
     <string name="grant_access_button">בחר תיקייה</string>
 
     <string name="folder_empty">התיקייה ריקה</string>
+
+    <string name="settings_title">הגדרות</string>
+
+    <string name="appearance_section">מראה</string>
+    <string name="appearance_info_body">בחר ערכת נושא בהירה או כהה, או עקוב אחר הגדרת המערכת. באנדרואיד 12 ומעלה ניתן גם להשתמש בצבעים מתוך טפט המכשיר (Material You).</string>
+    <string name="appearance_light">בהיר</string>
+    <string name="appearance_dark">כהה</string>
+    <string name="appearance_system">בהתאם למערכת</string>
+    <string name="appearance_dynamic_color">שימוש בצבעי הטפט</string>
+
+    <string name="language_section">שפה</string>
+    <string name="language_info_body">בחר את שפת האפליקציה, ללא תלות בשפת המערכת של המכשיר.</string>
+    <string name="language_system">בהתאם למערכת</string>
+    <string name="language_english">English (אנגלית)</string>
+    <string name="language_hebrew">עברית</string>
+
+    <string name="permissions_section">הרשאות</string>
+    <string name="permissions_granted_count">גישה ניתנה כרגע ל-%d תיקיות</string>
+    <string name="permissions_open_system_settings">פתח הגדרות מערכת</string>
+
+    <string name="display_section">תצוגה</string>
+    <string name="display_coming_soon">אפשרויות מצב תצוגה וצפיפות יגיעו בקרוב</string>
+
+    <string name="logs_section">יומנים</string>
+    <string name="logs_coming_soon">צופה היומנים יגיע בקרוב</string>
+
+    <string name="help_section">מדריך למשתמש</string>
+    <string name="help_user_guide">למד מה מנהל הקבצים המתקדם יכול לעשות</string>
+
+    <string name="info_button_content_description">מידע נוסף</string>
+    <string name="learn_more">קרא עוד</string>
+    <string name="close">סגור</string>
 </resources>

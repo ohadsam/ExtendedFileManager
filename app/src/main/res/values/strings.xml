@@ -4,6 +4,8 @@
 
     <string name="nav_drawer_open">Open navigation menu</string>
     <string name="nav_browse">Browse</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_back">Back</string>
 
     <string name="sort_menu">Sort</string>
     <string name="sort_section_sort_by">Sort by</string>
@@ -19,4 +21,36 @@
     <string name="grant_access_button">Choose folder</string>
 
     <string name="folder_empty">This folder is empty</string>
+
+    <string name="settings_title">Settings</string>
+
+    <string name="appearance_section">Appearance</string>
+    <string name="appearance_info_body">Choose a light or dark theme, or follow the system setting. On Android 12 and up you can also use colors taken from your wallpaper (Material You).</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_system">Follow system</string>
+    <string name="appearance_dynamic_color">Use wallpaper colors</string>
+
+    <string name="language_section">Language</string>
+    <string name="language_info_body">Choose the app\'s language, independent of your device\'s system language.</string>
+    <string name="language_system">Follow system</string>
+    <string name="language_english">English</string>
+    <string name="language_hebrew">עברית (Hebrew)</string>
+
+    <string name="permissions_section">Permissions</string>
+    <string name="permissions_granted_count">%d folder(s) currently granted access</string>
+    <string name="permissions_open_system_settings">Open system settings</string>
+
+    <string name="display_section">Display</string>
+    <string name="display_coming_soon">View mode and density options are coming soon</string>
+
+    <string name="logs_section">Logs</string>
+    <string name="logs_coming_soon">The log viewer is coming soon</string>
+
+    <string name="help_section">User guide</string>
+    <string name="help_user_guide">Learn what Extended File Manager can do</string>
+
+    <string name="info_button_content_description">More information</string>
+    <string name="learn_more">Learn more</string>
+    <string name="close">Close</string>
 </resources>
