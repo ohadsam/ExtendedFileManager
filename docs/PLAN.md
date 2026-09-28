@@ -25,29 +25,29 @@ This document is the living roadmap. Each phase is a merged, working increment �
 | 3 | Simple, comfortable UI/UX | ongoing, 8 |
 | 4 | Duplicate/identical file finder (hash-based, cross-extension) | 6 |
 | 5 | Native, simple mobile app | Phase 0 decision (Kotlin native, Android only) |
-| 6 | Performance + security critical | ongoing, 10, 15 |
-| 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 11 (view entry point in Phase 2's Settings shell) |
-| 8 | Full audit mechanism with viewing | 12 |
+| 6 | Performance + security critical | ongoing, 11, 16 |
+| 7 | Detailed logs + weekly auto-cleanup + manual view/download/clear | 12 (view entry point in Phase 2's Settings shell) |
+| 8 | Full audit mechanism with viewing | 13 |
 | 9 | Confirm/warn before file operations | 3 (built into every mutating action) |
-| 10 | System-file protection | 10 |
+| 10 | System-file protection | 11 |
 | 11 | Preview: video/audio/image | 7 |
 | 12 | Multiple view sizes / detail levels | 8 (settings control in Phase 2's shell) |
-| 13 | Favorites with editable internal hierarchy | 9 |
-| 14 | Responsive to resolutions + Hebrew/English (RTL) | 13 (theme/language toggle lands in Phase 2's shell; full RTL polish in 13) |
+| 13 | Favorites with editable internal hierarchy, tags, lock-against-delete, notes | 9 |
+| 14 | Responsive to resolutions + Hebrew/English (RTL) | 14 (theme/language toggle lands in Phase 2's shell; full RTL polish in 14) |
 | 15 | Extra capabilities — see below | woven throughout |
-| 16 | Version management, seamless upgrade, What's New | 14 |
-| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 15, ongoing |
+| 16 | Version management, seamless upgrade, What's New | 15 |
+| 17 | release-checklist skill, multi-persona review, CI build+test on every push | 0, 16, ongoing |
 | 18 | Skills/CLAUDE.md for token efficiency + model-tier guidance | 0 |
-| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 15 |
-| 20 | Settings screen (display, permission status, logs, color/theme, language) | 2 (shell), then wired up by 8, 10, 11, 13 |
+| 19 | Full test coverage: unit, security, performance, e2e/emulator | woven throughout + 16 |
+| 20 | Settings screen (display, permission status, logs, color/theme, language) | 2 (shell), then wired up by 8, 11, 12, 14 |
+| 21 | Storage optimization advisor: unused-large-file, junk, and temp-file recommendations, multi-select bulk actions, staged-for-deletion (review after 30 days) | 10 |
+| 22 | In-app HTML user guide + per-screen info button, kept in sync every batch | 2 (shell + baseline content), grown every phase, sync enforced by 16's release-checklist |
 
 ## Suggested additional capabilities (item 15)
 
 - **Batch/queue operations** with progress, pause/cancel, and a single confirmation for multi-file actions instead of one dialog per file.
 - **Undo** for the last destructive action where technically possible (e.g., move-to-trash instead of hard delete, with a "Recently Deleted" area purged after N days).
-- **Storage analyzer** — treemap/sunburst view of what's eating space, drill into large files/folders.
-- **Smart "Clean up" suggestions** — cache junk, empty folders, old screenshots, large old downloads — always opt-in, never auto-deletes without confirmation.
-- **Tagging** (free-form labels) in addition to folder-based favorites, so a file can belong to multiple logical groups.
+- **Storage analyzer** — treemap/sunburst view of what's eating space, drill into large files/folders (complements Phase 10's recommendations with an exploratory view).
 - **Quick actions / share sheet integration** (Android share target) so other apps can send files to EFM, and EFM can share out.
 - **Cloud/network locations** (SAF-based access to Drive/Dropbox/SMB providers already exposed via Android's document provider framework) — read-only browse first, later full ops.
 - **Saved searches** — a filter+sort+group+search-text combination saved as a named smart folder (the search bar itself is core, in Phase 5 — this is the "save it for later" extra on top).
@@ -76,14 +76,15 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 2 — Settings screen shell**
   A real navigable Settings screen (reached from the main app bar), with sections that light up as later phases land rather than placeholders that never get wired up:
   - **Display** — default view mode (list/grid), density; real control added in Phase 8, this phase creates the section and a no-op/default-only version.
-  - **Permissions** — shows current storage-access grant status (from Phase 1's permission flow) with a re-request/open-system-settings action; expands with the protected-path explanation in Phase 10.
-  - **Logs** — entry point to the log viewer; the viewer itself is built in Phase 11, this phase reserves the menu item and wires navigation once it exists.
+  - **Permissions** — shows current storage-access grant status (from Phase 1's permission flow) with a re-request/open-system-settings action; expands with the protected-path explanation in Phase 11.
+  - **Logs** — entry point to the log viewer; the viewer itself is built in Phase 12, this phase reserves the menu item and wires navigation once it exists.
   - **Appearance** — light/dark/system + Material You dynamic color toggle (this is small enough to implement fully now, on top of the theme already in `ui/theme/Theme.kt`), persisted via a DataStore-backed preferences repository.
-  - **Language** — Hebrew/English in-app override using `AppCompatDelegate`'s per-app language API (works standalone now; Phase 13 adds full RTL layout verification across the rest of the app on top of it).
+  - **Language** — Hebrew/English in-app override using `AppCompatDelegate`'s per-app language API (works standalone now; Phase 14 adds full RTL layout verification across the rest of the app on top of it).
+  - **Help / User Guide** — entry point to a bundled, in-app HTML user guide (`assets/help.html`, opened in a `WebView` or Custom Tab) covering every capability the app has at any given point; this phase ships it with real Phase 0-2 content (not a placeholder), and every later phase is responsible for adding its own section when it lands (enforced by the `release-checklist` skill, see Phase 16). This phase also introduces a small reusable `InfoButton` composable (an ⓘ icon that opens a short contextual explanation, with a link into the relevant guide section for more detail) — used from Phase 3 onward on any screen non-obvious enough to warrant one, not on every screen reflexively.
   This phase also introduces the shared preferences repository (DataStore) later phases reuse instead of each inventing their own persistence.
 
 - **Phase 3 — Core CRUD + confirmation framework**
-  Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 12). Undo/trash for delete.
+  Create/rename/delete/move/copy for files & folders. Every mutating action routes through a shared `ConfirmDangerousAction` component (item 9) and writes an audit entry (groundwork for Phase 13). Undo/trash for delete.
 
 - **Phase 4 — Compress / extract**
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
@@ -93,7 +94,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   Extraction also needs a conflict policy (skip / overwrite / keep-both-rename) for when target files already exist — surfaced once per operation, not per-file, unless the user asks to decide per-file.
 
 - **Phase 5 — Filter, sort, group-by engine, and global search**
-  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag, free-text) applied consistently across browse/duplicates/favorites — search is not a bolted-on separate screen, it's the same query spec with its text field filled in, so every filter/sort/group control works identically whether the user got there by browsing or by searching.
+  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag, locked status, free-text) applied consistently across browse/duplicates/favorites — search is not a bolted-on separate screen, it's the same query spec with its text field filled in, so every filter/sort/group control works identically whether the user got there by browsing or by searching. Tag, locked, and favorite are defined here as dimensions even though the data behind them lands in Phase 9 — the query spec is built to accommodate them from the start rather than retrofitted later.
   - **Global free-text search bar**, reachable from anywhere in the app (persistent search icon in the top bar), matching against filename and path substrings from the Room file index — backed by SQLite FTS (Room's `@Fts4`/`Fts5` entity) rather than a `LIKE` scan, so it stays fast as the index grows into the tens of thousands of files. Results respect whatever filters are currently active (e.g. search "invoice" within "PDFs from the last month").
   - Source app is a first-class filter/group dimension, not an afterthought: filter to "files from WhatsApp," group the current results by owning app (with a distinct "Unknown source" bucket), sort within a group like any other. The confidence flag from Phase 1's index (exact `OWNER_PACKAGE_NAME` vs. heuristic folder match) carries through to these views so a heuristic grouping is visibly marked as such, not presented with the same certainty as an exact one.
 
@@ -106,40 +107,53 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 8 — View modes & UI polish**
   List / grid / compact / detailed density options, remembered per-folder or globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3).
 
-- **Phase 9 — Favorites with hierarchy**
-  Self-referencing Room tree (nested favorite "collections"), add/rename/delete/reorder/move-between-collections, drag-and-drop where practical.
+- **Phase 9 — Per-file metadata: favorites, tags, lock, notes**
+  One Room feature, not four, since all of these are the same shape (metadata attached to a file/folder, independent of its content) and share one "file details" UI surface:
+  - **Favorites**, with hierarchy: self-referencing Room tree (nested favorite "collections"), add/rename/delete/reorder/move-between-collections, drag-and-drop where practical. Marking a file/folder as a favorite (with an optional collection) is the base action; the hierarchy is what organizes it.
+  - **Tags** — free-form, many-to-many labels a file/folder can carry (a file can have several), created ad-hoc from the same UI that applies them, with rename/delete/merge management for the tag list itself.
+  - **Lock against deletion** — a per-file/folder flag that blocks deletion (and Phase 4's Extract & Replace auto-delete) until explicitly unlocked; this phase retrofits Phase 3's delete-confirmation path and Phase 4's Extract & Replace to check it, refusing (not just warning) a locked item and explaining why, with an "unlock" action offered right there.
+  - **Notes** — a free-text note per file/folder, separate from tags, shown in the same file-details view and editable there.
+  - **Filter/group by all of it**: tag, locked status, and favorite status are already part of Phase 5's query spec, so this phase's job is to make sure the UI actually exposes filtering/grouping by tag (including multi-tag), by "locked," and by "favorite" — not just storing the data. A file/folder's details panel becomes the one place to see and edit all four at once.
 
-- **Phase 10 — Security hardening**
+- **Phase 10 — Storage optimization advisor**
+  Recommendations only — this phase never auto-deletes anything; everything lands in a reviewable, multi-select list the user acts on explicitly, same as Phase 6's duplicate-review UI (and reuses its WorkManager background-scan + progress/cancel pattern). Three recommendation categories, plus a staged-deletion workflow:
+  - **Large files unused for a long time.** Honesty matters here: Android doesn't give any app a reliable system-wide "last opened" timestamp (`atime` is effectively unavailable — most Android filesystems mount `noatime`/`relatime`, and MediaStore has no genuine last-accessed column). So "unused" is scored from what's actually available — `lastModified` (and MediaStore's `DATE_ADDED`) as the primary signal, plus an **EFM-tracked "last opened via this app"** timestamp recorded whenever the user previews/opens a file through EFM itself (Phase 7) as a secondary, admittedly partial signal. The recommendation is explicitly framed as "not modified in N months" / "not opened via this app in N months," never as a false claim of true system-wide usage tracking.
+  - **Junk file detection**, scoped honestly to what EFM can actually see: scoped storage (since API 30) blocks any app — including this one — from reading another app's private cache (`Android/data/<package>/…`), so this can't be a general "clean other apps' caches" tool the way pre-scoped-storage cleaners were. What's real and buildable: orphaned files/folders left behind by now-*uninstalled* apps (an `Android/media/<package>` folder whose package no longer resolves via `PackageManager`), empty folders, and EFM's own app-private cache.
+  - **Temporary file detection** — extension/pattern heuristics within accessible shared storage (`.tmp`, `.temp`, `.log`, `.bak`, `.cache`, `.crdownload`, `.part`, leftover `.trashed-*`), each flagged with why it matched, never silently bundled in with "junk."
+  - **Staged-for-deletion review** ("mark now, decide later"): a distinct action from delete or trash — marks a file/folder with a `stagedAt` timestamp (an extension of Phase 9's per-file metadata, not a new table) without touching it at all; a WorkManager periodic job checks for items past their review window (default 30 days, configurable in Settings) and surfaces them in a review list — never auto-deletes, only prompts. A locked file (Phase 9) can't be staged.
+  - All three recommendation categories and the staged-review list share one multi-select bulk-action UI (select several → delete-with-confirmation, or dismiss the recommendation), consistent with Phase 6's duplicate-review pattern rather than a new interaction model.
+
+- **Phase 11 — Security hardening**
   Protected-path blocklist (Android/data, Android/obb, app-internal dirs, other apps' private storage — inherently inaccessible under scoped storage, but explicit guard + clear error rather than a silent failure), path-traversal checks, Keystore-backed encryption for sensitive prefs and the vault, R8/ProGuard release config, dependency vulnerability scanning wired into CI. Settings screen's Permissions section gets the protected-path explanation.
 
-- **Phase 11 — Logs**
+- **Phase 12 — Logs**
   Structured logging (Timber → Room-backed log store), weekly auto-purge via WorkManager `PeriodicWorkRequest`, in-app log viewer with filter, export-to-file, and manual "clear now" — reachable from the Settings screen's Logs entry (Phase 2).
 
-- **Phase 12 — Audit trail**
+- **Phase 13 — Audit trail**
   Every mutating action (already emitting from Phase 3 onward) surfaced in a dedicated, filterable/searchable audit viewer; exportable; tamper-evident (hash-chained entries) since this is a security-sensitive log distinct from debug logs.
 
-- **Phase 13 — Localization & responsiveness**
+- **Phase 14 — Localization & responsiveness**
   Hebrew + English resource sets, full RTL verification (Compose `LayoutDirection`, mirrored icons/gestures) across every screen built so far, `WindowSizeClass`-driven adaptive layouts for phone/foldable, dynamic font-scale support. Builds on the Settings screen's Language toggle from Phase 2.
 
-- **Phase 14 — Versioning & updates**
+- **Phase 15 — Versioning & updates**
   In-app update checker against GitHub Releases (APK signature verification before install prompt) or Play Core In-App Update API if/when published to Play; versioned "What's New" sheet shown once per upgrade, sourced from a changelog file.
 
-- **Phase 15 — Test & release hardening**
-  Coverage gates (Jacoco) on domain/data layers, security test suite (encryption round-trip, protected-path denial, path traversal), performance benchmarks (hash throughput, duplicate-scan on large trees, cold-start time via Macrobenchmark), Compose UI + Espresso E2E suite on an emulator matrix in CI, first tagged release via the `release-checklist` skill (multi-persona review: system architect / UI expert / UX expert / QA architect, version bump, What's New, docs/skills refresh).
+- **Phase 16 — Test & release hardening**
+  Coverage gates (Jacoco) on domain/data layers, security test suite (encryption round-trip, protected-path denial, path traversal), performance benchmarks (hash throughput, duplicate-scan on large trees, cold-start time via Macrobenchmark), Compose UI + Espresso E2E suite on an emulator matrix in CI, first tagged release via the `release-checklist` skill (multi-persona review: system architect / UI expert / UX expert / QA architect, version bump, What's New, docs/skills refresh, user guide + info-button sync).
 
-Phases 3–14 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; etc.) stays fixed.
+Phases 3–15 can reorder slightly as real constraints surface, but the dependency chain (0→1→2→3 first; hashing needs the file index from 1; audit viewer needs the audit events from 3; Storage advisor (10) needs the duplicate-review UI pattern from 6 and the per-file metadata from 9; etc.) stays fixed.
 
 ## CI/CD (GitHub Actions), from Phase 0 onward
 
 - `android-ci.yml`: on every push/PR — `assembleDebug`, unit tests (JVM, Robolectric where needed), `ktlint`, `detekt`, Android Lint.
-- `instrumented-tests.yml` (from Phase 15, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
+- `instrumented-tests.yml` (from Phase 16, introduced earlier if a phase needs device-level verification sooner): Compose/Espresso tests on `reactivecircus/android-emulator-runner`.
 - `release.yml`: on version tag — signed release build (AAB/APK), changelog extraction, GitHub Release publish.
 - `security.yml`: CodeQL + dependency review, scheduled + on PR.
 
 ## Skills & docs (item 18)
 
 - `CLAUDE.md` at repo root: architecture map, module/package conventions, how to run what's runnable locally vs. what needs CI (no Android SDK in this sandbox), and a **model-tier guide**: routine UI/text/test-scaffolding work → default/fast tier; architecture decisions, security-sensitive code (encryption, permission boundaries, hashing correctness), and release reviews → escalate reasoning effort/model tier.
-- Repo-local skill `release-checklist` (mirrors the one in `system_diagram`): version bump, What's New entry, 4-persona review (system architect / UI expert / UX expert / QA architect), docs+skills refresh, CI-green gate, merge.
+- Repo-local skill `release-checklist` (mirrors the one in `system_diagram`): version bump, What's New entry, 4-persona review (system architect / UI expert / UX expert / QA architect), docs+skills refresh, **user guide (`assets/help.html`) + every `InfoButton`'s copy checked against this batch's actual behavior**, CI-green gate, merge.
 - Repo-local skill `add-feature`: conventions for adding a new feature package (folder layout, ViewModel/UseCase/Repository wiring, where tests go) — added once Phase 3 or 4 establishes the pattern concretely, not speculatively now.
 
 ## Known sandbox constraint
