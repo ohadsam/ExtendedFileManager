@@ -79,4 +79,24 @@
     <string name="picker_title_move">העבר אל…</string>
     <string name="picker_title_copy">העתק אל…</string>
     <string name="picker_choose_folder">בחר תיקייה זו</string>
+
+    <string name="selection_more_actions">פעולות נוספות</string>
+    <string name="action_compress">דחוס</string>
+    <string name="action_extract">חלץ</string>
+    <string name="action_extract_replace">חלץ והחלף</string>
+
+    <string name="compress_title">דחיסה</string>
+    <string name="compress_confirm">צור</string>
+
+    <string name="conflict_policy_title">חלק מהקבצים כבר קיימים</string>
+    <string name="conflict_policy_replace_warning">הארכיון המקורי יימחק (לסל המיחזור, כך שניתן לבטל) לאחר שהחילוץ יושלם בהצלחה.</string>
+    <string name="conflict_policy_rename">השאר את שניהם (שנה שם לקבצים החדשים)</string>
+    <string name="conflict_policy_overwrite">שכתב את הקבצים הקיימים</string>
+    <string name="conflict_policy_skip">דלג על קבצים קיימים</string>
+    <string name="conflict_policy_confirm">חלץ</string>
+
+    <string name="archive_progress_compressing">דוחס…</string>
+    <string name="archive_progress_extracting">מחלץ…</string>
+    <string name="archive_progress_count">%d קבצים עד כה</string>
+    <string name="archive_progress_cancel">בטל</string>
 </resources>

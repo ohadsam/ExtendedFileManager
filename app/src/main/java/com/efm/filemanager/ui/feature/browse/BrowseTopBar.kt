@@ -9,11 +9,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -57,16 +56,25 @@ internal fun buildSelectionActions(
         onDelete = { onDialogRequested(BrowseDialog.DELETE) },
     )
 
+internal fun buildArchiveActions(
+    onCompressRequested: () -> Unit,
+    onExtractRequested: (replace: Boolean) -> Unit,
+): ArchiveBarActions =
+    ArchiveBarActions(
+        onCompress = onCompressRequested,
+        onExtract = { onExtractRequested(false) },
+        onExtractAndReplace = { onExtractRequested(true) },
+    )
+
 @Composable
 internal fun BrowseTopBar(
     breadcrumbs: List<BreadcrumbEntry>,
-    selectedCount: Int,
-    selectionActions: SelectionBarActions,
+    selectionBarState: SelectionBarState,
     onOpenDrawer: () -> Unit,
     onNavigateToBreadcrumb: (Int) -> Unit,
 ) {
-    if (selectedCount > 0) {
-        SelectionTopAppBar(selectedCount = selectedCount, canRename = selectedCount == 1, actions = selectionActions)
+    if (selectionBarState.selectedCount > 0) {
+        SelectionTopAppBar(state = selectionBarState)
     } else {
         BrowseNormalTopBar(breadcrumbs = breadcrumbs, onOpenDrawer = onOpenDrawer, onNavigateToBreadcrumb = onNavigateToBreadcrumb)
     }
@@ -101,35 +109,81 @@ private fun BrowseNormalTopBar(
 }
 
 @Composable
-private fun SelectionTopAppBar(
-    selectedCount: Int,
-    canRename: Boolean,
-    actions: SelectionBarActions,
-) {
+private fun SelectionTopAppBar(state: SelectionBarState) {
+    var moreMenuExpanded by remember { mutableStateOf(false) }
+    val canRename = state.selectedCount == 1
+
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = actions.onClose) {
+            IconButton(onClick = state.actions.onClose) {
                 Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.selection_clear))
             }
         },
-        title = { Text(stringResource(R.string.selection_count, selectedCount)) },
+        title = { Text(stringResource(R.string.selection_count, state.selectedCount)) },
         actions = {
             if (canRename) {
-                IconButton(onClick = actions.onRename) {
+                IconButton(onClick = state.actions.onRename) {
                     Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
                 }
             }
-            IconButton(onClick = actions.onMove) {
-                Icon(Icons.Filled.DriveFileMove, contentDescription = stringResource(R.string.action_move))
-            }
-            IconButton(onClick = actions.onCopy) {
-                Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.action_copy))
-            }
-            IconButton(onClick = actions.onDelete) {
+            IconButton(onClick = state.actions.onDelete) {
                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+            }
+            Box {
+                IconButton(onClick = { moreMenuExpanded = true }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
+                }
+                SelectionMoreMenu(expanded = moreMenuExpanded, state = state, onDismiss = { moreMenuExpanded = false })
             }
         },
     )
+}
+
+@Composable
+private fun SelectionMoreMenu(
+    expanded: Boolean,
+    state: SelectionBarState,
+    onDismiss: () -> Unit,
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_move)) },
+            onClick = {
+                onDismiss()
+                state.actions.onMove()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_copy)) },
+            onClick = {
+                onDismiss()
+                state.actions.onCopy()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_compress)) },
+            onClick = {
+                onDismiss()
+                state.archiveActions.onCompress()
+            },
+        )
+        if (state.canExtract) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_extract)) },
+                onClick = {
+                    onDismiss()
+                    state.archiveActions.onExtract()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_extract_replace)) },
+                onClick = {
+                    onDismiss()
+                    state.archiveActions.onExtractAndReplace()
+                },
+            )
+        }
+    }
 }
 
 @Composable

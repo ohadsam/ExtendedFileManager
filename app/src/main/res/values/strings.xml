@@ -79,4 +79,24 @@
     <string name="picker_title_move">Move to…</string>
     <string name="picker_title_copy">Copy to…</string>
     <string name="picker_choose_folder">Choose this folder</string>
+
+    <string name="selection_more_actions">More actions</string>
+    <string name="action_compress">Compress</string>
+    <string name="action_extract">Extract</string>
+    <string name="action_extract_replace">Extract &amp; Replace</string>
+
+    <string name="compress_title">Compress</string>
+    <string name="compress_confirm">Create</string>
+
+    <string name="conflict_policy_title">Some files already exist</string>
+    <string name="conflict_policy_replace_warning">The original archive will be deleted (to trash, so it can be undone) once extraction finishes successfully.</string>
+    <string name="conflict_policy_rename">Keep both (rename new files)</string>
+    <string name="conflict_policy_overwrite">Overwrite existing files</string>
+    <string name="conflict_policy_skip">Skip existing files</string>
+    <string name="conflict_policy_confirm">Extract</string>
+
+    <string name="archive_progress_compressing">Compressing…</string>
+    <string name="archive_progress_extracting">Extracting…</string>
+    <string name="archive_progress_count">%d files so far</string>
+    <string name="archive_progress_cancel">Cancel</string>
 </resources>

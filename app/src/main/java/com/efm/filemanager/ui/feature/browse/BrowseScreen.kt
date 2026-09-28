@@ -51,6 +51,7 @@ import com.efm.filemanager.domain.model.FileEntry
 fun BrowseScreen(
     onOpenDrawer: () -> Unit,
     viewModel: BrowseViewModel = hiltViewModel(),
+    archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pickerState by viewModel.pickerState.collectAsStateWithLifecycle()
@@ -59,10 +60,12 @@ fun BrowseScreen(
             if (uri != null) viewModel.onTreeGranted(uri)
         }
     val selectedUris = remember { mutableStateListOf<Uri>() }
-    var dialog by remember { mutableStateOf<BrowseDialog?>(null) }
+    val dialogState = remember { BrowseScreenDialogState() }
     val selectedEntries = uiState.files.filter { selectedUris.contains(it.uri) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val selectionActions = buildSelectionActions(selectedUris, selectedEntries, viewModel) { dialog = it }
+    val selectionActions = buildSelectionActions(selectedUris, selectedEntries, viewModel) { dialogState.dialog = it }
+    val archiveActions = buildArchiveBarActions(selectedEntries) { dialogState.archiveRequest = it }
+    val selectionBarState = buildSelectionBarState(selectedUris, selectedEntries, selectionActions, archiveActions)
 
     BrowseSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
@@ -70,19 +73,17 @@ fun BrowseScreen(
         topBar = {
             BrowseTopBar(
                 breadcrumbs = uiState.breadcrumbs,
-                selectedCount = selectedUris.size,
-                selectionActions = selectionActions,
+                selectionBarState = selectionBarState,
                 onOpenDrawer = onOpenDrawer,
                 onNavigateToBreadcrumb = viewModel::navigateToBreadcrumb,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            if (uiState.hasAccess && selectedUris.isEmpty()) {
-                FloatingActionButton(onClick = { dialog = BrowseDialog.CREATE }) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.create_entry_title))
-                }
-            }
+            BrowseFab(
+                visible = uiState.hasAccess && selectedUris.isEmpty(),
+                onClick = { dialogState.dialog = BrowseDialog.CREATE },
+            )
         },
     ) { innerPadding ->
         BrowseBody(
@@ -94,15 +95,55 @@ fun BrowseScreen(
         )
     }
 
+    BrowseScreenDialogs(
+        dialogState = dialogState,
+        viewModel = viewModel,
+        archiveViewModel = archiveViewModel,
+        context = DialogsContext(selectedEntries, pickerState, uiState.breadcrumbs.lastOrNull()?.uri),
+        onSelectionCleared = { selectedUris.clear() },
+    )
+}
+
+@Composable
+private fun BrowseFab(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
+    if (visible) {
+        FloatingActionButton(onClick = onClick) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.create_entry_title))
+        }
+    }
+}
+
+@Composable
+private fun BrowseScreenDialogs(
+    dialogState: BrowseScreenDialogState,
+    viewModel: BrowseViewModel,
+    archiveViewModel: ArchiveViewModel,
+    context: DialogsContext,
+    onSelectionCleared: () -> Unit,
+) {
     BrowseDialogs(
-        dialog = dialog,
+        dialog = dialogState.dialog,
         onFinished = {
-            dialog = null
-            selectedUris.clear()
+            dialogState.dialog = null
+            onSelectionCleared()
         },
         viewModel = viewModel,
-        selectedEntries = selectedEntries,
-        pickerState = pickerState,
+        selectedEntries = context.selectedEntries,
+        pickerState = context.pickerState,
+    )
+
+    ArchiveDialogsSection(
+        request = dialogState.archiveRequest,
+        parentUri = context.parentUri,
+        archiveViewModel = archiveViewModel,
+        selectedEntries = context.selectedEntries,
+        onFinished = {
+            dialogState.archiveRequest = null
+            onSelectionCleared()
+        },
     )
 }
 

@@ -141,12 +141,12 @@ class FileOperationsRepository
                 }
     }
 
-private fun requireTreeDocument(
+internal fun requireTreeDocument(
     context: Context,
     uri: Uri,
 ): DocumentFile = requireNotNull(DocumentFile.fromTreeUri(context, uri)) { "Folder is no longer accessible" }
 
-private fun requireSingleDocument(
+internal fun requireSingleDocument(
     context: Context,
     uri: Uri,
 ): DocumentFile = requireNotNull(DocumentFile.fromSingleUri(context, uri)) { "File is no longer accessible" }
