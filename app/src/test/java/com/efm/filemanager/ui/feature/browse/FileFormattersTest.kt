@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FileFormattersTest {
-
     @Test
     fun `bytes under 1024 are shown as bytes`() {
         assertEquals("512 B", formatFileSize(512))

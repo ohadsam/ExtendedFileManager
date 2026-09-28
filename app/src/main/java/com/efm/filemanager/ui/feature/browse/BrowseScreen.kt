@@ -120,12 +120,18 @@ fun BrowseScreen(
     }
 }
 
-private fun toggleSelection(selected: SnapshotStateList<Uri>, uri: Uri) {
+private fun toggleSelection(
+    selected: SnapshotStateList<Uri>,
+    uri: Uri,
+) {
     if (selected.contains(uri)) selected.remove(uri) else selected.add(uri)
 }
 
 @Composable
-private fun SortDropdownMenu(expanded: Boolean, onDismiss: () -> Unit) {
+private fun SortDropdownMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         DropdownMenuSectionHeader(stringResource(R.string.sort_section_sort_by))
         DropdownMenuItem(text = { Text(stringResource(R.string.sort_by_name)) }, onClick = onDismiss)
@@ -149,7 +155,10 @@ private fun DropdownMenuSectionHeader(text: String) {
 }
 
 @Composable
-private fun BreadcrumbBar(breadcrumbs: List<BreadcrumbEntry>, onCrumbClick: (Int) -> Unit) {
+private fun BreadcrumbBar(
+    breadcrumbs: List<BreadcrumbEntry>,
+    onCrumbClick: (Int) -> Unit,
+) {
     if (breadcrumbs.isEmpty()) {
         Text(stringResource(R.string.app_name))
         return
@@ -242,7 +251,10 @@ private fun fileMetaLabel(entry: FileEntry): String {
 }
 
 @Composable
-private fun GrantAccessEmptyState(modifier: Modifier = Modifier, onGrantClick: () -> Unit) {
+private fun GrantAccessEmptyState(
+    modifier: Modifier = Modifier,
+    onGrantClick: () -> Unit,
+) {
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

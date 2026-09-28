@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class BreadcrumbEntry(val uri: Uri, val label: String)
+data class BreadcrumbEntry(
+    val uri: Uri,
+    val label: String,
+)
 
 data class BrowseUiState(
     val hasAccess: Boolean = false,
@@ -29,7 +32,6 @@ class BrowseViewModel @Inject constructor(
     private val documentTreeAccessManager: DocumentTreeAccessManager,
     private val repository: DocumentTreeRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(BrowseUiState())
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 

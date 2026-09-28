@@ -10,6 +10,10 @@ import com.efm.filemanager.R
  * "Navigation & toolbar conventions") -- Browse is the only real destination until Phase 2
  * onward add their own.
  */
-enum class EfmDestination(val route: String, val labelRes: Int, val icon: ImageVector) {
+enum class EfmDestination(
+    val route: String,
+    val labelRes: Int,
+    val icon: ImageVector,
+) {
     Browse("browse", R.string.nav_browse, Icons.Filled.Folder),
 }

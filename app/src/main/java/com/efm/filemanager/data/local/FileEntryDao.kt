@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FileEntryDao {
-
     @Query("SELECT * FROM file_entries WHERE parentUri = :parentUri ORDER BY isDirectory DESC, name COLLATE NOCASE ASC")
     fun observeChildren(parentUri: String): Flow<List<FileEntryEntity>>
 
@@ -20,7 +19,10 @@ interface FileEntryDao {
     suspend fun deleteChildren(parentUri: String)
 
     @Transaction
-    suspend fun replaceChildren(parentUri: String, entries: List<FileEntryEntity>) {
+    suspend fun replaceChildren(
+        parentUri: String,
+        entries: List<FileEntryEntity>,
+    ) {
         deleteChildren(parentUri)
         insertAll(entries)
     }

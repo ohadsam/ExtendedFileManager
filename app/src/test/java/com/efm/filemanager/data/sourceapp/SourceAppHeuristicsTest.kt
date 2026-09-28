@@ -5,7 +5,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SourceAppHeuristicsTest {
-
     @Test
     fun `known WhatsApp folder names resolve to the WhatsApp package`() {
         assertEquals("com.whatsapp", SourceAppHeuristics.packageByFolderName["WhatsApp Images"])

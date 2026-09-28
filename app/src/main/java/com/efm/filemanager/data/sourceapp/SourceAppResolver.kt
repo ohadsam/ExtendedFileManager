@@ -18,10 +18,16 @@ import javax.inject.Inject
 class SourceAppResolver @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    fun resolve(fileName: String, size: Long, parentFolderName: String?): SourceApp? =
-        resolveExact(fileName, size) ?: resolveHeuristic(parentFolderName)
+    fun resolve(
+        fileName: String,
+        size: Long,
+        parentFolderName: String?,
+    ): SourceApp? = resolveExact(fileName, size) ?: resolveHeuristic(parentFolderName)
 
-    private fun resolveExact(fileName: String, size: Long): SourceApp? {
+    private fun resolveExact(
+        fileName: String,
+        size: Long,
+    ): SourceApp? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
         val projection = arrayOf(MediaStore.MediaColumns.OWNER_PACKAGE_NAME)
         val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.SIZE} = ?"

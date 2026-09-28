@@ -48,7 +48,10 @@ class DocumentTreeRepository @Inject constructor(
             parentDocument.listFiles().mapNotNull { child -> child.toEntity(parentUri, parentFolderName) }
         }
 
-    private fun DocumentFile.toEntity(parentUri: Uri, parentFolderName: String?): FileEntryEntity? {
+    private fun DocumentFile.toEntity(
+        parentUri: Uri,
+        parentFolderName: String?,
+    ): FileEntryEntity? {
         val childUri = uri
         val childName = name ?: return null
         val childSize = length()
