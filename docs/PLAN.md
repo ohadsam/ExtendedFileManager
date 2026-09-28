@@ -66,6 +66,11 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 
 - **Phase 1 — Core browsing (read-only)** *(in progress)*
   SAF/MediaStore-backed directory listing, permission request flow, breadcrumb navigation, Room-backed file index cache for performance. No mutations yet.
+  The index entity captures **source-app metadata** at index time, not bolted on later, since every later filter/group/sort feature (Phase 5) depends on it existing per-file:
+  - **Exact**, from `MediaStore.MediaColumns.OWNER_PACKAGE_NAME` (API 29+, populated for media/downloads MediaStore indexes automatically by the OS) — this is the only source that's actually authoritative.
+  - **Heuristic fallback** for files MediaStore doesn't tag (older API levels, non-media files, manually-placed files): a maintained table of well-known folder-name → package patterns (`WhatsApp Images`/`WhatsApp Video` → `com.whatsapp`, `Telegram` → `org.telegram.messenger`, `Camera` → device camera, `Screenshots` → system, etc.), stored as data, not hardcoded logic, so it's easy to extend. Every heuristic match is flagged `confidence = HEURISTIC` in the model and shown differently in the UI (e.g. "likely WhatsApp" vs. a plain "WhatsApp" for exact matches) — never presented as certain when it isn't.
+  - Resolved to a human label + icon via `PackageManager` when the owning app is still installed; falls back to the raw package name (or "Unknown source") when it's been uninstalled or no match exists.
+  - **Known platform limit, not an app bug**: Android's scoped storage blocks any app — including this one — from browsing another app's private directory (`Android/data/<package>/…`, `Android/obb/<package>/…`) since API 30. That's Android protecting other apps' data, not something EFM can (or should try to) bypass, so "source app" is necessarily best-effort outside MediaStore's own tagging + folder heuristics — worth being upfront about rather than promising 100% attribution.
 
 - **Phase 2 — Settings screen shell**
   A real navigable Settings screen (reached from the main app bar), with sections that light up as later phases land rather than placeholders that never get wired up:
@@ -83,7 +88,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   Zip create/extract (java.util.zip baseline; evaluate Apache Commons Compress for broader format read-support: tar, gz, 7z-read). Progress + cancel for large archives.
 
 - **Phase 5 — Filter, sort, group-by engine**
-  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag) applied consistently across browse/search/duplicates.
+  A single reusable query spec (type, extension, date range, size range, source app/package, favorite status, tag) applied consistently across browse/search/duplicates. Source app is a first-class dimension here, not an afterthought: filter to "files from WhatsApp," group the current folder/search results by owning app (with a distinct "Unknown source" bucket for files with no match), and sort within a group the same as any other. The confidence flag from Phase 1's index (exact `OWNER_PACKAGE_NAME` vs. heuristic folder match) carries through to these views so a heuristic grouping is visibly marked as such, not presented with the same certainty as an exact one.
 
 - **Phase 6 — Duplicate & identical-file finder**
   Two-stage: cheap pre-filter (file size, then partial/head hash) → full SHA-256 streaming hash only on remaining candidates, to stay fast on large volumes. Cross-extension identical-content detection (hash content, ignore name/extension). Background via WorkManager with progress + cancel; results grouped for bulk review/delete.
