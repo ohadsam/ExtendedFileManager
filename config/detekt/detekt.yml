@@ -1,0 +1,12 @@
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    maxLineLength: 140
+
+comments:
+  active: false
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 20

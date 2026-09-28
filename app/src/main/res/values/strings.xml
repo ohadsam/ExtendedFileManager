@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Extended File Manager</string>
+    <string name="phase0_placeholder_title">Extended File Manager</string>
+    <string name="phase0_placeholder_subtitle">Phase 0 foundation — browsing lands in Phase 1.</string>
+</resources>

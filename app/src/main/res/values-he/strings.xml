@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">מנהל קבצים מתקדם</string>
+    <string name="phase0_placeholder_title">מנהל קבצים מתקדם</string>
+    <string name="phase0_placeholder_subtitle">שלב 0 — הבסיס. עיון בקבצים מגיע בשלב 1.</string>
+</resources>
