@@ -27,8 +27,9 @@ fun FileEntryEntity.toRecommendationEntity(
 
 /** Returns null for a row whose [StorageRecommendationEntity.category]/[StorageRecommendationEntity.reason] no longer parses. */
 fun StorageRecommendationEntity.toDomain(): StorageRecommendation? {
-    val parsedCategory = runCatching { StorageRecommendationCategory.valueOf(category) }.getOrNull() ?: return null
-    val parsedReason = runCatching { RecommendationReason.valueOf(reason) }.getOrNull() ?: return null
+    val parsedCategory = runCatching { StorageRecommendationCategory.valueOf(category) }.getOrNull()
+    val parsedReason = runCatching { RecommendationReason.valueOf(reason) }.getOrNull()
+    if (parsedCategory == null || parsedReason == null) return null
     return StorageRecommendation(
         entry =
             FileEntry(

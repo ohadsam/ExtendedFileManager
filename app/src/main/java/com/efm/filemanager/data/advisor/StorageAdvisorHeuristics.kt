@@ -11,6 +11,12 @@ private const val TRASHED_PREFIX = ".trashed-"
 internal const val DEFAULT_LARGE_FILE_MIN_BYTES = 100L * 1024 * 1024
 internal const val DEFAULT_UNUSED_THRESHOLD_MILLIS = 1000L * 60 * 60 * 24 * 30 * 6 // ~6 months
 
+/** [largeUnusedReason]'s two tunable thresholds, bundled so the function's own param count stays down. */
+internal data class LargeFileThresholds(
+    val minSizeBytes: Long = DEFAULT_LARGE_FILE_MIN_BYTES,
+    val unusedThresholdMillis: Long = DEFAULT_UNUSED_THRESHOLD_MILLIS,
+)
+
 /**
  * Returns the matched pattern (e.g. ".tmp", ".trashed-*") for display, or null if [name] doesn't
  * look temporary. A leftover Android trash-rename is checked by prefix; everything else, by
@@ -47,12 +53,10 @@ internal fun largeUnusedReason(
     lastModified: Long,
     lastOpenedAt: Long?,
     now: Long,
-    minSizeBytes: Long = DEFAULT_LARGE_FILE_MIN_BYTES,
-    unusedThresholdMillis: Long = DEFAULT_UNUSED_THRESHOLD_MILLIS,
+    thresholds: LargeFileThresholds = LargeFileThresholds(),
 ): RecommendationReason? {
-    if (sizeBytes < minSizeBytes) return null
-    if (lastOpenedAt != null) {
-        return RecommendationReason.NOT_OPENED_VIA_APP.takeIf { now - lastOpenedAt >= unusedThresholdMillis }
-    }
-    return RecommendationReason.NOT_MODIFIED_RECENTLY.takeIf { now - lastModified >= unusedThresholdMillis }
+    if (sizeBytes < thresholds.minSizeBytes) return null
+    val signalAge = now - (lastOpenedAt ?: lastModified)
+    val reason = if (lastOpenedAt != null) RecommendationReason.NOT_OPENED_VIA_APP else RecommendationReason.NOT_MODIFIED_RECENTLY
+    return reason.takeIf { signalAge >= thresholds.unusedThresholdMillis }
 }

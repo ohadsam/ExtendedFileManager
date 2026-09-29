@@ -49,23 +49,18 @@ class StorageAdvisorHeuristicsTest {
         )
     }
 
+    private val thresholds = LargeFileThresholds(minSizeBytes = 100, unusedThresholdMillis = THRESHOLD)
+
     @Test
     fun `large-unused ignores files under the size floor`() {
-        val reason = largeUnusedReason(sizeBytes = 10, lastModified = 0, lastOpenedAt = null, now = THRESHOLD * 10, minSizeBytes = 100)
+        val reason = largeUnusedReason(sizeBytes = 10, lastModified = 0, lastOpenedAt = null, now = THRESHOLD * 10, thresholds = thresholds)
         assertNull(reason)
     }
 
     @Test
     fun `large-unused falls back to lastModified when never opened via EFM`() {
         val old =
-            largeUnusedReason(
-                sizeBytes = 1_000,
-                lastModified = 0,
-                lastOpenedAt = null,
-                now = THRESHOLD + 1,
-                minSizeBytes = 100,
-                unusedThresholdMillis = THRESHOLD,
-            )
+            largeUnusedReason(sizeBytes = 1_000, lastModified = 0, lastOpenedAt = null, now = THRESHOLD + 1, thresholds = thresholds)
         assertEquals(RecommendationReason.NOT_MODIFIED_RECENTLY, old)
 
         val recent =
@@ -74,8 +69,7 @@ class StorageAdvisorHeuristicsTest {
                 lastModified = THRESHOLD,
                 lastOpenedAt = null,
                 now = THRESHOLD + 1,
-                minSizeBytes = 100,
-                unusedThresholdMillis = THRESHOLD,
+                thresholds = thresholds,
             )
         assertNull(recent)
     }
@@ -88,8 +82,7 @@ class StorageAdvisorHeuristicsTest {
                 lastModified = 0,
                 lastOpenedAt = THRESHOLD,
                 now = THRESHOLD + 1,
-                minSizeBytes = 100,
-                unusedThresholdMillis = THRESHOLD,
+                thresholds = thresholds,
             )
         assertNull(reason)
     }
@@ -97,14 +90,7 @@ class StorageAdvisorHeuristicsTest {
     @Test
     fun `a stale EFM open is flagged as not-opened-via-app, even with a stale lastModified too`() {
         val reason =
-            largeUnusedReason(
-                sizeBytes = 1_000,
-                lastModified = 0,
-                lastOpenedAt = 0,
-                now = THRESHOLD + 1,
-                minSizeBytes = 100,
-                unusedThresholdMillis = THRESHOLD,
-            )
+            largeUnusedReason(sizeBytes = 1_000, lastModified = 0, lastOpenedAt = 0, now = THRESHOLD + 1, thresholds = thresholds)
         assertEquals(RecommendationReason.NOT_OPENED_VIA_APP, reason)
     }
 }
