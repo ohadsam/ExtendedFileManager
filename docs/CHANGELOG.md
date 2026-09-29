@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.10.1 (2026-09-29)
+
+- Phase 9 follow-up, closing gaps from the initial v0.10.0 ship:
+  favorites collections now have a real drag handle for reordering,
+  alongside move-up/move-down; group-by-tag joins filter-by-tag (a
+  file with two tags now shows up under both); bulk-favoriting a
+  selection offers a collection picker instead of always landing in
+  the uncategorized one; Preview's selection mode is now reachable by
+  long-press on the content itself, not just the top-bar toggle; the
+  full file-details sheet (favorite/tags/lock/note together) now opens
+  from Search and Duplicates too, not just Browse; and Duplicates rows
+  now reflect live tag/lock/favorite data instead of the scan snapshot.
+
 ## v0.10.0 (2026-09-29)
 
 - Phase 9 — favorites, tags, lock & notes: mark any file or folder as a
