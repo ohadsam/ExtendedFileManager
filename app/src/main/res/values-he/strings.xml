@@ -4,6 +4,7 @@
 
     <string name="nav_drawer_open">פתח תפריט ניווט</string>
     <string name="nav_browse">עיון בקבצים</string>
+    <string name="nav_duplicates">כפילויות</string>
     <string name="nav_settings">הגדרות</string>
     <string name="nav_back">חזרה</string>
 
@@ -148,4 +149,12 @@
     <string name="archive_progress_extracting">מחלץ…</string>
     <string name="archive_progress_count">%d קבצים עד כה</string>
     <string name="archive_progress_cancel">בטל</string>
+
+    <string name="duplicates_scan">סרוק כפילויות</string>
+    <string name="duplicates_cancel_scan">בטל סריקה</string>
+    <string name="duplicates_comparing">משווה קבצים…</string>
+    <string name="duplicates_verifying">מאמת התאמות…</string>
+    <string name="duplicates_empty">עדיין לא נמצאו כפילויות. הקש על סמל הסריקה כדי לבדוק את הקבצים שלך.</string>
+    <string name="duplicate_group_summary">%1$d עותקים • %2$s כל אחד</string>
+    <string name="duplicate_keep_one">השאר אחד</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.efm.filemanager.ui.nav
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -8,7 +9,7 @@ import com.efm.filemanager.R
 
 /**
  * The drawer's entries grow one at a time as each owning phase lands (see docs/PLAN.md's
- * "Navigation & toolbar conventions") -- Favorites/Duplicates/Storage Advisor/Logs/Audit
+ * "Navigation & toolbar conventions") -- Favorites/Storage Advisor/Logs/Audit
  * are added by their own owning phases.
  */
 enum class EfmDestination(
@@ -17,5 +18,6 @@ enum class EfmDestination(
     val icon: ImageVector,
 ) {
     Browse("browse", R.string.nav_browse, Icons.Filled.Folder),
+    Duplicates("duplicates", R.string.nav_duplicates, Icons.Filled.FileCopy),
     Settings("settings", R.string.nav_settings, Icons.Filled.Settings),
 }

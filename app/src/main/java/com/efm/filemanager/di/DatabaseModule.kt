@@ -3,6 +3,7 @@ package com.efm.filemanager.di
 import android.content.Context
 import androidx.room.Room
 import com.efm.filemanager.data.audit.AuditEventDao
+import com.efm.filemanager.data.local.DuplicateFileDao
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileEntryDao
 import com.efm.filemanager.data.local.FileSearchDao
@@ -39,4 +40,7 @@ object DatabaseModule {
 
     @Provides
     fun provideTrashedFileDao(database: EfmDatabase): TrashedFileDao = database.trashedFileDao()
+
+    @Provides
+    fun provideDuplicateFileDao(database: EfmDatabase): DuplicateFileDao = database.duplicateFileDao()
 }

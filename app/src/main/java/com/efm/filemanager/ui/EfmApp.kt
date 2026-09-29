@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
+import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
 import com.efm.filemanager.ui.feature.help.HelpScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
@@ -56,6 +57,9 @@ fun EfmApp() {
                     onOpenDrawer = { scope.launch { drawerState.open() } },
                     onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
                 )
+            }
+            composable(EfmDestination.Duplicates.route) {
+                DuplicatesScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
             }
             composable(EfmDestination.Settings.route) {
                 SettingsScreen(
