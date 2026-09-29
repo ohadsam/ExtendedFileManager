@@ -47,7 +47,7 @@ Not one merged skim. Each persona looks for different things; do all four, in or
 4. **QA architect.** Is the change actually tested (unit tests for new domain/data logic, not
    deferred to "later")? Are edge cases covered (empty folder, permission denied, huge file,
    duplicate names, file deleted externally mid-operation)? Does anything here need a security or
-   performance test per `docs/PLAN.md` Phase 19's categories, even ahead of that phase, because this
+   performance test per `docs/PLAN.md` Phase 20's categories, even ahead of that phase, because this
    change is security/performance-sensitive on its own (hashing, encryption, protected-path checks)?
 
 Fix everything found before moving on. If a pass finds nothing, say so and continue.
@@ -125,7 +125,7 @@ way this file's steps are written (specific, not generic). If not, say so explic
 
 - Add/extend unit tests for any new domain/data logic (MockK + Turbine + coroutines-test, per
   `CLAUDE.md`).
-- Note in the PR/summary which parts still need instrumented/E2E coverage (Phase 19) if this batch
+- Note in the PR/summary which parts still need instrumented/E2E coverage (Phase 20) if this batch
   can't get it yet.
 - **This sandbox cannot run any Gradle task locally** (no Android SDK, no network to Google's Maven
   repo — see `CLAUDE.md`). "Tests pass" means CI (`android-ci.yml`) is green on the pushed branch,
