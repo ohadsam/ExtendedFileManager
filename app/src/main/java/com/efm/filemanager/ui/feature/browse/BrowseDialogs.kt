@@ -5,6 +5,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
@@ -26,6 +27,7 @@ internal fun BrowseSnackbarEffect(
     val undoLabel = stringResource(R.string.undo)
     val operationFailedMessage = stringResource(R.string.operation_failed)
     val unlockLabel = stringResource(R.string.file_details_lock)
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -40,7 +42,7 @@ internal fun BrowseSnackbarEffect(
                     if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete(event.trashedFileIds)
                 }
                 is BrowseEvent.DeleteBlockedByLock -> {
-                    val message = stringResource(R.string.delete_blocked_by_lock, event.lockedEntries.size)
+                    val message = context.getString(R.string.delete_blocked_by_lock, event.lockedEntries.size)
                     val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
                     if (result == SnackbarResult.ActionPerformed) {
                         viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
