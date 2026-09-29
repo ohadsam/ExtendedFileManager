@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.8.0 (2026-09-29)
+
+- Phase 7 — preview: tapping a previewable file in Browse, Search, or
+  Duplicates now opens it instead of doing nothing. Images get a
+  pinch-to-zoom/pan viewer, video and audio play inline, and PDFs render
+  page-by-page. Swipe left/right to move to the next or previous
+  previewable file in the same list you tapped from, gallery-style. File
+  rows in Browse and Search now show a real thumbnail for images instead
+  of a generic icon.
+- Roadmap: expanded the "Widgets & shortcuts" idea and Phase 19's landing
+  dashboard into a fuller description of real Android home-screen widgets
+  — several distinct, user-selectable types added via the OS's own widget
+  picker, rather than one fixed widget.
+
 ## v0.7.0 (2026-09-29)
 
 - Phase 6 — duplicate & identical-file finder: a new Duplicates screen scans every

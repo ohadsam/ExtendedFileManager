@@ -107,7 +107,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 6 — Duplicate & identical-file finder** ✅ *(done)*
   Two-stage: cheap pre-filter (file size, then partial/head hash) → full SHA-256 streaming hash only on remaining candidates, to stay fast on large volumes. Cross-extension identical-content detection (hash content, ignore name/extension). Background via WorkManager with progress + cancel; results grouped for bulk review/delete.
 
-- **Phase 7 — Preview**
+- **Phase 7 — Preview** ✅ *(done)*
   Images (Coil), video/audio (Media3/ExoPlayer), PDF (PdfRenderer). Inline preview pane + full-screen viewer, works from browse, search, and duplicate-review screens.
 
 - **Phase 8 — View modes & UI polish**
