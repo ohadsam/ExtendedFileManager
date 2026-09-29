@@ -164,4 +164,53 @@
 
     <string name="preview_pdf_failed">Couldn\'t open this PDF</string>
     <string name="preview_unsupported">No preview available for this file</string>
+
+    <string name="tag_preset_important">Important</string>
+    <string name="tag_preset_work">Work</string>
+    <string name="tag_preset_to_sort">To sort</string>
+    <string name="tag_preset_archive">Archive</string>
+
+    <string name="nav_favorites">Favorites</string>
+
+    <string name="action_add_tag">Add tag</string>
+    <string name="action_toggle_favorite">Toggle favorite</string>
+    <string name="action_toggle_lock">Toggle lock</string>
+
+    <string name="delete_blocked_by_lock">%d locked item(s) were not deleted</string>
+
+    <string name="filter_section_status">Status</string>
+    <string name="filter_favorites_only">Favorites only</string>
+    <string name="filter_locked_only">Locked only</string>
+    <string name="filter_section_tags">Tags</string>
+
+    <string name="preview_select">Select</string>
+
+    <string name="tag_picker_title">Add tags</string>
+    <string name="tag_picker_empty">No tags yet</string>
+    <string name="tag_picker_manage">Manage tags</string>
+    <string name="tag_picker_apply">Apply</string>
+
+    <string name="manage_tags_title">Manage tags</string>
+    <string name="manage_tags_create">New tag</string>
+    <string name="manage_tags_edit">Edit</string>
+    <string name="manage_tags_pin">Pin</string>
+    <string name="manage_tags_merge">Merge</string>
+    <string name="manage_tags_merge_body">Merge \"%1$s\" into another tag? Every file tagged with it will be re-tagged, and this tag will be deleted.</string>
+    <string name="manage_tags_save">Save</string>
+    <string name="manage_tags_delete_title">Delete tag?</string>
+    <string name="manage_tags_delete_message">Delete \"%1$s\"? It will be removed from every file.</string>
+
+    <string name="file_details_title">Details</string>
+    <string name="file_details_favorite">Favorite</string>
+    <string name="file_details_lock">Locked</string>
+    <string name="file_details_tags">Tags</string>
+    <string name="file_details_remove_tag">Remove tag %1$s</string>
+    <string name="file_details_note">Note</string>
+
+    <string name="favorites_new_collection">New collection</string>
+    <string name="favorites_empty">No favorites yet</string>
+    <string name="favorites_move_up">Move up</string>
+    <string name="favorites_move_down">Move down</string>
+    <string name="favorites_delete_collection_title">Delete collection?</string>
+    <string name="favorites_delete_collection_message">Delete \"%1$s\"? Its favorites will move to Uncategorized.</string>
 </resources>

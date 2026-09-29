@@ -6,4 +6,8 @@ internal data class SelectionBarActions(
     val onMove: () -> Unit,
     val onCopy: () -> Unit,
     val onDelete: () -> Unit,
+    val onShowDetails: () -> Unit,
+    val onAddTag: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onToggleLock: () -> Unit,
 )

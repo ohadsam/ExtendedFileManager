@@ -11,7 +11,10 @@ import com.efm.filemanager.data.duplicates.DuplicateScanWorker
 import com.efm.filemanager.data.duplicates.SCAN_WORK_NAME
 import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.data.duplicates.toScanProgress
+import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.data.metadata.TagRepository
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
 import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +35,8 @@ class DuplicatesViewModel
         private val workManager: WorkManager,
         private val duplicateScanRepository: DuplicateScanRepository,
         private val previewSessionHolder: PreviewSessionHolder,
+        private val tagRepository: TagRepository,
+        val metadataActions: SelectionMetadataActions,
     ) : ViewModel() {
         val uiState: StateFlow<DuplicatesUiState> =
             combine(
@@ -39,6 +44,9 @@ class DuplicatesViewModel
                 duplicateScanRepository.observeGroups(),
             ) { (runState, progress), groups -> DuplicatesUiState(runState = runState, progress = progress, groups = groups) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DuplicatesUiState())
+
+        val tags: StateFlow<List<FileTag>> =
+            tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         fun startScan() {
             val request = OneTimeWorkRequestBuilder<DuplicateScanWorker>().build()

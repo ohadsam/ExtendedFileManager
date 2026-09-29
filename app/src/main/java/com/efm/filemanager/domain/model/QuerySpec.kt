@@ -15,9 +15,8 @@ enum class DatePreset { ANY, TODAY, LAST_7_DAYS, LAST_30_DAYS, OLDER_THAN_30_DAY
 /**
  * One reusable filter/sort/group/search spec, applied the same way from browse and from
  * global search (search is just this spec with [freeText] filled in) -- see docs/PLAN.md
- * Phase 5. [tag]/[favoriteOnly]/[lockedOnly] are reserved dimensions: the data behind them
- * doesn't exist until Phase 9, so filtering on them is a no-op today; they're defined here
- * now so that phase only has to wire a UI, not extend this spec.
+ * Phase 5. [tagIds]/[favoriteOnly]/[lockedOnly] filter against Phase 9's per-file metadata
+ * (a file matches [tagIds] if it carries any one of them -- OR semantics, not AND).
  */
 data class QuerySpec(
     val freeText: String = "",
@@ -26,7 +25,7 @@ data class QuerySpec(
     val sourceAppPackage: String? = null,
     val sizePreset: SizePreset = SizePreset.ANY,
     val datePreset: DatePreset = DatePreset.ANY,
-    val tag: String? = null,
+    val tagIds: Set<Long> = emptySet(),
     val favoriteOnly: Boolean = false,
     val lockedOnly: Boolean = false,
     val sortField: SortField = SortField.NAME,
@@ -40,5 +39,8 @@ data class QuerySpec(
             sourceAppPackage = null,
             sizePreset = SizePreset.ANY,
             datePreset = DatePreset.ANY,
+            tagIds = emptySet(),
+            favoriteOnly = false,
+            lockedOnly = false,
         )
 }

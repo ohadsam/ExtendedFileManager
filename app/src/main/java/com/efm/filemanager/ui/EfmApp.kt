@@ -16,13 +16,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.efm.filemanager.ui.feature.browse.BrowseNavActions
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
 import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
+import com.efm.filemanager.ui.feature.favorites.FavoritesScreen
 import com.efm.filemanager.ui.feature.help.HelpScreen
 import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
+import com.efm.filemanager.ui.feature.tags.ManageTagsScreen
 import com.efm.filemanager.ui.nav.EfmDestination
 import com.efm.filemanager.ui.nav.EfmDrawerContent
 import kotlinx.coroutines.CoroutineScope
@@ -68,13 +71,24 @@ private fun NavGraphBuilder.efmDestinations(
 ) {
     composable(EfmDestination.Browse.route) {
         BrowseScreen(
-            onOpenDrawer = { scope.launch { drawerState.open() } },
-            onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
-            onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+            navActions =
+                BrowseNavActions(
+                    onOpenDrawer = { scope.launch { drawerState.open() } },
+                    onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
+                    onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+                    onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
+                ),
         )
     }
     composable(EfmDestination.Duplicates.route) {
         DuplicatesScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+            onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
+        )
+    }
+    composable(EfmDestination.Favorites.route) {
+        FavoritesScreen(
             onOpenDrawer = { scope.launch { drawerState.open() } },
             onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
         )
@@ -92,7 +106,10 @@ private fun NavGraphBuilder.efmDestinations(
         EfmSearchDestination(navController)
     }
     composable(PREVIEW_ROUTE) {
-        PreviewScreen(onNavigateBack = { navController.popBackStack() })
+        PreviewScreen(onNavigateBack = { navController.popBackStack() }, onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) })
+    }
+    composable(MANAGE_TAGS_ROUTE) {
+        ManageTagsScreen(onNavigateBack = { navController.popBackStack() })
     }
 }
 
@@ -111,9 +128,11 @@ private fun EfmSearchDestination(navController: NavHostController) {
             navController.popBackStack()
         },
         onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+        onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
     )
 }
 
 private const val HELP_ROUTE = "help"
 private const val SEARCH_ROUTE = "search"
 private const val PREVIEW_ROUTE = "preview"
+private const val MANAGE_TAGS_ROUTE = "manage_tags"

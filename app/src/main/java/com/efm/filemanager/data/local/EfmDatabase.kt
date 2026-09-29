@@ -14,8 +14,13 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         TrashedFileEntity::class,
         FileEntryFtsEntity::class,
         DuplicateFileEntity::class,
+        TagEntity::class,
+        FileTagCrossRefEntity::class,
+        FavoriteCollectionEntity::class,
+        FavoriteEntity::class,
+        FileFlagsEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
@@ -28,4 +33,10 @@ abstract class EfmDatabase : RoomDatabase() {
     abstract fun trashedFileDao(): TrashedFileDao
 
     abstract fun duplicateFileDao(): DuplicateFileDao
+
+    abstract fun tagDao(): TagDao
+
+    abstract fun favoriteDao(): FavoriteDao
+
+    abstract fun fileFlagsDao(): FileFlagsDao
 }

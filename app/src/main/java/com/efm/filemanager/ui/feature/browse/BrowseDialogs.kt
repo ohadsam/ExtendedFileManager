@@ -11,7 +11,11 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.CreateEntryDialog
 import com.efm.filemanager.ui.components.NewEntryType
+import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.components.TextInputDialog
+import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun BrowseSnackbarEffect(
@@ -21,6 +25,7 @@ internal fun BrowseSnackbarEffect(
     val undoDeleteMessage = stringResource(R.string.delete_undo_message)
     val undoLabel = stringResource(R.string.undo)
     val operationFailedMessage = stringResource(R.string.operation_failed)
+    val unlockLabel = stringResource(R.string.file_details_lock)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -33,6 +38,13 @@ internal fun BrowseSnackbarEffect(
                             duration = SnackbarDuration.Short,
                         )
                     if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete(event.trashedFileIds)
+                }
+                is BrowseEvent.DeleteBlockedByLock -> {
+                    val message = stringResource(R.string.delete_blocked_by_lock, event.lockedEntries.size)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
+                    }
                 }
                 BrowseEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
             }
@@ -50,8 +62,8 @@ internal fun BrowseDialogs(
     dialog: BrowseDialog?,
     onFinished: () -> Unit,
     viewModel: BrowseViewModel,
-    selectedEntries: List<FileEntry>,
-    pickerState: PickerUiState,
+    context: DialogsContext,
+    scope: CoroutineScope,
 ) {
     when (dialog) {
         BrowseDialog.CREATE ->
@@ -62,24 +74,43 @@ internal fun BrowseDialogs(
                 },
                 onDismiss = onFinished,
             )
-        BrowseDialog.RENAME -> RenameDialog(target = selectedEntries.firstOrNull(), viewModel = viewModel, onFinished = onFinished)
+        BrowseDialog.RENAME ->
+            RenameDialog(target = context.selectedEntries.firstOrNull(), viewModel = viewModel, onFinished = onFinished)
         BrowseDialog.DELETE ->
             ConfirmDangerousActionDialog(
                 title = stringResource(R.string.delete_confirm_title),
-                message = stringResource(R.string.delete_confirm_message, selectedEntries.size),
+                message = stringResource(R.string.delete_confirm_message, context.selectedEntries.size),
                 confirmLabel = stringResource(R.string.delete_confirm_button),
                 onConfirm = {
-                    viewModel.deleteEntries(selectedEntries)
+                    viewModel.deleteEntries(context.selectedEntries)
                     onFinished()
                 },
                 onDismiss = onFinished,
             )
+        BrowseDialog.TAG_PICKER ->
+            TagPickerDialog(
+                tags = context.tags,
+                onApply = { tagIds ->
+                    val uris = context.selectedEntries.map { it.uri }
+                    scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
+                    onFinished()
+                },
+                onManageTags = {
+                    onFinished()
+                    context.onOpenManageTags()
+                },
+                onDismiss = onFinished,
+            )
+        BrowseDialog.DETAILS ->
+            context.selectedEntries.firstOrNull()?.let { entry ->
+                FileDetailsSheet(entry = entry, onDismiss = onFinished, onOpenManageTags = context.onOpenManageTags)
+            }
         null -> Unit
     }
 
-    if (pickerState.visible) {
+    if (context.pickerState.visible) {
         DestinationPickerDialog(
-            state = pickerState,
+            state = context.pickerState,
             onNavigateInto = viewModel.picker::navigateInto,
             onNavigateToBreadcrumb = viewModel.picker::navigateToBreadcrumb,
             onConfirm = viewModel.picker::confirm,

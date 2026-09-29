@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +68,21 @@ fun FileRow(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (entry.tags.isNotEmpty()) {
+                    LazyRow(modifier = Modifier.padding(top = 4.dp)) {
+                        items(entry.tags, key = { it.id }) { tag ->
+                            Box(modifier = Modifier.padding(end = 4.dp)) { TagChip(tag) }
+                        }
+                    }
+                }
             }
+        }
+        if (entry.isLocked) {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = stringResource(R.string.file_details_lock),
+                modifier = Modifier.padding(start = 8.dp),
+            )
         }
     }
 }

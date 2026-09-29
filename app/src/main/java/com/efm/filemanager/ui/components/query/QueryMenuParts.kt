@@ -3,6 +3,7 @@ package com.efm.filemanager.ui.components.query
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,5 +39,19 @@ internal fun SelectableMenuItem(
             onDismiss()
             onClick()
         },
+    )
+}
+
+/** A menu item that toggles a state and stays open -- unlike [SelectableMenuItem], which picks one option and closes. */
+@Composable
+internal fun ToggleMenuItem(
+    label: String,
+    checked: Boolean,
+    onToggle: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        leadingIcon = { Checkbox(checked = checked, onCheckedChange = null) },
+        onClick = onToggle,
     )
 }

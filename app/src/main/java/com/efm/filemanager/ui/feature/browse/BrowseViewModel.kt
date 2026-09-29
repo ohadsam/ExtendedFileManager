@@ -6,8 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
+import com.efm.filemanager.data.documenttree.LockedFileException
+import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.data.metadata.TagRepository
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
@@ -17,12 +21,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val STOP_TIMEOUT_MS = 5_000L
 
 data class BreadcrumbEntry(
     val uri: Uri,
@@ -54,6 +62,8 @@ data class PickerUiState(
 sealed interface BrowseEvent {
     data class UndoDelete(val trashedFileIds: List<Long>) : BrowseEvent
 
+    data class DeleteBlockedByLock(val lockedEntries: List<FileEntry>) : BrowseEvent
+
     data object OperationFailed : BrowseEvent
 }
 
@@ -66,12 +76,17 @@ class BrowseViewModel
         private val fileOperationsRepository: FileOperationsRepository,
         private val previewSessionHolder: PreviewSessionHolder,
         private val preferencesRepository: PreferencesRepository,
+        private val tagRepository: TagRepository,
+        val metadataActions: SelectionMetadataActions,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(BrowseUiState())
         val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 
         private val _events = MutableSharedFlow<BrowseEvent>()
         val events: SharedFlow<BrowseEvent> = _events.asSharedFlow()
+
+        val tags: StateFlow<List<FileTag>> =
+            tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         val picker =
             BrowsePickerController(
@@ -161,9 +176,13 @@ class BrowseViewModel
         fun deleteEntries(entries: List<FileEntry>) {
             val parentUri = currentParentUri() ?: return
             viewModelScope.launch {
-                val trashedIds = entries.mapNotNull { entry -> fileOperationsRepository.delete(entry, parentUri).getOrNull() }
+                val results = entries.associateWith { entry -> fileOperationsRepository.delete(entry, parentUri) }
+                val trashedIds = results.values.mapNotNull { it.getOrNull() }
+                val lockedEntries = results.filterValues { it.exceptionOrNull() is LockedFileException }.keys.toList()
+                val otherFailureCount = entries.size - trashedIds.size - lockedEntries.size
                 if (trashedIds.isNotEmpty()) _events.emit(BrowseEvent.UndoDelete(trashedIds))
-                if (trashedIds.size < entries.size) _events.emit(BrowseEvent.OperationFailed)
+                if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.DeleteBlockedByLock(lockedEntries))
+                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed)
             }
         }
 

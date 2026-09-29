@@ -6,6 +6,7 @@ import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import com.efm.filemanager.data.audit.AuditAction
 import com.efm.filemanager.data.audit.AuditLogger
+import com.efm.filemanager.data.metadata.FileFlagsRepository
 import com.efm.filemanager.data.trash.TrashedFileDao
 import com.efm.filemanager.data.trash.TrashedFileEntity
 import com.efm.filemanager.domain.model.FileEntry
@@ -21,13 +22,17 @@ private const val FILE_MIME_TYPE = "application/octet-stream"
  * each wrapped in a [Result] so the UI can show a real error instead of crashing, and
  * each logging an audit entry (Phase 13's groundwork) whether it succeeds or fails.
  * Delete is soft: the item moves into a per-folder `.efm_trash` subfolder so a
- * just-deleted item can be undone, rather than being removed outright.
+ * just-deleted item can be undone, rather than being removed outright. [delete] refuses
+ * (not just warns about) a locked item -- see docs/PLAN.md Phase 9 -- which also covers
+ * Phase 4's Extract & Replace and Phase 6's duplicate-delete, since both route through
+ * this same [delete].
  */
 class FileOperationsRepository
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
         private val documentTreeRepository: DocumentTreeRepository,
+        private val fileFlagsRepository: FileFlagsRepository,
         private val trashedFileDao: TrashedFileDao,
         private val auditLogger: AuditLogger,
     ) {
@@ -65,8 +70,12 @@ class FileOperationsRepository
         suspend fun delete(
             entry: FileEntry,
             parentUri: Uri,
-        ): Result<Long> =
-            runCatching {
+        ): Result<Long> {
+            if (fileFlagsRepository.isLocked(entry.uri)) {
+                auditLogger.log(AuditAction.DELETE, entry.name, entry.uri, success = false, detail = "locked")
+                return Result.failure(LockedFileException(entry.name))
+            }
+            return runCatching {
                 withContext(Dispatchers.IO) {
                     val parent = requireTreeDocument(context, parentUri)
                     val trashFolder = parent.findFile(TRASH_FOLDER_NAME) ?: parent.createDirectory(TRASH_FOLDER_NAME)
@@ -88,6 +97,7 @@ class FileOperationsRepository
                 .onFailure {
                     auditLogger.log(AuditAction.DELETE, entry.name, entry.uri, success = false, detail = it.message)
                 }
+        }
 
         suspend fun restore(trashedFileId: Long): Result<Unit> {
             val trashed =

@@ -36,15 +36,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.ViewModeMenu
 import com.efm.filemanager.ui.components.icon
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 internal fun buildSelectionActions(
     selectedUris: SnapshotStateList<Uri>,
     selectedEntries: List<FileEntry>,
     viewModel: BrowseViewModel,
+    scope: CoroutineScope,
     onDialogRequested: (BrowseDialog) -> Unit,
 ): SelectionBarActions =
     SelectionBarActions(
@@ -59,6 +63,10 @@ internal fun buildSelectionActions(
             selectedUris.clear()
         },
         onDelete = { onDialogRequested(BrowseDialog.DELETE) },
+        onShowDetails = { onDialogRequested(BrowseDialog.DETAILS) },
+        onAddTag = { onDialogRequested(BrowseDialog.TAG_PICKER) },
+        onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
+        onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
     )
 
 internal fun buildArchiveActions(
@@ -123,6 +131,7 @@ private fun BrowseNormalTopBar(
                     spec = state.querySpec,
                     onSpecChanged = actions.onQuerySpecChanged,
                     onDismiss = { filterMenuExpanded = false },
+                    tags = state.tags,
                 )
             }
             Box {
@@ -178,6 +187,29 @@ private fun SelectionMoreMenu(
     onDismiss: () -> Unit,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        if (state.selectedCount == 1) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.file_details_title)) },
+                onClick = {
+                    onDismiss()
+                    state.actions.onShowDetails()
+                },
+            )
+        }
+        MetadataMenuItems(
+            onAddTag = {
+                onDismiss()
+                state.actions.onAddTag()
+            },
+            onToggleFavorite = {
+                onDismiss()
+                state.actions.onToggleFavorite()
+            },
+            onToggleLock = {
+                onDismiss()
+                state.actions.onToggleLock()
+            },
+        )
         DropdownMenuItem(
             text = { Text(stringResource(R.string.action_move)) },
             onClick = {

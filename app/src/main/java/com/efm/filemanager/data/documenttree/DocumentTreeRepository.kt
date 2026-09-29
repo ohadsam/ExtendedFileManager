@@ -7,11 +7,14 @@ import androidx.documentfile.provider.DocumentFile
 import com.efm.filemanager.data.local.FileEntryDao
 import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.toDomain
+import com.efm.filemanager.data.metadata.FileMetadataRepository
+import com.efm.filemanager.data.metadata.enrich
 import com.efm.filemanager.data.sourceapp.SourceAppResolver
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -28,9 +31,12 @@ class DocumentTreeRepository
         @ApplicationContext private val context: Context,
         private val fileEntryDao: FileEntryDao,
         private val sourceAppResolver: SourceAppResolver,
+        private val fileMetadataRepository: FileMetadataRepository,
     ) {
         fun observeChildren(parentUri: Uri): Flow<List<FileEntry>> =
-            fileEntryDao.observeChildren(parentUri.toString()).map { entries -> entries.map { it.toDomain() } }
+            combine(fileEntryDao.observeChildren(parentUri.toString()), fileMetadataRepository.snapshot) { entries, snapshot ->
+                entries.map { it.toDomain().enrich(snapshot) }
+            }
 
         suspend fun refresh(parentUri: Uri) {
             val entries = listChildrenFromSaf(parentUri)

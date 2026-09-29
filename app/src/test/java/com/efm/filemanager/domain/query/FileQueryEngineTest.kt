@@ -2,12 +2,14 @@ package com.efm.filemanager.domain.query
 
 import android.net.Uri
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.FileTypeFilter
 import com.efm.filemanager.domain.model.GroupBy
 import com.efm.filemanager.domain.model.GroupKey
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.SortField
 import com.efm.filemanager.domain.model.SortOrder
+import com.efm.filemanager.domain.model.TagColor
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -84,11 +86,46 @@ class FileQueryEngineTest {
         assertEquals(2, imageGroup.files.size)
     }
 
+    @Test
+    fun `tag filter keeps files carrying any of the selected tags`() {
+        val important = FileTag(id = 1, name = "Important", color = TagColor.RED, pinned = false)
+        val work = FileTag(id = 2, name = "Work", color = TagColor.BLUE, pinned = false)
+        val files = listOf(entry("a.txt", tags = listOf(important)), entry("b.txt", tags = listOf(work)), entry("c.txt"))
+        val spec = QuerySpec(tagIds = setOf(1L))
+
+        val result = spec.applyTo(files)
+
+        assertEquals(listOf("a.txt"), result.map { it.name })
+    }
+
+    @Test
+    fun `favorite-only filter keeps only favorited entries`() {
+        val files = listOf(entry("a.txt", isFavorite = true), entry("b.txt"))
+        val spec = QuerySpec(favoriteOnly = true)
+
+        val result = spec.applyTo(files)
+
+        assertEquals(listOf("a.txt"), result.map { it.name })
+    }
+
+    @Test
+    fun `locked-only filter keeps only locked entries`() {
+        val files = listOf(entry("a.txt", isLocked = true), entry("b.txt"))
+        val spec = QuerySpec(lockedOnly = true)
+
+        val result = spec.applyTo(files)
+
+        assertEquals(listOf("a.txt"), result.map { it.name })
+    }
+
     private fun entry(
         name: String,
         isDirectory: Boolean = false,
         size: Long = 0L,
         mimeType: String? = null,
+        tags: List<FileTag> = emptyList(),
+        isFavorite: Boolean = false,
+        isLocked: Boolean = false,
     ) = FileEntry(
         uri = mockk<Uri>(),
         documentId = name,
@@ -98,5 +135,8 @@ class FileQueryEngineTest {
         lastModified = System.currentTimeMillis(),
         mimeType = mimeType,
         sourceApp = null,
+        tags = tags,
+        isFavorite = isFavorite,
+        isLocked = isLocked,
     )
 }

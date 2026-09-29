@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,14 +43,14 @@ import com.efm.filemanager.ui.components.GroupedFileList
 
 @Composable
 fun BrowseScreen(
-    onOpenDrawer: () -> Unit,
-    onOpenSearch: () -> Unit,
-    onOpenPreview: () -> Unit,
+    navActions: BrowseNavActions,
     viewModel: BrowseViewModel = hiltViewModel(),
     archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pickerState by viewModel.picker.pickerState.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     val treePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
             if (uri != null) viewModel.onTreeGranted(uri)
@@ -58,7 +59,7 @@ fun BrowseScreen(
     val dialogState = remember { BrowseScreenDialogState() }
     val selectedEntries = uiState.files.filter { selectedUris.contains(it.uri) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val selectionActions = buildSelectionActions(selectedUris, selectedEntries, viewModel) { dialogState.dialog = it }
+    val selectionActions = buildSelectionActions(selectedUris, selectedEntries, viewModel, scope) { dialogState.dialog = it }
     val archiveActions = buildArchiveBarActions(selectedEntries) { dialogState.archiveRequest = it }
     val selectionBarState = buildSelectionBarState(selectedUris, selectedEntries, selectionActions, archiveActions)
 
@@ -67,13 +68,13 @@ fun BrowseScreen(
     Scaffold(
         topBar = {
             BrowseTopBar(
-                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec, uiState.viewMode),
+                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec, uiState.viewMode, tags),
                 actions =
                     BrowseTopBarActions(
-                        onOpenDrawer = onOpenDrawer,
+                        onOpenDrawer = navActions.onOpenDrawer,
                         onNavigateToBreadcrumb = viewModel::navigateToBreadcrumb,
                         onQuerySpecChanged = viewModel::updateQuerySpec,
-                        onOpenSearch = onOpenSearch,
+                        onOpenSearch = navActions.onOpenSearch,
                         onViewModeChanged = viewModel::setViewMode,
                     ),
             )
@@ -91,7 +92,7 @@ fun BrowseScreen(
             selectedUris = selectedUris,
             modifier = Modifier.padding(innerPadding),
             onGrantClick = { treePickerLauncher.launch(null) },
-            onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel, onOpenPreview) },
+            onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel, navActions.onOpenPreview) },
         )
     }
 
@@ -99,7 +100,7 @@ fun BrowseScreen(
         dialogState = dialogState,
         viewModel = viewModel,
         archiveViewModel = archiveViewModel,
-        context = DialogsContext(selectedEntries, pickerState, uiState.breadcrumbs.lastOrNull()?.uri),
+        context = DialogsContext(selectedEntries, pickerState, uiState.breadcrumbs.lastOrNull()?.uri, tags, navActions.onOpenManageTags),
         onSelectionCleared = { selectedUris.clear() },
     )
 }
@@ -124,6 +125,7 @@ private fun BrowseScreenDialogs(
     context: DialogsContext,
     onSelectionCleared: () -> Unit,
 ) {
+    val dialogScope = rememberCoroutineScope()
     BrowseDialogs(
         dialog = dialogState.dialog,
         onFinished = {
@@ -131,8 +133,8 @@ private fun BrowseScreenDialogs(
             onSelectionCleared()
         },
         viewModel = viewModel,
-        selectedEntries = context.selectedEntries,
-        pickerState = context.pickerState,
+        context = context,
+        scope = dialogScope,
     )
 
     ArchiveDialogsSection(

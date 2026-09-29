@@ -33,6 +33,9 @@ private fun List<FileEntry>.filterBySpec(spec: QuerySpec): List<FileEntry> =
         .filter { entry -> matchesSize(entry, spec.sizePreset) }
         .filter { entry -> matchesDate(entry, spec.datePreset) }
         .filter { entry -> spec.freeText.isBlank() || entry.name.contains(spec.freeText, ignoreCase = true) }
+        .filter { entry -> spec.tagIds.isEmpty() || entry.tags.any { tag -> tag.id in spec.tagIds } }
+        .filter { entry -> !spec.favoriteOnly || entry.isFavorite }
+        .filter { entry -> !spec.lockedOnly || entry.isLocked }
 
 private fun matchesType(
     entry: FileEntry,

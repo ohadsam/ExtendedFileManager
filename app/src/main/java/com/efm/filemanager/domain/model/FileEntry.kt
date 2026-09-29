@@ -11,6 +11,11 @@ data class FileEntry(
     val lastModified: Long,
     val mimeType: String?,
     val sourceApp: SourceApp?,
+    val tags: List<FileTag> = emptyList(),
+    val isFavorite: Boolean = false,
+    val favoriteCollectionId: Long? = null,
+    val isLocked: Boolean = false,
+    val note: String? = null,
 )
 
 data class SourceApp(

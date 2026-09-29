@@ -1,8 +1,10 @@
 package com.efm.filemanager.ui.feature.duplicates
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,7 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -36,17 +41,24 @@ import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.domain.model.DuplicateGroup
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
+import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
+import com.efm.filemanager.ui.components.TagPickerDialog
+import kotlinx.coroutines.launch
 
 @Composable
 fun DuplicatesScreen(
     onOpenDrawer: () -> Unit,
     onOpenPreview: () -> Unit,
+    onOpenManageTags: () -> Unit,
     viewModel: DuplicatesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var tagPickerVisible by remember { mutableStateOf(false) }
     val selectedEntries = uiState.groups.flatMap { it.files }.filter { selectedUris.contains(it.uri) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -59,10 +71,11 @@ fun DuplicatesScreen(
         },
         floatingActionButton = {
             if (selectedEntries.isNotEmpty()) {
-                ExtendedFloatingActionButton(
-                    onClick = { showDeleteConfirm = true },
-                    icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
-                    text = { Text(stringResource(R.string.action_delete)) },
+                DuplicatesSelectionFabs(
+                    onDeleteClick = { showDeleteConfirm = true },
+                    onAddTagClick = { tagPickerVisible = true },
+                    onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
+                    onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
                 )
             }
         },
@@ -87,6 +100,51 @@ fun DuplicatesScreen(
                 showDeleteConfirm = false
             },
             onDismiss = { showDeleteConfirm = false },
+        )
+    }
+
+    if (tagPickerVisible) {
+        TagPickerDialog(
+            tags = tags,
+            onApply = { tagIds ->
+                val uris = selectedEntries.map { it.uri }
+                scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
+                tagPickerVisible = false
+            },
+            onManageTags = {
+                tagPickerVisible = false
+                onOpenManageTags()
+            },
+            onDismiss = { tagPickerVisible = false },
+        )
+    }
+}
+
+@Composable
+private fun DuplicatesSelectionFabs(
+    onDeleteClick: () -> Unit,
+    onAddTagClick: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onToggleLock: () -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box {
+            FloatingActionButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
+            }
+            MetadataQuickActionsMenu(
+                expanded = menuExpanded,
+                onDismiss = { menuExpanded = false },
+                onAddTag = onAddTagClick,
+                onToggleFavorite = onToggleFavorite,
+                onToggleLock = onToggleLock,
+            )
+        }
+        ExtendedFloatingActionButton(
+            onClick = onDeleteClick,
+            icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+            text = { Text(stringResource(R.string.action_delete)) },
         )
     }
 }

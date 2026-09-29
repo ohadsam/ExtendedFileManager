@@ -7,6 +7,8 @@ import com.efm.filemanager.data.local.FileEntryDao
 import com.efm.filemanager.data.local.FileSearchDao
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.local.toFtsEntity
+import com.efm.filemanager.data.metadata.FileMetadataRepository
+import com.efm.filemanager.data.metadata.enrich
 import com.efm.filemanager.domain.model.FileEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,6 +30,7 @@ class SearchIndexRepository
         private val documentTreeRepository: DocumentTreeRepository,
         private val fileEntryDao: FileEntryDao,
         private val fileSearchDao: FileSearchDao,
+        private val fileMetadataRepository: FileMetadataRepository,
     ) {
         suspend fun rebuildIndex(): Int =
             withContext(Dispatchers.IO) {
@@ -39,7 +42,9 @@ class SearchIndexRepository
             val ftsQuery = buildFtsQuery(rawQuery)
             if (ftsQuery.isBlank()) return emptyList()
             val uris = fileSearchDao.matchUris(ftsQuery)
-            return if (uris.isEmpty()) emptyList() else fileEntryDao.getByUris(uris).map { it.toDomain() }
+            if (uris.isEmpty()) return emptyList()
+            val snapshot = fileMetadataRepository.snapshotOnce()
+            return fileEntryDao.getByUris(uris).map { it.toDomain().enrich(snapshot) }
         }
 
         private suspend fun indexFolder(folderUri: Uri): Int {

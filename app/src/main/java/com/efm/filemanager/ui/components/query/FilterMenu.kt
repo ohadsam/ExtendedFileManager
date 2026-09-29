@@ -9,17 +9,19 @@ import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.DatePreset
 import com.efm.filemanager.domain.model.FileCategory
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.FileTypeFilter
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.SizePreset
 
-/** Type / category / size / date filters, wired to a real [QuerySpec] -- shared by Browse and Search. */
+/** Type / category / size / date / tag / favorite / locked filters, wired to a real [QuerySpec] -- shared by Browse and Search. */
 @Composable
 fun FilterMenu(
     expanded: Boolean,
     spec: QuerySpec,
     onSpecChanged: (QuerySpec) -> Unit,
     onDismiss: () -> Unit,
+    tags: List<FileTag> = emptyList(),
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         QueryMenuSectionHeader(stringResource(R.string.filter_section_show))
@@ -43,6 +45,24 @@ fun FilterMenu(
         QueryMenuSectionHeader(stringResource(R.string.filter_section_date))
         DatePreset.entries.forEach { preset ->
             SelectableMenuItem(preset.labelRes(), spec.datePreset == preset, onDismiss) { onSpecChanged(spec.copy(datePreset = preset)) }
+        }
+        HorizontalDivider()
+        QueryMenuSectionHeader(stringResource(R.string.filter_section_status))
+        ToggleMenuItem(stringResource(R.string.filter_favorites_only), spec.favoriteOnly) {
+            onSpecChanged(spec.copy(favoriteOnly = !spec.favoriteOnly))
+        }
+        ToggleMenuItem(stringResource(R.string.filter_locked_only), spec.lockedOnly) {
+            onSpecChanged(spec.copy(lockedOnly = !spec.lockedOnly))
+        }
+        if (tags.isNotEmpty()) {
+            HorizontalDivider()
+            QueryMenuSectionHeader(stringResource(R.string.filter_section_tags))
+            tags.forEach { tag ->
+                ToggleMenuItem(tag.name, tag.id in spec.tagIds) {
+                    val updated = if (tag.id in spec.tagIds) spec.tagIds - tag.id else spec.tagIds + tag.id
+                    onSpecChanged(spec.copy(tagIds = updated))
+                }
+            }
         }
         HorizontalDivider()
         DropdownMenuItem(
