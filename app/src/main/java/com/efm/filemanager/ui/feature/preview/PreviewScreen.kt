@@ -86,10 +86,13 @@ private fun PreviewContent(
     val flags = remember { PreviewUiFlags() }
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
-    // instead of only ever acting on whichever file happens to be on screen right now.
+    // instead of only ever acting on whichever file happens to be on screen right now. Also
+    // where every file that ever gets shown in Preview -- tapped in or swiped to -- records
+    // itself as opened, Phase 10's secondary "unused" signal.
     LaunchedEffect(pagerState.currentPage) {
-        val entry = session.entries.getOrNull(pagerState.currentPage)
-        if (entry != null && selectedUris.isNotEmpty() && entry.uri !in selectedUris) {
+        val entry = session.entries.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
+        viewModel.metadataActions.recordOpened(entry.uri)
+        if (selectedUris.isNotEmpty() && entry.uri !in selectedUris) {
             selectedUris.add(entry.uri)
         }
     }

@@ -22,5 +22,6 @@ fun FileEntry.enrich(snapshot: FileMetadataSnapshot): FileEntry {
         favoriteCollectionId = favorite?.collectionId,
         isLocked = flags?.locked ?: false,
         note = flags?.note,
+        stagedAt = flags?.stagedAt,
     )
 }

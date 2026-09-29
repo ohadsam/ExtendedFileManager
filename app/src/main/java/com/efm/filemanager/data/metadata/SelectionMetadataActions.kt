@@ -47,4 +47,11 @@ class SelectionMetadataActions
         }
 
         suspend fun unlock(fileUris: List<Uri>) = fileFlagsRepository.setLocked(fileUris, locked = false)
+
+        /** Called whenever the user previews/opens [fileUri] through EFM itself -- Phase 10's secondary "unused" signal. */
+        suspend fun recordOpened(fileUri: Uri) = fileFlagsRepository.recordOpened(fileUri)
+
+        suspend fun stageForDeletion(entries: List<FileEntry>) = fileFlagsRepository.stageForDeletion(entries.map { it.uri })
+
+        suspend fun unstage(entries: List<FileEntry>) = fileFlagsRepository.unstage(entries.map { it.uri })
     }

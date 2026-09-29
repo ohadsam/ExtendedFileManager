@@ -7,6 +7,7 @@ import com.efm.filemanager.data.local.DuplicateFileDao
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileEntryDao
 import com.efm.filemanager.data.local.FileSearchDao
+import com.efm.filemanager.data.local.StorageRecommendationDao
 import com.efm.filemanager.data.trash.TrashedFileDao
 import dagger.Module
 import dagger.Provides
@@ -43,4 +44,7 @@ object DatabaseModule {
 
     @Provides
     fun provideDuplicateFileDao(database: EfmDatabase): DuplicateFileDao = database.duplicateFileDao()
+
+    @Provides
+    fun provideStorageRecommendationDao(database: EfmDatabase): StorageRecommendationDao = database.storageRecommendationDao()
 }

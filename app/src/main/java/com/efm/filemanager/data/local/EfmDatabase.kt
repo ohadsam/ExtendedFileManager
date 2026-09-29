@@ -19,8 +19,9 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         FavoriteCollectionEntity::class,
         FavoriteEntity::class,
         FileFlagsEntity::class,
+        StorageRecommendationEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
@@ -43,4 +44,6 @@ abstract class EfmDatabase : RoomDatabase() {
     abstract fun favoriteCollectionDao(): FavoriteCollectionDao
 
     abstract fun fileFlagsDao(): FileFlagsDao
+
+    abstract fun storageRecommendationDao(): StorageRecommendationDao
 }

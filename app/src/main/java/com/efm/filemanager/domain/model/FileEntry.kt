@@ -16,6 +16,8 @@ data class FileEntry(
     val favoriteCollectionId: Long? = null,
     val isLocked: Boolean = false,
     val note: String? = null,
+    /** Non-null while staged for Phase 10's "staged for deletion" review, holding when it was staged. */
+    val stagedAt: Long? = null,
 )
 
 data class SourceApp(
