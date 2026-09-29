@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
+import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.QuerySpec
+import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
 import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +35,7 @@ data class BrowseUiState(
     val files: List<FileEntry> = emptyList(),
     val isLoading: Boolean = false,
     val querySpec: QuerySpec = QuerySpec(),
+    val viewMode: ViewMode = ViewMode.LIST,
 )
 
 enum class PickerPurpose {
@@ -62,6 +65,7 @@ class BrowseViewModel
         private val repository: DocumentTreeRepository,
         private val fileOperationsRepository: FileOperationsRepository,
         private val previewSessionHolder: PreviewSessionHolder,
+        private val preferencesRepository: PreferencesRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(BrowseUiState())
         val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
@@ -78,6 +82,13 @@ class BrowseViewModel
 
         init {
             refreshAccessState()
+            viewModelScope.launch {
+                preferencesRepository.viewMode.collect { mode -> _uiState.update { it.copy(viewMode = mode) } }
+            }
+        }
+
+        fun setViewMode(mode: ViewMode) {
+            viewModelScope.launch { preferencesRepository.setViewMode(mode) }
         }
 
         fun refreshAccessState() {

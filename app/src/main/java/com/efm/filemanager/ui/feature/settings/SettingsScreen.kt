@@ -36,7 +36,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.AppearanceMode
+import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.components.InfoButton
+import com.efm.filemanager.ui.components.labelRes
 
 @Composable
 fun SettingsScreen(
@@ -83,9 +85,9 @@ fun SettingsScreen(
                 onOpenSystemSettings = { openAppSystemSettings(context) },
             )
             HorizontalDivider()
-            StubSection(
-                title = stringResource(R.string.display_section),
-                subtitle = stringResource(R.string.display_coming_soon),
+            DisplaySection(
+                viewMode = uiState.viewMode,
+                onViewModeChange = viewModel::setViewMode,
             )
             HorizontalDivider()
             StubSection(
@@ -199,6 +201,23 @@ private fun LanguageSection(
             selected = languageOption == LanguageOption.HEBREW,
             onClick = { onLanguageChange(LanguageOption.HEBREW) },
         )
+    }
+}
+
+@Composable
+private fun DisplaySection(
+    viewMode: ViewMode,
+    onViewModeChange: (ViewMode) -> Unit,
+) {
+    Column {
+        SectionHeader(title = stringResource(R.string.display_section))
+        ViewMode.entries.forEach { mode ->
+            RadioOptionRow(
+                label = stringResource(mode.labelRes()),
+                selected = viewMode == mode,
+                onClick = { onViewModeChange(mode) },
+            )
+        }
     }
 }
 

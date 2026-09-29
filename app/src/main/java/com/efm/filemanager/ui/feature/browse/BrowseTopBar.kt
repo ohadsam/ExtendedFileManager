@@ -36,6 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.ui.components.ViewModeMenu
+import com.efm.filemanager.ui.components.icon
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
 
@@ -88,6 +90,7 @@ private fun BrowseNormalTopBar(
 ) {
     var sortMenuExpanded by remember { mutableStateOf(false) }
     var filterMenuExpanded by remember { mutableStateOf(false) }
+    var viewModeMenuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
         navigationIcon = {
@@ -99,6 +102,17 @@ private fun BrowseNormalTopBar(
         actions = {
             IconButton(onClick = actions.onOpenSearch) {
                 Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_icon))
+            }
+            Box {
+                IconButton(onClick = { viewModeMenuExpanded = true }) {
+                    Icon(state.viewMode.icon(), contentDescription = stringResource(R.string.view_mode_menu))
+                }
+                ViewModeMenu(
+                    expanded = viewModeMenuExpanded,
+                    viewMode = state.viewMode,
+                    onViewModeChanged = actions.onViewModeChanged,
+                    onDismiss = { viewModeMenuExpanded = false },
+                )
             }
             Box {
                 IconButton(onClick = { filterMenuExpanded = true }) {

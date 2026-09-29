@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.AppearanceMode
+import com.efm.filemanager.domain.model.ViewMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +21,7 @@ data class SettingsUiState(
     val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
     val grantedFolderCount: Int = 0,
+    val viewMode: ViewMode = ViewMode.LIST,
 )
 
 @HiltViewModel
@@ -36,8 +38,9 @@ class SettingsViewModel
                 preferencesRepository.appearanceMode,
                 preferencesRepository.dynamicColorEnabled,
                 grantedFolderCount,
-            ) { appearanceMode, dynamicColorEnabled, folderCount ->
-                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount)
+                preferencesRepository.viewMode,
+            ) { appearanceMode, dynamicColorEnabled, folderCount, viewMode ->
+                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount, viewMode)
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
 
         fun setAppearanceMode(mode: AppearanceMode) {
@@ -46,6 +49,10 @@ class SettingsViewModel
 
         fun setDynamicColorEnabled(enabled: Boolean) {
             viewModelScope.launch { preferencesRepository.setDynamicColorEnabled(enabled) }
+        }
+
+        fun setViewMode(mode: ViewMode) {
+            viewModelScope.launch { preferencesRepository.setViewMode(mode) }
         }
 
         fun refreshPermissionsStatus() {

@@ -34,6 +34,7 @@ import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
+import com.efm.filemanager.ui.components.FileEntryActions
 import com.efm.filemanager.ui.components.GroupedFileList
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
@@ -146,8 +147,8 @@ private fun SearchBody(
                 modifier = modifier,
                 groups = groups,
                 selectedUris = emptyList(),
-                onEntryClick = onResultClick,
-                onEntryLongClick = {},
+                viewMode = uiState.viewMode,
+                actions = FileEntryActions(onResultClick, {}),
             )
     }
 }

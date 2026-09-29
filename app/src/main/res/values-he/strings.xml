@@ -92,7 +92,11 @@
     <string name="permissions_open_system_settings">פתח הגדרות מערכת</string>
 
     <string name="display_section">תצוגה</string>
-    <string name="display_coming_soon">אפשרויות מצב תצוגה וצפיפות יגיעו בקרוב</string>
+    <string name="view_mode_menu">מצב תצוגה</string>
+    <string name="view_mode_list">רשימה</string>
+    <string name="view_mode_compact">קומפקטי</string>
+    <string name="view_mode_detailed">מפורט</string>
+    <string name="view_mode_grid">רשת</string>
 
     <string name="logs_section">יומנים</string>
     <string name="logs_coming_soon">צופה היומנים יגיע בקרוב</string>

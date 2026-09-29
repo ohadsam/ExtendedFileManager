@@ -2,6 +2,7 @@ package com.efm.filemanager.ui.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.data.search.SearchIndexRepository
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.QuerySpec
@@ -25,6 +26,7 @@ class SearchViewModel
     constructor(
         private val searchIndexRepository: SearchIndexRepository,
         private val previewSessionHolder: PreviewSessionHolder,
+        private val preferencesRepository: PreferencesRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SearchUiState())
         val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
@@ -33,6 +35,9 @@ class SearchViewModel
 
         init {
             rebuildIndex()
+            viewModelScope.launch {
+                preferencesRepository.viewMode.collect { mode -> _uiState.update { it.copy(viewMode = mode) } }
+            }
         }
 
         fun rebuildIndex() {

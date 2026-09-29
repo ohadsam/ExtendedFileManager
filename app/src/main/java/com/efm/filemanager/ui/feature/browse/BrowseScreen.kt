@@ -37,6 +37,7 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
+import com.efm.filemanager.ui.components.FileEntryActions
 import com.efm.filemanager.ui.components.GroupedFileList
 
 @Composable
@@ -66,13 +67,14 @@ fun BrowseScreen(
     Scaffold(
         topBar = {
             BrowseTopBar(
-                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec),
+                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec, uiState.viewMode),
                 actions =
                     BrowseTopBarActions(
                         onOpenDrawer = onOpenDrawer,
                         onNavigateToBreadcrumb = viewModel::navigateToBreadcrumb,
                         onQuerySpecChanged = viewModel::updateQuerySpec,
                         onOpenSearch = onOpenSearch,
+                        onViewModeChanged = viewModel::setViewMode,
                     ),
             )
         },
@@ -187,8 +189,8 @@ private fun BrowseBody(
                 modifier = modifier,
                 groups = groups,
                 selectedUris = selectedUris,
-                onEntryClick = onEntryClick,
-                onEntryLongClick = { entry -> toggleSelection(selectedUris, entry.uri) },
+                viewMode = uiState.viewMode,
+                actions = FileEntryActions(onEntryClick, { entry -> toggleSelection(selectedUris, entry.uri) }),
             )
     }
 }

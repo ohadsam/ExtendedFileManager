@@ -92,7 +92,11 @@
     <string name="permissions_open_system_settings">Open system settings</string>
 
     <string name="display_section">Display</string>
-    <string name="display_coming_soon">View mode and density options are coming soon</string>
+    <string name="view_mode_menu">View mode</string>
+    <string name="view_mode_list">List</string>
+    <string name="view_mode_compact">Compact</string>
+    <string name="view_mode_detailed">Detailed</string>
+    <string name="view_mode_grid">Grid</string>
 
     <string name="logs_section">Logs</string>
     <string name="logs_coming_soon">The log viewer is coming soon</string>
