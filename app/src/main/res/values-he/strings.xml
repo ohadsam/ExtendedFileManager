@@ -219,4 +219,20 @@
 
     <string name="favorite_collection_picker_title">הוספה למועדפים</string>
     <string name="favorite_collection_picker_uncategorized">ללא קטגוריה</string>
+
+    <string name="nav_storage_advisor">יועץ אחסון</string>
+    <string name="storage_advisor_scan">סרוק לאיתור המלצות</string>
+    <string name="storage_advisor_cancel_scan">בטל סריקה</string>
+    <string name="storage_advisor_scanning">סורק… %d קבצים נבדקו</string>
+    <string name="storage_advisor_empty">אין עדיין המלצות. הקש על סמל הסריקה כדי לבדוק את האחסון שלך.</string>
+    <string name="storage_advisor_category_large_unused">גדולים ולא בשימוש</string>
+    <string name="storage_advisor_category_junk">זבל</string>
+    <string name="storage_advisor_category_temporary">קבצים זמניים</string>
+    <string name="storage_advisor_reason_not_opened_via_app">לא נפתח באפליקציה זמן מה</string>
+    <string name="storage_advisor_reason_not_modified_recently">לא השתנה זמן מה</string>
+    <string name="storage_advisor_reason_orphaned_app_folder">תיקייה שנותרה מאפליקציה שהוסרה</string>
+    <string name="storage_advisor_reason_empty_folder">תיקייה ריקה</string>
+    <string name="storage_advisor_reason_app_cache">מטמון האפליקציה</string>
+    <string name="storage_advisor_reason_temp_file_pattern">קובץ זמני (%1$s)</string>
+    <string name="storage_advisor_dismiss">התעלם</string>
 </resources>

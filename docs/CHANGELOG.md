@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.11.0 (2026-09-29)
+
+- Phase 10 (first slice) — Storage Advisor: a new screen (reachable
+  from the drawer) scans every granted folder for three kinds of
+  cleanup candidates -- large files you haven't opened or touched in
+  months, junk (orphaned folders left behind by uninstalled apps,
+  empty folders), and temporary files (.tmp/.log/.bak and the like).
+  Recommendations are grouped by category with the specific reason
+  shown for each; select any number and dismiss them or delete them
+  with confirmation, same review-list pattern as Duplicates. Nothing
+  is ever deleted automatically. Still to come: a staged-for-deletion
+  "review later" workflow and its own reminder, and Settings-tunable
+  thresholds.
+
 ## v0.10.2 (2026-09-29)
 
 - Favorites: each favorited file now has its own "⋮" menu with a

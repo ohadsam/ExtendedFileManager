@@ -219,4 +219,20 @@
 
     <string name="favorite_collection_picker_title">Add to favorites</string>
     <string name="favorite_collection_picker_uncategorized">No collection</string>
+
+    <string name="nav_storage_advisor">Storage Advisor</string>
+    <string name="storage_advisor_scan">Scan for recommendations</string>
+    <string name="storage_advisor_cancel_scan">Cancel scan</string>
+    <string name="storage_advisor_scanning">Scanning… %d files checked</string>
+    <string name="storage_advisor_empty">No recommendations yet. Tap the scan icon to check your storage.</string>
+    <string name="storage_advisor_category_large_unused">Large &amp; unused</string>
+    <string name="storage_advisor_category_junk">Junk</string>
+    <string name="storage_advisor_category_temporary">Temporary files</string>
+    <string name="storage_advisor_reason_not_opened_via_app">Not opened in this app in a while</string>
+    <string name="storage_advisor_reason_not_modified_recently">Not modified in a while</string>
+    <string name="storage_advisor_reason_orphaned_app_folder">Leftover folder from an uninstalled app</string>
+    <string name="storage_advisor_reason_empty_folder">Empty folder</string>
+    <string name="storage_advisor_reason_app_cache">App cache</string>
+    <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
+    <string name="storage_advisor_dismiss">Dismiss</string>
 </resources>

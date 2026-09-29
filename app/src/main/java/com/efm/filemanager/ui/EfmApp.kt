@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.efm.filemanager.ui.feature.advisor.StorageAdvisorScreen
 import com.efm.filemanager.ui.feature.browse.BrowseNavActions
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
@@ -69,6 +70,15 @@ private fun NavGraphBuilder.efmDestinations(
     scope: CoroutineScope,
     drawerState: DrawerState,
 ) {
+    efmDrawerDestinations(navController, scope, drawerState)
+    efmModalDestinations(navController)
+}
+
+private fun NavGraphBuilder.efmDrawerDestinations(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+) {
     composable(EfmDestination.Browse.route) {
         BrowseScreen(
             navActions =
@@ -94,12 +104,21 @@ private fun NavGraphBuilder.efmDestinations(
             onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
         )
     }
+    composable(EfmDestination.Advisor.route) {
+        StorageAdvisorScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+        )
+    }
     composable(EfmDestination.Settings.route) {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
             onOpenHelp = { navController.navigate(HELP_ROUTE) },
         )
     }
+}
+
+private fun NavGraphBuilder.efmModalDestinations(navController: NavHostController) {
     composable(HELP_ROUTE) {
         HelpScreen(onNavigateBack = { navController.popBackStack() })
     }
