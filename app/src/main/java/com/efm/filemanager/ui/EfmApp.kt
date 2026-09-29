@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui
 
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -9,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,10 +20,12 @@ import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
 import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
 import com.efm.filemanager.ui.feature.help.HelpScreen
+import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
 import com.efm.filemanager.ui.nav.EfmDestination
 import com.efm.filemanager.ui.nav.EfmDrawerContent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -52,28 +56,43 @@ fun EfmApp() {
         },
     ) {
         NavHost(navController = navController, startDestination = EfmDestination.Browse.route) {
-            composable(EfmDestination.Browse.route) {
-                BrowseScreen(
-                    onOpenDrawer = { scope.launch { drawerState.open() } },
-                    onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
-                )
-            }
-            composable(EfmDestination.Duplicates.route) {
-                DuplicatesScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
-            }
-            composable(EfmDestination.Settings.route) {
-                SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onOpenHelp = { navController.navigate(HELP_ROUTE) },
-                )
-            }
-            composable(HELP_ROUTE) {
-                HelpScreen(onNavigateBack = { navController.popBackStack() })
-            }
-            composable(SEARCH_ROUTE) {
-                EfmSearchDestination(navController)
-            }
+            efmDestinations(navController, scope, drawerState)
         }
+    }
+}
+
+private fun NavGraphBuilder.efmDestinations(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+) {
+    composable(EfmDestination.Browse.route) {
+        BrowseScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
+            onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+        )
+    }
+    composable(EfmDestination.Duplicates.route) {
+        DuplicatesScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+        )
+    }
+    composable(EfmDestination.Settings.route) {
+        SettingsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onOpenHelp = { navController.navigate(HELP_ROUTE) },
+        )
+    }
+    composable(HELP_ROUTE) {
+        HelpScreen(onNavigateBack = { navController.popBackStack() })
+    }
+    composable(SEARCH_ROUTE) {
+        EfmSearchDestination(navController)
+    }
+    composable(PREVIEW_ROUTE) {
+        PreviewScreen(onNavigateBack = { navController.popBackStack() })
     }
 }
 
@@ -91,8 +110,10 @@ private fun EfmSearchDestination(navController: NavHostController) {
             browseViewModel.navigateToLocation(entry)
             navController.popBackStack()
         },
+        onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
     )
 }
 
 private const val HELP_ROUTE = "help"
 private const val SEARCH_ROUTE = "search"
+private const val PREVIEW_ROUTE = "preview"

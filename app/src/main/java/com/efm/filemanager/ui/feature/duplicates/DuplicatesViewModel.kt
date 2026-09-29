@@ -12,6 +12,8 @@ import com.efm.filemanager.data.duplicates.SCAN_WORK_NAME
 import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.data.duplicates.toScanProgress
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
+import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +31,7 @@ class DuplicatesViewModel
     constructor(
         private val workManager: WorkManager,
         private val duplicateScanRepository: DuplicateScanRepository,
+        private val previewSessionHolder: PreviewSessionHolder,
     ) : ViewModel() {
         val uiState: StateFlow<DuplicatesUiState> =
             combine(
@@ -50,6 +53,15 @@ class DuplicatesViewModel
             viewModelScope.launch {
                 entries.forEach { entry -> duplicateScanRepository.deleteFile(entry) }
             }
+        }
+
+        /** Starts a preview session over one duplicate group's own files, starting at [tapped]. */
+        fun openPreview(
+            groupFiles: List<FileEntry>,
+            tapped: FileEntry,
+        ) {
+            val session = buildPreviewSession(groupFiles, tapped) ?: return
+            previewSessionHolder.start(session.entries, session.startIndex)
         }
     }
 

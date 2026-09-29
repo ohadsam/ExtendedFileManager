@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.DuplicateGroup
+import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.FileRow
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 
@@ -25,6 +26,7 @@ import com.efm.filemanager.ui.feature.browse.formatFileSize
 internal fun DuplicateGroupCard(
     group: DuplicateGroup,
     selectedUris: SnapshotStateList<Uri>,
+    onPreview: (FileEntry) -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
@@ -46,7 +48,7 @@ internal fun DuplicateGroupCard(
                     entry = entry,
                     isSelected = selectedUris.contains(entry.uri),
                     onClick = { toggleSelection(selectedUris, entry.uri) },
-                    onLongClick = {},
+                    onLongClick = { onPreview(entry) },
                 )
             }
         }

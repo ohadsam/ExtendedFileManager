@@ -30,7 +30,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileGroup
+import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.QuerySpec
+import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
 import com.efm.filemanager.ui.components.GroupedFileList
 import com.efm.filemanager.ui.components.query.FilterMenu
@@ -40,6 +42,7 @@ import com.efm.filemanager.ui.components.query.SortGroupMenu
 fun SearchScreen(
     onNavigateBack: () -> Unit,
     onOpenLocation: (FileEntry) -> Unit,
+    onOpenPreview: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,8 +61,22 @@ fun SearchScreen(
             modifier = Modifier.padding(innerPadding),
             uiState = uiState,
             groups = groups,
-            onResultClick = onOpenLocation,
+            onResultClick = { entry -> onSearchResultTapped(entry, viewModel, onOpenLocation, onOpenPreview) },
         )
+    }
+}
+
+private fun onSearchResultTapped(
+    entry: FileEntry,
+    viewModel: SearchViewModel,
+    onOpenLocation: (FileEntry) -> Unit,
+    onOpenPreview: () -> Unit,
+) {
+    if (entry.isDirectory || entry.previewType() == PreviewType.NONE) {
+        onOpenLocation(entry)
+    } else {
+        viewModel.openPreview(entry)
+        onOpenPreview()
     }
 }
 

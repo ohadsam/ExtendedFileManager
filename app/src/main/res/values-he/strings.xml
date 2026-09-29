@@ -157,4 +157,7 @@
     <string name="duplicates_empty">עדיין לא נמצאו כפילויות. הקש על סמל הסריקה כדי לבדוק את הקבצים שלך.</string>
     <string name="duplicate_group_summary">%1$d עותקים • %2$s כל אחד</string>
     <string name="duplicate_keep_one">השאר אחד</string>
+
+    <string name="preview_pdf_failed">לא ניתן לפתוח את קובץ ה-PDF</string>
+    <string name="preview_unsupported">אין תצוגה מקדימה זמינה לקובץ זה</string>
 </resources>

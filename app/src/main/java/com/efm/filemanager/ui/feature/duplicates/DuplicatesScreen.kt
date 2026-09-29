@@ -33,12 +33,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.duplicates.ScanPhase
 import com.efm.filemanager.data.duplicates.ScanProgress
+import com.efm.filemanager.domain.model.DuplicateGroup
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 
 @Composable
 fun DuplicatesScreen(
     onOpenDrawer: () -> Unit,
+    onOpenPreview: () -> Unit,
     viewModel: DuplicatesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,7 +67,15 @@ fun DuplicatesScreen(
             }
         },
     ) { innerPadding ->
-        DuplicatesBody(modifier = Modifier.padding(innerPadding), uiState = uiState, selectedUris = selectedUris)
+        DuplicatesBody(
+            modifier = Modifier.padding(innerPadding),
+            uiState = uiState,
+            selectedUris = selectedUris,
+            onPreview = { group, entry ->
+                viewModel.openPreview(group.files, entry)
+                onOpenPreview()
+            },
+        )
     }
 
     if (showDeleteConfirm) {
@@ -101,6 +111,7 @@ private fun DuplicatesBody(
     modifier: Modifier = Modifier,
     uiState: DuplicatesUiState,
     selectedUris: SnapshotStateList<Uri>,
+    onPreview: (DuplicateGroup, FileEntry) -> Unit,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         if (uiState.runState == ScanRunState.RUNNING) {
@@ -110,7 +121,13 @@ private fun DuplicatesBody(
             if (uiState.runState != ScanRunState.RUNNING) DuplicatesEmptyState()
         } else {
             LazyColumn {
-                items(uiState.groups, key = { it.hash }) { group -> DuplicateGroupCard(group = group, selectedUris = selectedUris) }
+                items(uiState.groups, key = { it.hash }) { group ->
+                    DuplicateGroupCard(
+                        group = group,
+                        selectedUris = selectedUris,
+                        onPreview = { entry -> onPreview(group, entry) },
+                    )
+                }
             }
         }
     }

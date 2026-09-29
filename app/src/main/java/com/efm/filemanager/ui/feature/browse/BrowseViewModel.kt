@@ -8,6 +8,8 @@ import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.QuerySpec
+import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
+import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -59,6 +61,7 @@ class BrowseViewModel
         private val documentTreeAccessManager: DocumentTreeAccessManager,
         private val repository: DocumentTreeRepository,
         private val fileOperationsRepository: FileOperationsRepository,
+        private val previewSessionHolder: PreviewSessionHolder,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(BrowseUiState())
         val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
@@ -103,6 +106,12 @@ class BrowseViewModel
 
         fun updateQuerySpec(spec: QuerySpec) {
             _uiState.update { it.copy(querySpec = spec) }
+        }
+
+        /** Starts a preview session over the current folder's previewable files, starting at [entry]. */
+        fun openPreview(entry: FileEntry) {
+            val session = buildPreviewSession(_uiState.value.files, entry) ?: return
+            previewSessionHolder.start(session.entries, session.startIndex)
         }
 
         /** Jumps straight to a location found via search, rebuilding its breadcrumb trail. */

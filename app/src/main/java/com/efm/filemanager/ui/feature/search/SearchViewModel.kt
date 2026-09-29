@@ -3,7 +3,10 @@ package com.efm.filemanager.ui.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.search.SearchIndexRepository
+import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.QuerySpec
+import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
+import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,6 +24,7 @@ class SearchViewModel
     @Inject
     constructor(
         private val searchIndexRepository: SearchIndexRepository,
+        private val previewSessionHolder: PreviewSessionHolder,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SearchUiState())
         val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
@@ -38,6 +42,12 @@ class SearchViewModel
                 _uiState.update { it.copy(isIndexing = false) }
                 runSearchNow(_uiState.value.querySpec.freeText)
             }
+        }
+
+        /** Starts a preview session over the current results, starting at [entry]. */
+        fun openPreview(entry: FileEntry) {
+            val session = buildPreviewSession(_uiState.value.results, entry) ?: return
+            previewSessionHolder.start(session.entries, session.startIndex)
         }
 
         fun updateQuerySpec(spec: QuerySpec) {

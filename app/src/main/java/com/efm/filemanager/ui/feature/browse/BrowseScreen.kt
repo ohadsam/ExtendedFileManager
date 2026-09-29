@@ -34,6 +34,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.PreviewType
+import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
 import com.efm.filemanager.ui.components.GroupedFileList
 
@@ -41,6 +43,7 @@ import com.efm.filemanager.ui.components.GroupedFileList
 fun BrowseScreen(
     onOpenDrawer: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenPreview: () -> Unit,
     viewModel: BrowseViewModel = hiltViewModel(),
     archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
@@ -84,9 +87,9 @@ fun BrowseScreen(
         BrowseBody(
             uiState = uiState,
             selectedUris = selectedUris,
-            viewModel = viewModel,
             modifier = Modifier.padding(innerPadding),
             onGrantClick = { treePickerLauncher.launch(null) },
+            onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel, onOpenPreview) },
         )
     }
 
@@ -146,11 +149,15 @@ private fun onFileEntryTapped(
     entry: FileEntry,
     selectedUris: SnapshotStateList<Uri>,
     viewModel: BrowseViewModel,
+    onOpenPreview: () -> Unit,
 ) {
     if (selectedUris.isNotEmpty()) {
         toggleSelection(selectedUris, entry.uri)
     } else if (entry.isDirectory) {
         viewModel.openEntry(entry)
+    } else if (entry.previewType() != PreviewType.NONE) {
+        viewModel.openPreview(entry)
+        onOpenPreview()
     }
 }
 
@@ -165,9 +172,9 @@ private fun toggleSelection(
 private fun BrowseBody(
     uiState: BrowseUiState,
     selectedUris: SnapshotStateList<Uri>,
-    viewModel: BrowseViewModel,
     modifier: Modifier = Modifier,
     onGrantClick: () -> Unit,
+    onEntryClick: (FileEntry) -> Unit,
 ) {
     val groups = remember(uiState.files, uiState.querySpec) { uiState.querySpec.groupResult(uiState.files) }
     when {
@@ -180,7 +187,7 @@ private fun BrowseBody(
                 modifier = modifier,
                 groups = groups,
                 selectedUris = selectedUris,
-                onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel) },
+                onEntryClick = onEntryClick,
                 onEntryLongClick = { entry -> toggleSelection(selectedUris, entry.uri) },
             )
     }
