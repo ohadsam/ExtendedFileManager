@@ -49,7 +49,7 @@ fun BrowseScreen(
     archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val pickerState by viewModel.pickerState.collectAsStateWithLifecycle()
+    val pickerState by viewModel.picker.pickerState.collectAsStateWithLifecycle()
     val treePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
             if (uri != null) viewModel.onTreeGranted(uri)

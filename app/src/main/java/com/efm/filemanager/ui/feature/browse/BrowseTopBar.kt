@@ -51,11 +51,11 @@ internal fun buildSelectionActions(
         onClose = { selectedUris.clear() },
         onRename = { onDialogRequested(BrowseDialog.RENAME) },
         onMove = {
-            viewModel.openMovePicker(selectedEntries)
+            viewModel.picker.openMovePicker(selectedEntries)
             selectedUris.clear()
         },
         onCopy = {
-            viewModel.openCopyPicker(selectedEntries)
+            viewModel.picker.openCopyPicker(selectedEntries)
             selectedUris.clear()
         },
         onDelete = { onDialogRequested(BrowseDialog.DELETE) },

@@ -22,8 +22,6 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.feature.browse.formatDate
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 
-enum class FileRowDensity { COMPACT, NORMAL, DETAILED }
-
 /** A single file/folder row -- shared by any screen that lists [FileEntry]s (browse, search, ...). */
 @Composable
 fun FileRow(

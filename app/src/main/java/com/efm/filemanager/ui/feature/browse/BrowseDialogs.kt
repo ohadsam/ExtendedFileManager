@@ -80,10 +80,10 @@ internal fun BrowseDialogs(
     if (pickerState.visible) {
         DestinationPickerDialog(
             state = pickerState,
-            onNavigateInto = viewModel::pickerNavigateInto,
-            onNavigateToBreadcrumb = viewModel::pickerNavigateToBreadcrumb,
-            onConfirm = viewModel::confirmPicker,
-            onDismiss = viewModel::dismissPicker,
+            onNavigateInto = viewModel.picker::navigateInto,
+            onNavigateToBreadcrumb = viewModel.picker::navigateToBreadcrumb,
+            onConfirm = viewModel.picker::confirm,
+            onDismiss = viewModel.picker::dismiss,
         )
     }
 }

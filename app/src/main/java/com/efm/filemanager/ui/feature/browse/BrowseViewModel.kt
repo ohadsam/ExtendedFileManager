@@ -70,15 +70,20 @@ class BrowseViewModel
         private val _uiState = MutableStateFlow(BrowseUiState())
         val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 
-        private val _pickerState = MutableStateFlow(PickerUiState())
-        val pickerState: StateFlow<PickerUiState> = _pickerState.asStateFlow()
-
         private val _events = MutableSharedFlow<BrowseEvent>()
         val events: SharedFlow<BrowseEvent> = _events.asSharedFlow()
 
+        val picker =
+            BrowsePickerController(
+                scope = viewModelScope,
+                repository = repository,
+                fileOperationsRepository = fileOperationsRepository,
+                currentSourceParentUri = ::currentParentUri,
+                currentRootCrumb = { _uiState.value.breadcrumbs.firstOrNull() },
+                onOperationFailed = { _events.emit(BrowseEvent.OperationFailed) },
+            )
+
         private var observeJob: Job? = null
-        private var pickerObserveJob: Job? = null
-        private var pendingPickerEntries: List<FileEntry> = emptyList()
 
         init {
             refreshAccessState()
@@ -166,73 +171,6 @@ class BrowseViewModel
             viewModelScope.launch {
                 trashedFileIds.forEach { id -> fileOperationsRepository.restore(id) }
             }
-        }
-
-        fun openMovePicker(entries: List<FileEntry>) = openPicker(PickerPurpose.MOVE, entries)
-
-        fun openCopyPicker(entries: List<FileEntry>) = openPicker(PickerPurpose.COPY, entries)
-
-        fun pickerNavigateInto(entry: FileEntry) {
-            if (!entry.isDirectory) return
-            val updated = _pickerState.value.breadcrumbs + BreadcrumbEntry(entry.uri, entry.name)
-            _pickerState.update { it.copy(breadcrumbs = updated) }
-            observePickerFolder(entry.uri)
-        }
-
-        fun pickerNavigateToBreadcrumb(index: Int) {
-            val breadcrumbs = _pickerState.value.breadcrumbs
-            val target = breadcrumbs.getOrNull(index) ?: return
-            _pickerState.update { it.copy(breadcrumbs = breadcrumbs.take(index + 1)) }
-            observePickerFolder(target.uri)
-        }
-
-        fun dismissPicker() {
-            pickerObserveJob?.cancel()
-            pendingPickerEntries = emptyList()
-            _pickerState.value = PickerUiState()
-        }
-
-        fun confirmPicker() {
-            val targetUri = _pickerState.value.breadcrumbs.lastOrNull()?.uri
-            val purpose = _pickerState.value.purpose
-            val sourceParentUri = currentParentUri()
-            if (targetUri == null || purpose == null || sourceParentUri == null) return
-            val entries = pendingPickerEntries
-            dismissPicker()
-            viewModelScope.launch {
-                val failures =
-                    entries.count { entry ->
-                        val result =
-                            when (purpose) {
-                                PickerPurpose.MOVE -> fileOperationsRepository.move(entry, sourceParentUri, targetUri)
-                                PickerPurpose.COPY -> fileOperationsRepository.copy(entry, targetUri)
-                            }
-                        result.isFailure
-                    }
-                if (failures > 0) _events.emit(BrowseEvent.OperationFailed)
-            }
-        }
-
-        private fun openPicker(
-            purpose: PickerPurpose,
-            entries: List<FileEntry>,
-        ) {
-            val startCrumb = _uiState.value.breadcrumbs.firstOrNull() ?: return
-            pendingPickerEntries = entries
-            _pickerState.value = PickerUiState(visible = true, purpose = purpose, breadcrumbs = listOf(startCrumb))
-            observePickerFolder(startCrumb.uri)
-        }
-
-        private fun observePickerFolder(uri: Uri) {
-            pickerObserveJob?.cancel()
-            _pickerState.update { it.copy(isLoading = true) }
-            pickerObserveJob =
-                viewModelScope.launch {
-                    launch { repository.refresh(uri) }
-                    repository.observeChildren(uri).collect { files ->
-                        _pickerState.update { it.copy(folders = files.filter { entry -> entry.isDirectory }, isLoading = false) }
-                    }
-                }
         }
 
         private fun runAgainstCurrentFolder(operation: suspend (Uri) -> Result<Unit>) {
