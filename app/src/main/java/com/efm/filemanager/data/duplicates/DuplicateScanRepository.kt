@@ -9,12 +9,14 @@ import com.efm.filemanager.data.local.DuplicateFileDao
 import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.toDuplicateEntity
 import com.efm.filemanager.data.local.toDuplicateGroups
+import com.efm.filemanager.data.metadata.FileMetadataRepository
+import com.efm.filemanager.data.metadata.enrich
 import com.efm.filemanager.domain.model.DuplicateGroup
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -35,8 +37,12 @@ class DuplicateScanRepository
         private val documentTreeRepository: DocumentTreeRepository,
         private val duplicateFileDao: DuplicateFileDao,
         private val fileOperationsRepository: FileOperationsRepository,
+        private val fileMetadataRepository: FileMetadataRepository,
     ) {
-        fun observeGroups(): Flow<List<DuplicateGroup>> = duplicateFileDao.observeAll().map { entities -> entities.toDuplicateGroups() }
+        fun observeGroups(): Flow<List<DuplicateGroup>> =
+            combine(duplicateFileDao.observeAll(), fileMetadataRepository.snapshot) { entities, snapshot ->
+                entities.toDuplicateGroups().map { group -> group.copy(files = group.files.map { it.enrich(snapshot) }) }
+            }
 
         suspend fun scan(onProgress: (ScanProgress) -> Unit): Int =
             withContext(Dispatchers.IO) {

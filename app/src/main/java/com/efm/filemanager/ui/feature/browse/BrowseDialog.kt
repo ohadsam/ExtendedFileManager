@@ -6,4 +6,5 @@ internal enum class BrowseDialog {
     DELETE,
     TAG_PICKER,
     DETAILS,
+    FAVORITE_COLLECTION_PICKER,
 }

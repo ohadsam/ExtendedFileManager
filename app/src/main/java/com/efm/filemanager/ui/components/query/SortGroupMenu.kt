@@ -55,4 +55,5 @@ private fun GroupBy.labelRes(): Int =
         GroupBy.TYPE -> R.string.group_by_type
         GroupBy.SOURCE_APP -> R.string.group_by_source_app
         GroupBy.DATE_MODIFIED -> R.string.group_by_date
+        GroupBy.TAG -> R.string.group_by_tag
     }

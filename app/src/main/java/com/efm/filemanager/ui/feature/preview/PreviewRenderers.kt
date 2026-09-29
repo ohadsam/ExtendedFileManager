@@ -2,6 +2,7 @@ package com.efm.filemanager.ui.feature.preview
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,13 +46,31 @@ import kotlinx.coroutines.withContext
 private const val MIN_ZOOM = 1f
 private const val MAX_ZOOM = 5f
 
+/**
+ * [onLongPress] is a second, outer gesture layer -- entering selection mode the same long-press
+ * way Browse/Search/Duplicates already do, docs/PLAN.md Phase 9 -- deliberately kept on its own
+ * outer [Box] rather than threaded into each preview type's own gesture handling (pinch-zoom,
+ * ExoPlayer, PDF scroll): since [detectTapGestures] here only ever consumes a recognized tap or
+ * long-press and never a drag or a second pointer, an in-progress pinch/scroll/video-tap still
+ * reaches its own handler underneath unaffected.
+ */
 @Composable
-internal fun PreviewPage(entry: FileEntry) {
-    when (entry.previewType()) {
-        PreviewType.IMAGE -> ImagePreview(entry)
-        PreviewType.VIDEO, PreviewType.AUDIO -> MediaPreview(entry)
-        PreviewType.PDF -> PdfPreview(entry)
-        PreviewType.NONE -> UnsupportedPreview()
+internal fun PreviewPage(
+    entry: FileEntry,
+    onLongPress: () -> Unit,
+) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .pointerInput(entry.uri) { detectTapGestures(onLongPress = { onLongPress() }) },
+    ) {
+        when (entry.previewType()) {
+            PreviewType.IMAGE -> ImagePreview(entry)
+            PreviewType.VIDEO, PreviewType.AUDIO -> MediaPreview(entry)
+            PreviewType.PDF -> PdfPreview(entry)
+            PreviewType.NONE -> UnsupportedPreview()
+        }
     }
 }
 

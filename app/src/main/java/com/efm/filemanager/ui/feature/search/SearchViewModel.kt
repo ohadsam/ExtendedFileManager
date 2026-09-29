@@ -6,6 +6,7 @@ import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.data.search.SearchIndexRepository
+import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.QuerySpec
@@ -42,6 +43,13 @@ class SearchViewModel
 
         val tags: StateFlow<List<FileTag>> =
             screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+
+        val favoriteCollections: StateFlow<List<FavoriteCollection>> =
+            screenMetadataSupport.favoriteCollections.stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                emptyList(),
+            )
 
         private var searchJob: Job? = null
 

@@ -8,9 +8,9 @@ import javax.inject.Inject
  * The tag/favorite/lock quick-actions shared by every screen's selection bar (Browse, Search,
  * Duplicates, Preview -- docs/PLAN.md Phase 9), so this logic lives once instead of once per
  * screen's ViewModel. Bulk favorite/lock use "any not yet in the target state -> apply to all,
- * else clear all" toggle semantics, the common bulk-toggle convention; bulk favoriting always
- * goes to the root (uncategorized) collection -- assigning a specific collection stays a
- * single-file action from the file-details view.
+ * else clear all" toggle semantics, the common bulk-toggle convention. [willFavorite] tells the
+ * UI which branch a toggle will take, so it can offer a collection picker only when the action
+ * is actually going to favorite something (never when it's about to remove).
  */
 class SelectionMetadataActions
     @Inject
@@ -24,14 +24,22 @@ class SelectionMetadataActions
             tagId: Long,
         ) = tagRepository.addTagToFiles(fileUris, tagId)
 
+        fun willFavorite(entries: List<FileEntry>): Boolean = entries.any { !it.isFavorite }
+
+        /** Direct toggle with no collection choice -- used when [willFavorite] is false (the action only removes). */
         suspend fun toggleFavorite(entries: List<FileEntry>) {
-            val toFavorite = entries.filterNot { it.isFavorite }
-            if (toFavorite.isNotEmpty()) {
-                favoriteRepository.setFavorite(toFavorite.map { it.uri }, collectionId = null)
+            if (willFavorite(entries)) {
+                favoriteRepository.setFavorite(entries.map { it.uri }, collectionId = null)
             } else {
                 entries.forEach { entry -> favoriteRepository.removeFavorite(entry.uri) }
             }
         }
+
+        /** Favorites every entry into [collectionId] -- the picker-confirmed path when [willFavorite] is true. */
+        suspend fun favoriteInto(
+            entries: List<FileEntry>,
+            collectionId: Long?,
+        ) = favoriteRepository.setFavorite(entries.map { it.uri }, collectionId)
 
         suspend fun toggleLock(entries: List<FileEntry>) {
             val shouldLock = entries.any { !it.isLocked }

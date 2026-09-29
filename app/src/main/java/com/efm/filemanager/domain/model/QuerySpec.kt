@@ -4,7 +4,7 @@ enum class SortField { NAME, SIZE, DATE_MODIFIED }
 
 enum class SortOrder { ASCENDING, DESCENDING }
 
-enum class GroupBy { NONE, TYPE, SOURCE_APP, DATE_MODIFIED }
+enum class GroupBy { NONE, TYPE, SOURCE_APP, DATE_MODIFIED, TAG }
 
 enum class FileTypeFilter { ALL, FILES_ONLY, FOLDERS_ONLY }
 

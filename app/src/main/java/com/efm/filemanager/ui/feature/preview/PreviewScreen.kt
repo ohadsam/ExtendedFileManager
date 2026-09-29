@@ -33,9 +33,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
+import com.efm.filemanager.domain.model.FavoriteCollection
+import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
+import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
+import com.efm.filemanager.ui.components.MetadataQuickActions
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
+import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,8 +67,11 @@ private fun PreviewContent(
 ) {
     val pagerState = rememberPagerState(initialPage = session.startIndex) { session.entries.size }
     val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
     var tagPickerVisible by remember { mutableStateOf(false) }
+    var detailsVisible by remember { mutableStateOf(false) }
+    var collectionPickerVisible by remember { mutableStateOf(false) }
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
     // instead of only ever acting on whichever file happens to be on screen right now.
@@ -80,7 +88,13 @@ private fun PreviewContent(
                 session = session,
                 pagerState = pagerState,
                 selectedUris = selectedUris,
-                callbacks = PreviewTopBarCallbacks(onNavigateBack = onNavigateBack, onAddTag = { tagPickerVisible = true }),
+                callbacks =
+                    PreviewTopBarCallbacks(
+                        onNavigateBack = onNavigateBack,
+                        onAddTag = { tagPickerVisible = true },
+                        onShowDetails = { detailsVisible = true },
+                        onNeedsFavoriteCollection = { collectionPickerVisible = true },
+                    ),
                 viewModel = viewModel,
             )
         },
@@ -88,7 +102,13 @@ private fun PreviewContent(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.padding(innerPadding).fillMaxSize(),
-        ) { page -> PreviewPage(entry = session.entries[page]) }
+        ) { page ->
+            val entry = session.entries[page]
+            PreviewPage(
+                entry = entry,
+                onLongPress = { if (selectedUris.isEmpty()) selectedUris.add(entry.uri) },
+            )
+        }
     }
 
     if (tagPickerVisible) {
@@ -100,11 +120,49 @@ private fun PreviewContent(
             onDismiss = { tagPickerVisible = false },
         )
     }
+
+    if (detailsVisible) {
+        val target = session.entries.firstOrNull { it.uri == selectedUris.firstOrNull() }
+        if (target == null) {
+            detailsVisible = false
+        } else {
+            FileDetailsSheet(entry = target, onDismiss = { detailsVisible = false }, onOpenManageTags = onOpenManageTags)
+        }
+    }
+
+    if (collectionPickerVisible) {
+        PreviewCollectionPicker(
+            favoriteCollections = favoriteCollections,
+            entries = session.entries.filter { it.uri in selectedUris },
+            viewModel = viewModel,
+            onDismiss = { collectionPickerVisible = false },
+        )
+    }
+}
+
+@Composable
+private fun PreviewCollectionPicker(
+    favoriteCollections: List<FavoriteCollection>,
+    entries: List<FileEntry>,
+    viewModel: PreviewViewModel,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    FavoriteCollectionPickerDialog(
+        collections = favoriteCollections,
+        onSelect = { collectionId ->
+            scope.launch { viewModel.metadataActions.favoriteInto(entries, collectionId) }
+            onDismiss()
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 private data class PreviewTopBarCallbacks(
     val onNavigateBack: () -> Unit,
     val onAddTag: () -> Unit,
+    val onShowDetails: () -> Unit,
+    val onNeedsFavoriteCollection: () -> Unit,
 )
 
 @Composable
@@ -134,12 +192,17 @@ private fun PreviewTopBar(
                 onAddTag = callbacks.onAddTag,
                 onToggleFavorite = {
                     val entries = session.entries.filter { it.uri in selectedUris }
-                    scope.launch { viewModel.metadataActions.toggleFavorite(entries) }
+                    if (viewModel.metadataActions.willFavorite(entries)) {
+                        callbacks.onNeedsFavoriteCollection()
+                    } else {
+                        scope.launch { viewModel.metadataActions.toggleFavorite(entries) }
+                    }
                 },
                 onToggleLock = {
                     val entries = session.entries.filter { it.uri in selectedUris }
                     scope.launch { viewModel.metadataActions.toggleLock(entries) }
                 },
+                onShowDetails = if (selectedUris.size == 1) callbacks.onShowDetails else null,
             )
         PreviewSelectionTopBar(
             count = selectedUris.size,
@@ -227,9 +290,13 @@ private fun PreviewSelectionTopBar(
                 MetadataQuickActionsMenu(
                     expanded = menuExpanded,
                     onDismiss = { menuExpanded = false },
-                    onAddTag = actions.onAddTag,
-                    onToggleFavorite = actions.onToggleFavorite,
-                    onToggleLock = actions.onToggleLock,
+                    actions =
+                        MetadataQuickActions(
+                            onAddTag = actions.onAddTag,
+                            onToggleFavorite = actions.onToggleFavorite,
+                            onToggleLock = actions.onToggleLock,
+                            onShowDetails = actions.onShowDetails,
+                        ),
                 )
             }
         },

@@ -1,6 +1,7 @@
 package com.efm.filemanager.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
@@ -11,6 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
+
+/** [MetadataQuickActionsMenu]'s actions, bundled to keep that composable's own param count down. */
+data class MetadataQuickActions(
+    val onAddTag: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onToggleLock: () -> Unit,
+    /** Null hides the "Details" item -- only offered when exactly one file is selected. */
+    val onShowDetails: (() -> Unit)? = null,
+)
 
 /**
  * The tag/favorite/lock quick-actions any selection bar can offer (Browse, Search, Duplicates,
@@ -45,23 +55,32 @@ fun MetadataMenuItems(
 fun MetadataQuickActionsMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
-    onAddTag: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onToggleLock: () -> Unit,
+    actions: MetadataQuickActions,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        val onShowDetails = actions.onShowDetails
+        if (onShowDetails != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.file_details_title)) },
+                leadingIcon = { Icon(Icons.Filled.Info, contentDescription = null) },
+                onClick = {
+                    onDismiss()
+                    onShowDetails()
+                },
+            )
+        }
         MetadataMenuItems(
             onAddTag = {
                 onDismiss()
-                onAddTag()
+                actions.onAddTag()
             },
             onToggleFavorite = {
                 onDismiss()
-                onToggleFavorite()
+                actions.onToggleFavorite()
             },
             onToggleLock = {
                 onDismiss()
-                onToggleLock()
+                actions.onToggleLock()
             },
         )
     }

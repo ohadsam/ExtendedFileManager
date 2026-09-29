@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +27,13 @@ class PreviewViewModel
 
         val tags: StateFlow<List<FileTag>> =
             screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+
+        val favoriteCollections: StateFlow<List<FavoriteCollection>> =
+            screenMetadataSupport.favoriteCollections.stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                emptyList(),
+            )
 
         override fun onCleared() {
             previewSessionHolder.clear()

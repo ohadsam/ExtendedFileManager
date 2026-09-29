@@ -22,6 +22,8 @@
     <string name="group_by_type">Type</string>
     <string name="group_by_source_app">Source app</string>
     <string name="group_by_date">Date modified</string>
+    <string name="group_by_tag">Tag</string>
+    <string name="group_no_tags">No tags</string>
 
     <string name="filter_menu">Filter</string>
     <string name="filter_section_show">Show</string>
@@ -211,6 +213,10 @@
     <string name="favorites_empty">No favorites yet</string>
     <string name="favorites_move_up">Move up</string>
     <string name="favorites_move_down">Move down</string>
+    <string name="favorites_reorder_handle">Drag to reorder</string>
     <string name="favorites_delete_collection_title">Delete collection?</string>
     <string name="favorites_delete_collection_message">Delete \"%1$s\"? Its favorites will move to Uncategorized.</string>
+
+    <string name="favorite_collection_picker_title">Add to favorites</string>
+    <string name="favorite_collection_picker_uncategorized">No collection</string>
 </resources>

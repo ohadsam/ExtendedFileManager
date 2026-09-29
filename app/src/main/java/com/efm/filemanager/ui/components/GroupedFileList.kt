@@ -51,7 +51,7 @@ private fun FileColumn(
             if (group.key != GroupKey.None) {
                 item(key = "header_${group.key}") { GroupHeader(group.key) }
             }
-            items(group.files, key = { it.uri.toString() }) { entry ->
+            items(group.files, key = { entry -> "${group.key}_${entry.uri}" }) { entry ->
                 FileRow(
                     entry = entry,
                     isSelected = selectedUris.contains(entry.uri),
@@ -76,7 +76,7 @@ private fun FileGrid(
             if (group.key != GroupKey.None) {
                 item(key = "header_${group.key}", span = { GridItemSpan(maxLineSpan) }) { GroupHeader(group.key) }
             }
-            items(group.files, key = { it.uri.toString() }) { entry ->
+            items(group.files, key = { entry -> "${group.key}_${entry.uri}" }) { entry ->
                 FileGridCell(
                     entry = entry,
                     isSelected = selectedUris.contains(entry.uri),

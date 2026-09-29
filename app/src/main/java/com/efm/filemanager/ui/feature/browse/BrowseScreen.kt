@@ -50,6 +50,7 @@ fun BrowseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pickerState by viewModel.picker.pickerState.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val treePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -100,7 +101,15 @@ fun BrowseScreen(
         dialogState = dialogState,
         viewModel = viewModel,
         archiveViewModel = archiveViewModel,
-        context = DialogsContext(selectedEntries, pickerState, uiState.breadcrumbs.lastOrNull()?.uri, tags, navActions.onOpenManageTags),
+        context =
+            DialogsContext(
+                selectedEntries = selectedEntries,
+                pickerState = pickerState,
+                parentUri = uiState.breadcrumbs.lastOrNull()?.uri,
+                tags = tags,
+                favoriteCollections = favoriteCollections,
+                onOpenManageTags = navActions.onOpenManageTags,
+            ),
         onSelectionCleared = { selectedUris.clear() },
     )
 }

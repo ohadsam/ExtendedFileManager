@@ -67,4 +67,6 @@ internal fun GroupKey.displayLabel(): String =
         is GroupKey.Category -> stringResource(category.labelRes())
         is GroupKey.SourceApp -> packageName ?: stringResource(R.string.source_app_unknown)
         is GroupKey.ModifiedDate -> stringResource(bucket.labelRes())
+        is GroupKey.Tag -> tagName
+        GroupKey.NoTags -> stringResource(R.string.group_no_tags)
     }

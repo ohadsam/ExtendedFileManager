@@ -10,4 +10,8 @@ sealed interface GroupKey {
     data class SourceApp(val packageName: String?) : GroupKey
 
     data class ModifiedDate(val bucket: DateBucket) : GroupKey
+
+    data class Tag(val tagId: Long, val tagName: String) : GroupKey
+
+    data object NoTags : GroupKey
 }

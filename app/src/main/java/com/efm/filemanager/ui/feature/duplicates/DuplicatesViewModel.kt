@@ -13,6 +13,7 @@ import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.data.duplicates.toScanProgress
 import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
@@ -48,6 +49,13 @@ class DuplicatesViewModel
 
         val tags: StateFlow<List<FileTag>> =
             screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+
+        val favoriteCollections: StateFlow<List<FavoriteCollection>> =
+            screenMetadataSupport.favoriteCollections.stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                emptyList(),
+            )
 
         fun startScan() {
             val request = OneTimeWorkRequestBuilder<DuplicateScanWorker>().build()

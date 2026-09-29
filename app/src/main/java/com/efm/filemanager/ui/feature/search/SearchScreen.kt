@@ -41,12 +41,15 @@ import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
+import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
 import com.efm.filemanager.ui.components.FileEntryActions
 import com.efm.filemanager.ui.components.GroupedFileList
+import com.efm.filemanager.ui.components.MetadataQuickActions
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
+import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,10 +62,13 @@ fun SearchScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val groups = remember(uiState.results, uiState.querySpec) { uiState.querySpec.groupResult(uiState.results) }
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val selectedEntries = uiState.results.filter { selectedUris.contains(it.uri) }
     var tagPickerVisible by remember { mutableStateOf(false) }
+    var detailsVisible by remember { mutableStateOf(false) }
+    var collectionPickerVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -75,12 +81,23 @@ fun SearchScreen(
                     tags = tags,
                 )
             } else {
+                val onShowDetails: (() -> Unit)? = if (selectedUris.size == 1) ({ detailsVisible = true }) else null
                 SearchSelectionTopBar(
                     count = selectedUris.size,
                     onClose = { selectedUris.clear() },
-                    onAddTag = { tagPickerVisible = true },
-                    onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
-                    onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+                    actions =
+                        MetadataQuickActions(
+                            onAddTag = { tagPickerVisible = true },
+                            onToggleFavorite = {
+                                if (viewModel.metadataActions.willFavorite(selectedEntries)) {
+                                    collectionPickerVisible = true
+                                } else {
+                                    scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) }
+                                }
+                            },
+                            onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+                            onShowDetails = onShowDetails,
+                        ),
                 )
             }
         },
@@ -108,6 +125,26 @@ fun SearchScreen(
                 onOpenManageTags()
             },
             onDismiss = { tagPickerVisible = false },
+        )
+    }
+
+    if (detailsVisible) {
+        val target = selectedEntries.firstOrNull()
+        if (target == null) {
+            detailsVisible = false
+        } else {
+            FileDetailsSheet(entry = target, onDismiss = { detailsVisible = false }, onOpenManageTags = onOpenManageTags)
+        }
+    }
+
+    if (collectionPickerVisible) {
+        FavoriteCollectionPickerDialog(
+            collections = favoriteCollections,
+            onSelect = { collectionId ->
+                scope.launch { viewModel.metadataActions.favoriteInto(selectedEntries, collectionId) }
+                collectionPickerVisible = false
+            },
+            onDismiss = { collectionPickerVisible = false },
         )
     }
 }
@@ -192,9 +229,7 @@ private fun SearchTopBar(
 private fun SearchSelectionTopBar(
     count: Int,
     onClose: () -> Unit,
-    onAddTag: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onToggleLock: () -> Unit,
+    actions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     TopAppBar(
@@ -212,9 +247,7 @@ private fun SearchSelectionTopBar(
                 MetadataQuickActionsMenu(
                     expanded = menuExpanded,
                     onDismiss = { menuExpanded = false },
-                    onAddTag = onAddTag,
-                    onToggleFavorite = onToggleFavorite,
-                    onToggleLock = onToggleLock,
+                    actions = actions,
                 )
             }
         },

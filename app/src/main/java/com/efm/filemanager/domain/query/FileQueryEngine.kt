@@ -22,8 +22,34 @@ fun QuerySpec.applyTo(files: List<FileEntry>): List<FileEntry> = files.filterByS
 /** [applyTo], then buckets the result per [QuerySpec.groupBy]; a single ungrouped bucket when it's [GroupBy.NONE]. */
 fun QuerySpec.groupResult(files: List<FileEntry>): List<FileGroup> {
     val filtered = applyTo(files)
-    if (groupBy == GroupBy.NONE) return listOf(FileGroup(key = GroupKey.None, files = filtered))
-    return filtered.groupBy { entry -> groupKeyFor(entry, groupBy) }.map { (key, entries) -> FileGroup(key = key, files = entries) }
+    return when (groupBy) {
+        GroupBy.NONE -> listOf(FileGroup(key = GroupKey.None, files = filtered))
+        GroupBy.TAG -> filtered.groupByTag()
+        else -> filtered.groupBy { entry -> groupKeyFor(entry, groupBy) }.map { (key, entries) -> FileGroup(key = key, files = entries) }
+    }
+}
+
+/**
+ * Unlike the other [GroupBy] values, a tag is many-to-many: a file with two tags belongs in
+ * both tags' groups at once, so this can't be a plain single-key groupBy. Files with no tags
+ * land in one [GroupKey.NoTags] bucket instead of being dropped.
+ */
+private fun List<FileEntry>.groupByTag(): List<FileGroup> {
+    val byTag = linkedMapOf<GroupKey.Tag, MutableList<FileEntry>>()
+    val untagged = mutableListOf<FileEntry>()
+    forEach { entry ->
+        if (entry.tags.isEmpty()) {
+            untagged.add(entry)
+        } else {
+            entry.tags.forEach { tag -> byTag.getOrPut(GroupKey.Tag(tag.id, tag.name)) { mutableListOf() }.add(entry) }
+        }
+    }
+    val tagGroups =
+        byTag.entries
+            .sortedBy { it.key.tagName }
+            .map { (key, entries) -> FileGroup(key = key, files = entries) }
+    val untaggedGroup = if (untagged.isEmpty()) emptyList() else listOf(FileGroup(key = GroupKey.NoTags, files = untagged))
+    return tagGroups + untaggedGroup
 }
 
 private fun List<FileEntry>.filterBySpec(spec: QuerySpec): List<FileEntry> =
@@ -102,6 +128,7 @@ private fun groupKeyFor(
         GroupBy.TYPE -> GroupKey.Category(entry.category())
         GroupBy.SOURCE_APP -> GroupKey.SourceApp(entry.sourceApp?.packageName)
         GroupBy.DATE_MODIFIED -> GroupKey.ModifiedDate(dateBucketFor(entry.lastModified))
+        GroupBy.TAG -> error("GroupBy.TAG is handled by groupByTag(), never reaches groupKeyFor")
     }
 
 private fun dateBucketFor(epochMillis: Long): DateBucket {

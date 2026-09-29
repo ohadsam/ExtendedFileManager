@@ -39,17 +39,23 @@ import com.efm.filemanager.R
 import com.efm.filemanager.data.duplicates.ScanPhase
 import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.domain.model.DuplicateGroup
+import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
+import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
+import com.efm.filemanager.ui.components.MetadataQuickActions
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
+import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
 
 /** [DuplicatesScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
 private class DuplicatesUiFlags {
     var showDeleteConfirm by mutableStateOf(false)
     var tagPickerVisible by mutableStateOf(false)
+    var detailsVisible by mutableStateOf(false)
+    var collectionPickerVisible by mutableStateOf(false)
 }
 
 @Composable
@@ -61,6 +67,7 @@ fun DuplicatesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val flags = remember { DuplicatesUiFlags() }
     val selectedEntries = uiState.groups.flatMap { it.files }.filter { selectedUris.contains(it.uri) }
@@ -110,6 +117,42 @@ fun DuplicatesScreen(
             onDismiss = { flags.tagPickerVisible = false },
         )
     }
+
+    if (flags.detailsVisible) {
+        val target = selectedEntries.singleOrNull()
+        if (target == null) {
+            flags.detailsVisible = false
+        } else {
+            FileDetailsSheet(entry = target, onDismiss = { flags.detailsVisible = false }, onOpenManageTags = onOpenManageTags)
+        }
+    }
+
+    if (flags.collectionPickerVisible) {
+        DuplicatesCollectionPicker(
+            favoriteCollections = favoriteCollections,
+            selectedEntries = selectedEntries,
+            viewModel = viewModel,
+            onDismiss = { flags.collectionPickerVisible = false },
+        )
+    }
+}
+
+@Composable
+private fun DuplicatesCollectionPicker(
+    favoriteCollections: List<FavoriteCollection>,
+    selectedEntries: List<FileEntry>,
+    viewModel: DuplicatesViewModel,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    FavoriteCollectionPickerDialog(
+        collections = favoriteCollections,
+        onSelect = { collectionId ->
+            scope.launch { viewModel.metadataActions.favoriteInto(selectedEntries, collectionId) }
+            onDismiss()
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable
@@ -122,9 +165,19 @@ private fun DuplicatesFab(
     val scope = rememberCoroutineScope()
     DuplicatesSelectionFabs(
         onDeleteClick = { flags.showDeleteConfirm = true },
-        onAddTagClick = { flags.tagPickerVisible = true },
-        onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
-        onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+        quickActions =
+            MetadataQuickActions(
+                onAddTag = { flags.tagPickerVisible = true },
+                onToggleFavorite = {
+                    if (viewModel.metadataActions.willFavorite(selectedEntries)) {
+                        flags.collectionPickerVisible = true
+                    } else {
+                        scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) }
+                    }
+                },
+                onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+                onShowDetails = if (selectedEntries.size == 1) ({ flags.detailsVisible = true }) else null,
+            ),
     )
 }
 
@@ -155,9 +208,7 @@ private fun DuplicatesTagPickerSheet(
 @Composable
 private fun DuplicatesSelectionFabs(
     onDeleteClick: () -> Unit,
-    onAddTagClick: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onToggleLock: () -> Unit,
+    quickActions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -168,9 +219,7 @@ private fun DuplicatesSelectionFabs(
             MetadataQuickActionsMenu(
                 expanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
-                onAddTag = onAddTagClick,
-                onToggleFavorite = onToggleFavorite,
-                onToggleLock = onToggleLock,
+                actions = quickActions,
             )
         }
         ExtendedFloatingActionButton(

@@ -11,6 +11,7 @@ import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.CreateEntryDialog
+import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
 import com.efm.filemanager.ui.components.NewEntryType
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.components.TextInputDialog
@@ -107,6 +108,15 @@ internal fun BrowseDialogs(
             context.selectedEntries.firstOrNull()?.let { entry ->
                 FileDetailsSheet(entry = entry, onDismiss = onFinished, onOpenManageTags = context.onOpenManageTags)
             }
+        BrowseDialog.FAVORITE_COLLECTION_PICKER ->
+            FavoriteCollectionPickerDialog(
+                collections = context.favoriteCollections,
+                onSelect = { collectionId ->
+                    scope.launch { viewModel.metadataActions.favoriteInto(context.selectedEntries, collectionId) }
+                    onFinished()
+                },
+                onDismiss = onFinished,
+            )
         null -> Unit
     }
 

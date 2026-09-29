@@ -22,6 +22,8 @@
     <string name="group_by_type">סוג</string>
     <string name="group_by_source_app">אפליקציית מקור</string>
     <string name="group_by_date">תאריך שינוי</string>
+    <string name="group_by_tag">תגית</string>
+    <string name="group_no_tags">ללא תגיות</string>
 
     <string name="filter_menu">סינון</string>
     <string name="filter_section_show">הצג</string>
@@ -211,7 +213,10 @@
     <string name="favorites_empty">אין עדיין מועדפים</string>
     <string name="favorites_move_up">הזז למעלה</string>
     <string name="favorites_move_down">הזז למטה</string>
+    <string name="favorites_reorder_handle">גרור כדי לסדר מחדש</string>
     <string name="favorites_delete_collection_title">למחוק את האוסף?</string>
     <string name="favorites_delete_collection_message">למחוק את \"%1$s\"? המועדפים שבו יעברו ל\'ללא קטגוריה\'.</string>
 
+    <string name="favorite_collection_picker_title">הוספה למועדפים</string>
+    <string name="favorite_collection_picker_uncategorized">ללא קטגוריה</string>
 </resources>

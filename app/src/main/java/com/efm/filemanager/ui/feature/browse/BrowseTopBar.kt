@@ -65,7 +65,13 @@ internal fun buildSelectionActions(
         onDelete = { onDialogRequested(BrowseDialog.DELETE) },
         onShowDetails = { onDialogRequested(BrowseDialog.DETAILS) },
         onAddTag = { onDialogRequested(BrowseDialog.TAG_PICKER) },
-        onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
+        onToggleFavorite = {
+            if (viewModel.metadataActions.willFavorite(selectedEntries)) {
+                onDialogRequested(BrowseDialog.FAVORITE_COLLECTION_PICKER)
+            } else {
+                scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) }
+            }
+        },
         onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
     )
 

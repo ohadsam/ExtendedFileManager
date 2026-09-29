@@ -118,6 +118,23 @@ class FileQueryEngineTest {
         assertEquals(listOf("a.txt"), result.map { it.name })
     }
 
+    @Test
+    fun `group by tag puts a multi-tagged file in every one of its tags' groups`() {
+        val important = FileTag(id = 1, name = "Important", color = TagColor.RED, pinned = false)
+        val work = FileTag(id = 2, name = "Work", color = TagColor.BLUE, pinned = false)
+        val files = listOf(entry("a.txt", tags = listOf(important, work)), entry("b.txt", tags = listOf(work)), entry("c.txt"))
+        val spec = QuerySpec(groupBy = GroupBy.TAG)
+
+        val groups = spec.groupResult(files)
+
+        val importantGroup = groups.first { it.key == GroupKey.Tag(1, "Important") }
+        val workGroup = groups.first { it.key == GroupKey.Tag(2, "Work") }
+        val noTagsGroup = groups.first { it.key == GroupKey.NoTags }
+        assertEquals(listOf("a.txt"), importantGroup.files.map { it.name })
+        assertEquals(listOf("a.txt", "b.txt"), workGroup.files.map { it.name })
+        assertEquals(listOf("c.txt"), noTagsGroup.files.map { it.name })
+    }
+
     private enum class EntryFlag { DIRECTORY, FAVORITE, LOCKED }
 
     private fun entry(
