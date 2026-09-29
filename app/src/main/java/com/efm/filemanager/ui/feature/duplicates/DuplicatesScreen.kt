@@ -38,15 +38,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.duplicates.ScanPhase
 import com.efm.filemanager.data.duplicates.ScanProgress
-import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.domain.model.DuplicateGroup
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+/** [DuplicatesScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
+private class DuplicatesUiFlags {
+    var showDeleteConfirm by mutableStateOf(false)
+    var tagPickerVisible by mutableStateOf(false)
+}
 
 @Composable
 fun DuplicatesScreen(
@@ -58,10 +62,8 @@ fun DuplicatesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-    var tagPickerVisible by remember { mutableStateOf(false) }
+    val flags = remember { DuplicatesUiFlags() }
     val selectedEntries = uiState.groups.flatMap { it.files }.filter { selectedUris.contains(it.uri) }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -73,14 +75,7 @@ fun DuplicatesScreen(
             )
         },
         floatingActionButton = {
-            if (selectedEntries.isNotEmpty()) {
-                DuplicatesSelectionFabs(
-                    onDeleteClick = { showDeleteConfirm = true },
-                    onAddTagClick = { tagPickerVisible = true },
-                    onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
-                    onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
-                )
-            }
+            DuplicatesFab(selectedEntries = selectedEntries, viewModel = viewModel, flags = flags)
         },
     ) { innerPadding ->
         DuplicatesBody(
@@ -94,44 +89,59 @@ fun DuplicatesScreen(
         )
     }
 
-    if (showDeleteConfirm) {
+    if (flags.showDeleteConfirm) {
         DuplicateDeleteConfirmDialog(
             entries = selectedEntries,
             onConfirm = {
                 viewModel.deleteEntries(selectedEntries)
                 selectedUris.removeAll(selectedEntries.map { it.uri })
-                showDeleteConfirm = false
+                flags.showDeleteConfirm = false
             },
-            onDismiss = { showDeleteConfirm = false },
+            onDismiss = { flags.showDeleteConfirm = false },
         )
     }
 
-    if (tagPickerVisible) {
+    if (flags.tagPickerVisible) {
         DuplicatesTagPickerSheet(
             tags = tags,
             selectedEntries = selectedEntries,
-            scope = scope,
-            metadataActions = viewModel.metadataActions,
+            viewModel = viewModel,
             onOpenManageTags = onOpenManageTags,
-            onDismiss = { tagPickerVisible = false },
+            onDismiss = { flags.tagPickerVisible = false },
         )
     }
+}
+
+@Composable
+private fun DuplicatesFab(
+    selectedEntries: List<FileEntry>,
+    viewModel: DuplicatesViewModel,
+    flags: DuplicatesUiFlags,
+) {
+    if (selectedEntries.isEmpty()) return
+    val scope = rememberCoroutineScope()
+    DuplicatesSelectionFabs(
+        onDeleteClick = { flags.showDeleteConfirm = true },
+        onAddTagClick = { flags.tagPickerVisible = true },
+        onToggleFavorite = { scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) } },
+        onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+    )
 }
 
 @Composable
 private fun DuplicatesTagPickerSheet(
     tags: List<FileTag>,
     selectedEntries: List<FileEntry>,
-    scope: CoroutineScope,
-    metadataActions: SelectionMetadataActions,
+    viewModel: DuplicatesViewModel,
     onOpenManageTags: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     TagPickerDialog(
         tags = tags,
         onApply = { tagIds ->
             val uris = selectedEntries.map { it.uri }
-            scope.launch { tagIds.forEach { tagId -> metadataActions.applyTag(uris, tagId) } }
+            scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
             onDismiss()
         },
         onManageTags = {

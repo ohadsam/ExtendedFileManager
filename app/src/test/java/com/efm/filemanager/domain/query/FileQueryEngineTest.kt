@@ -17,7 +17,7 @@ import org.junit.Test
 class FileQueryEngineTest {
     @Test
     fun `folders sort before files regardless of the chosen field`() {
-        val files = listOf(entry("b.txt"), entry("folder", isDirectory = true), entry("a.txt"))
+        val files = listOf(entry("b.txt"), entry("folder", flags = setOf(EntryFlag.DIRECTORY)), entry("a.txt"))
 
         val result = QuerySpec().applyTo(files)
 
@@ -26,7 +26,7 @@ class FileQueryEngineTest {
 
     @Test
     fun `descending order reverses the field but not the folders-first rule`() {
-        val files = listOf(entry("a.txt"), entry("folder", isDirectory = true), entry("b.txt"))
+        val files = listOf(entry("a.txt"), entry("folder", flags = setOf(EntryFlag.DIRECTORY)), entry("b.txt"))
         val spec = QuerySpec(sortField = SortField.NAME, sortOrder = SortOrder.DESCENDING)
 
         val result = spec.applyTo(files)
@@ -46,7 +46,7 @@ class FileQueryEngineTest {
 
     @Test
     fun `files-only filter drops directories`() {
-        val files = listOf(entry("a.txt"), entry("folder", isDirectory = true))
+        val files = listOf(entry("a.txt"), entry("folder", flags = setOf(EntryFlag.DIRECTORY)))
         val spec = QuerySpec(typeFilter = FileTypeFilter.FILES_ONLY)
 
         val result = spec.applyTo(files)
@@ -118,11 +118,10 @@ class FileQueryEngineTest {
         assertEquals(listOf("a.txt"), result.map { it.name })
     }
 
-    private enum class EntryFlag { FAVORITE, LOCKED }
+    private enum class EntryFlag { DIRECTORY, FAVORITE, LOCKED }
 
     private fun entry(
         name: String,
-        isDirectory: Boolean = false,
         size: Long = 0L,
         mimeType: String? = null,
         tags: List<FileTag> = emptyList(),
@@ -131,7 +130,7 @@ class FileQueryEngineTest {
         uri = mockk<Uri>(),
         documentId = name,
         name = name,
-        isDirectory = isDirectory,
+        isDirectory = EntryFlag.DIRECTORY in flags,
         size = size,
         lastModified = System.currentTimeMillis(),
         mimeType = mimeType,

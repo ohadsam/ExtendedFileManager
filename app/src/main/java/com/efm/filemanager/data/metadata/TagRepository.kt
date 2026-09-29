@@ -6,6 +6,7 @@ import androidx.room.withTransaction
 import com.efm.filemanager.R
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileTagCrossRefEntity
+import com.efm.filemanager.data.local.TagCrossRefDao
 import com.efm.filemanager.data.local.TagDao
 import com.efm.filemanager.data.local.TagEntity
 import com.efm.filemanager.data.local.toDomain
@@ -25,12 +26,13 @@ class TagRepository
     constructor(
         @ApplicationContext private val context: Context,
         private val tagDao: TagDao,
+        private val crossRefDao: TagCrossRefDao,
         private val database: EfmDatabase,
     ) {
         val tags: Flow<List<FileTag>> = tagDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
         val tagsByFileUri: Flow<Map<String, List<FileTag>>> =
-            tagDao.observeFileTagRows().map { rows -> rows.groupBy({ it.fileUri }) { it.toDomain() } }
+            crossRefDao.observeFileTagRows().map { rows -> rows.groupBy({ it.fileUri }) { it.toDomain() } }
 
         /** No-ops once any tag exists -- called once at app startup, see [com.efm.filemanager.EfmApplication]. */
         suspend fun ensureDefaultTagsSeeded() {
@@ -62,8 +64,8 @@ class TagRepository
             into: FileTag,
         ) {
             database.withTransaction {
-                tagDao.deleteConflictingCrossRefs(from.id, into.id)
-                tagDao.reassignCrossRefs(from.id, into.id)
+                crossRefDao.deleteConflictingCrossRefs(from.id, into.id)
+                crossRefDao.reassignCrossRefs(from.id, into.id)
                 tagDao.delete(from.id)
             }
         }
@@ -72,13 +74,13 @@ class TagRepository
             fileUris: List<Uri>,
             tagId: Long,
         ) {
-            fileUris.forEach { uri -> tagDao.addTagToFile(FileTagCrossRefEntity(fileUri = uri.toString(), tagId = tagId)) }
+            fileUris.forEach { uri -> crossRefDao.addTagToFile(FileTagCrossRefEntity(fileUri = uri.toString(), tagId = tagId)) }
         }
 
         suspend fun removeTagFromFile(
             fileUri: Uri,
             tagId: Long,
-        ) = tagDao.removeTagFromFile(fileUri.toString(), tagId)
+        ) = crossRefDao.removeTagFromFile(fileUri.toString(), tagId)
 
         private fun defaultTagEntities(): List<TagEntity> =
             listOf(

@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.filedetails
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +40,23 @@ import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.TagChip
 import com.efm.filemanager.ui.components.TagPickerDialog
 
+/** [FileDetailsSheet]'s locally-edited fields, bundled so the sheet can pass them as one param. */
+private class FileDetailsFields(
+    initialFavorite: Boolean,
+    initialLocked: Boolean,
+    initialNote: String,
+    initialTags: List<FileTag>,
+) {
+    var isFavorite by mutableStateOf(initialFavorite)
+    var isLocked by mutableStateOf(initialLocked)
+    var note by mutableStateOf(initialNote)
+    var tags by mutableStateOf(initialTags)
+}
+
+@Composable
+private fun rememberFileDetailsFields(entry: FileEntry): FileDetailsFields =
+    remember(entry.uri) { FileDetailsFields(entry.isFavorite, entry.isLocked, entry.note.orEmpty(), entry.tags) }
+
 /** The one screen to see and edit a single file's favorite/tags/lock/note at once -- docs/PLAN.md Phase 9. */
 @Composable
 fun FileDetailsSheet(
@@ -48,88 +66,116 @@ fun FileDetailsSheet(
     viewModel: FileDetailsViewModel = hiltViewModel(),
 ) {
     val allTags by viewModel.allTags.collectAsStateWithLifecycle()
-    var isFavorite by remember(entry.uri) { mutableStateOf(entry.isFavorite) }
-    var isLocked by remember(entry.uri) { mutableStateOf(entry.isLocked) }
-    var note by remember(entry.uri) { mutableStateOf(entry.note.orEmpty()) }
-    var tags by remember(entry.uri) { mutableStateOf(entry.tags) }
+    val fields = rememberFileDetailsFields(entry)
     var tagPickerVisible by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = MaterialTheme.shapes.large) {
-            Column(modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())) {
-                Text(entry.name, style = MaterialTheme.typography.titleMedium)
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                FavoriteRow(
-                    isFavorite = isFavorite,
-                    onToggle = { checked ->
-                        isFavorite = checked
-                        if (checked) viewModel.setFavorite(entry.uri, null) else viewModel.removeFavorite(entry.uri)
-                    },
-                )
-                LockRow(
-                    isLocked = isLocked,
-                    onToggle = { checked ->
-                        isLocked = checked
-                        viewModel.setLocked(entry.uri, checked)
-                    },
-                )
-
-                SectionLabel(R.string.file_details_tags)
-                TagsSection(
-                    tags = tags,
-                    onAddClick = { tagPickerVisible = true },
-                    onRemove = { tag ->
-                        tags = tags.filterNot { it.id == tag.id }
-                        viewModel.removeTag(entry.uri, tag.id)
-                    },
-                )
-
-                SectionLabel(R.string.file_details_note)
-                OutlinedTextField(value = note, onValueChange = { note = it }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-                LaunchedEffect(note) { viewModel.setNote(entry.uri, note) }
-
-                TextButton(onClick = onDismiss, modifier = Modifier.padding(top = 16.dp)) {
-                    Text(stringResource(R.string.close))
-                }
-            }
-        }
+        FileDetailsCard(
+            entry = entry,
+            fields = fields,
+            viewModel = viewModel,
+            onDismiss = onDismiss,
+            onAddTagClick = { tagPickerVisible = true },
+        )
     }
 
     if (tagPickerVisible) {
         FileDetailsTagPicker(
+            fileUri = entry.uri,
             allTags = allTags,
-            currentTags = tags,
-            onTagsAdded = { newlyAdded -> tags = tags + newlyAdded },
-            onAddTag = { tagId -> viewModel.addTag(entry.uri, tagId) },
-            onOpenManageTags = onOpenManageTags,
-            onDismiss = { tagPickerVisible = false },
+            currentTags = fields.tags,
+            viewModel = viewModel,
+            callbacks =
+                FileDetailsTagPickerCallbacks(
+                    onTagsAdded = { newlyAdded -> fields.tags = fields.tags + newlyAdded },
+                    onOpenManageTags = onOpenManageTags,
+                    onDismiss = { tagPickerVisible = false },
+                ),
         )
     }
 }
 
 @Composable
+private fun FileDetailsCard(
+    entry: FileEntry,
+    fields: FileDetailsFields,
+    viewModel: FileDetailsViewModel,
+    onDismiss: () -> Unit,
+    onAddTagClick: () -> Unit,
+) {
+    Surface(shape = MaterialTheme.shapes.large) {
+        Column(modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())) {
+            Text(entry.name, style = MaterialTheme.typography.titleMedium)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+            FavoriteRow(
+                isFavorite = fields.isFavorite,
+                onToggle = { checked ->
+                    fields.isFavorite = checked
+                    if (checked) viewModel.setFavorite(entry.uri, null) else viewModel.removeFavorite(entry.uri)
+                },
+            )
+            LockRow(
+                isLocked = fields.isLocked,
+                onToggle = { checked ->
+                    fields.isLocked = checked
+                    viewModel.setLocked(entry.uri, checked)
+                },
+            )
+
+            SectionLabel(R.string.file_details_tags)
+            TagsSection(
+                tags = fields.tags,
+                onAddClick = onAddTagClick,
+                onRemove = { tag ->
+                    fields.tags = fields.tags.filterNot { it.id == tag.id }
+                    viewModel.removeTag(entry.uri, tag.id)
+                },
+            )
+
+            SectionLabel(R.string.file_details_note)
+            OutlinedTextField(
+                value = fields.note,
+                onValueChange = { fields.note = it },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+            )
+            LaunchedEffect(fields.note) { viewModel.setNote(entry.uri, fields.note) }
+
+            TextButton(onClick = onDismiss, modifier = Modifier.padding(top = 16.dp)) {
+                Text(stringResource(R.string.close))
+            }
+        }
+    }
+}
+
+private data class FileDetailsTagPickerCallbacks(
+    val onTagsAdded: (List<FileTag>) -> Unit,
+    val onOpenManageTags: () -> Unit,
+    val onDismiss: () -> Unit,
+)
+
+@Composable
 private fun FileDetailsTagPicker(
+    fileUri: Uri,
     allTags: List<FileTag>,
     currentTags: List<FileTag>,
-    onTagsAdded: (List<FileTag>) -> Unit,
-    onAddTag: (Long) -> Unit,
-    onOpenManageTags: () -> Unit,
-    onDismiss: () -> Unit,
+    viewModel: FileDetailsViewModel,
+    callbacks: FileDetailsTagPickerCallbacks,
 ) {
     TagPickerDialog(
         tags = allTags,
         onApply = { selectedIds ->
-            selectedIds.forEach { tagId -> onAddTag(tagId) }
+            selectedIds.forEach { tagId -> viewModel.addTag(fileUri, tagId) }
             val newlyAdded = allTags.filter { it.id in selectedIds && currentTags.none { existing -> existing.id == it.id } }
-            onTagsAdded(newlyAdded)
-            onDismiss()
+            callbacks.onTagsAdded(newlyAdded)
+            callbacks.onDismiss()
         },
         onManageTags = {
-            onDismiss()
-            onOpenManageTags()
+            callbacks.onDismiss()
+            callbacks.onOpenManageTags()
         },
-        onDismiss = onDismiss,
+        onDismiss = callbacks.onDismiss,
     )
 }
 

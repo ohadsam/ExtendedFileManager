@@ -33,11 +33,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
-import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -66,7 +64,6 @@ private fun PreviewContent(
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
     var tagPickerVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
     // instead of only ever acting on whichever file happens to be on screen right now.
@@ -98,8 +95,7 @@ private fun PreviewContent(
         PreviewTagPickerSheet(
             tags = tags,
             selectedUris = selectedUris,
-            scope = scope,
-            metadataActions = viewModel.metadataActions,
+            viewModel = viewModel,
             onOpenManageTags = onOpenManageTags,
             onDismiss = { tagPickerVisible = false },
         )
@@ -157,16 +153,16 @@ private fun PreviewTopBar(
 private fun PreviewTagPickerSheet(
     tags: List<FileTag>,
     selectedUris: List<Uri>,
-    scope: CoroutineScope,
-    metadataActions: SelectionMetadataActions,
+    viewModel: PreviewViewModel,
     onOpenManageTags: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     TagPickerDialog(
         tags = tags,
         onApply = { tagIds ->
             val uris = selectedUris.toList()
-            scope.launch { tagIds.forEach { tagId -> metadataActions.applyTag(uris, tagId) } }
+            scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
             onDismiss()
         },
         onManageTags = {

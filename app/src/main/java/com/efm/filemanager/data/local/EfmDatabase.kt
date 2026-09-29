@@ -36,7 +36,11 @@ abstract class EfmDatabase : RoomDatabase() {
 
     abstract fun tagDao(): TagDao
 
+    abstract fun tagCrossRefDao(): TagCrossRefDao
+
     abstract fun favoriteDao(): FavoriteDao
+
+    abstract fun favoriteCollectionDao(): FavoriteCollectionDao
 
     abstract fun fileFlagsDao(): FileFlagsDao
 }
