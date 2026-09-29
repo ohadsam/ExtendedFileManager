@@ -11,8 +11,8 @@ import com.efm.filemanager.data.duplicates.DuplicateScanWorker
 import com.efm.filemanager.data.duplicates.SCAN_WORK_NAME
 import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.data.duplicates.toScanProgress
+import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
-import com.efm.filemanager.data.metadata.TagRepository
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
@@ -35,8 +35,7 @@ class DuplicatesViewModel
         private val workManager: WorkManager,
         private val duplicateScanRepository: DuplicateScanRepository,
         private val previewSessionHolder: PreviewSessionHolder,
-        private val tagRepository: TagRepository,
-        val metadataActions: SelectionMetadataActions,
+        private val screenMetadataSupport: ScreenMetadataSupport,
     ) : ViewModel() {
         val uiState: StateFlow<DuplicatesUiState> =
             combine(
@@ -45,8 +44,10 @@ class DuplicatesViewModel
             ) { (runState, progress), groups -> DuplicatesUiState(runState = runState, progress = progress, groups = groups) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DuplicatesUiState())
 
+        val metadataActions: SelectionMetadataActions get() = screenMetadataSupport.metadataActions
+
         val tags: StateFlow<List<FileTag>> =
-            tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+            screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         fun startScan() {
             val request = OneTimeWorkRequestBuilder<DuplicateScanWorker>().build()

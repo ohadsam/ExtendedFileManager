@@ -97,21 +97,40 @@ fun FileDetailsSheet(
     }
 
     if (tagPickerVisible) {
-        TagPickerDialog(
-            tags = allTags,
-            onApply = { selectedIds ->
-                selectedIds.forEach { tagId -> viewModel.addTag(entry.uri, tagId) }
-                val newlyAdded = allTags.filter { it.id in selectedIds && tags.none { existing -> existing.id == it.id } }
-                tags = tags + newlyAdded
-                tagPickerVisible = false
-            },
-            onManageTags = {
-                tagPickerVisible = false
-                onOpenManageTags()
-            },
+        FileDetailsTagPicker(
+            allTags = allTags,
+            currentTags = tags,
+            onTagsAdded = { newlyAdded -> tags = tags + newlyAdded },
+            onAddTag = { tagId -> viewModel.addTag(entry.uri, tagId) },
+            onOpenManageTags = onOpenManageTags,
             onDismiss = { tagPickerVisible = false },
         )
     }
+}
+
+@Composable
+private fun FileDetailsTagPicker(
+    allTags: List<FileTag>,
+    currentTags: List<FileTag>,
+    onTagsAdded: (List<FileTag>) -> Unit,
+    onAddTag: (Long) -> Unit,
+    onOpenManageTags: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    TagPickerDialog(
+        tags = allTags,
+        onApply = { selectedIds ->
+            selectedIds.forEach { tagId -> onAddTag(tagId) }
+            val newlyAdded = allTags.filter { it.id in selectedIds && currentTags.none { existing -> existing.id == it.id } }
+            onTagsAdded(newlyAdded)
+            onDismiss()
+        },
+        onManageTags = {
+            onDismiss()
+            onOpenManageTags()
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable

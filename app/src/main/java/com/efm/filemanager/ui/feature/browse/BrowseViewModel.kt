@@ -7,8 +7,8 @@ import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
 import com.efm.filemanager.data.documenttree.LockedFileException
+import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
-import com.efm.filemanager.data.metadata.TagRepository
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
@@ -76,8 +76,7 @@ class BrowseViewModel
         private val fileOperationsRepository: FileOperationsRepository,
         private val previewSessionHolder: PreviewSessionHolder,
         private val preferencesRepository: PreferencesRepository,
-        private val tagRepository: TagRepository,
-        val metadataActions: SelectionMetadataActions,
+        private val screenMetadataSupport: ScreenMetadataSupport,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(BrowseUiState())
         val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
@@ -85,8 +84,10 @@ class BrowseViewModel
         private val _events = MutableSharedFlow<BrowseEvent>()
         val events: SharedFlow<BrowseEvent> = _events.asSharedFlow()
 
+        val metadataActions: SelectionMetadataActions get() = screenMetadataSupport.metadataActions
+
         val tags: StateFlow<List<FileTag>> =
-            tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+            screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         val picker =
             BrowsePickerController(

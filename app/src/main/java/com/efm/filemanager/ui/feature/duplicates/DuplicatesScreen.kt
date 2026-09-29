@@ -38,11 +38,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.duplicates.ScanPhase
 import com.efm.filemanager.data.duplicates.ScanProgress
+import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.domain.model.DuplicateGroup
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -104,20 +107,39 @@ fun DuplicatesScreen(
     }
 
     if (tagPickerVisible) {
-        TagPickerDialog(
+        DuplicatesTagPickerSheet(
             tags = tags,
-            onApply = { tagIds ->
-                val uris = selectedEntries.map { it.uri }
-                scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
-                tagPickerVisible = false
-            },
-            onManageTags = {
-                tagPickerVisible = false
-                onOpenManageTags()
-            },
+            selectedEntries = selectedEntries,
+            scope = scope,
+            metadataActions = viewModel.metadataActions,
+            onOpenManageTags = onOpenManageTags,
             onDismiss = { tagPickerVisible = false },
         )
     }
+}
+
+@Composable
+private fun DuplicatesTagPickerSheet(
+    tags: List<FileTag>,
+    selectedEntries: List<FileEntry>,
+    scope: CoroutineScope,
+    metadataActions: SelectionMetadataActions,
+    onOpenManageTags: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    TagPickerDialog(
+        tags = tags,
+        onApply = { tagIds ->
+            val uris = selectedEntries.map { it.uri }
+            scope.launch { tagIds.forEach { tagId -> metadataActions.applyTag(uris, tagId) } }
+            onDismiss()
+        },
+        onManageTags = {
+            onDismiss()
+            onOpenManageTags()
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable

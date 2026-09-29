@@ -40,15 +40,6 @@ import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.ui.components.FileRow
 
-internal data class FavoritesRowActions(
-    val onOpenCollection: (FavoriteCollection) -> Unit,
-    val onMoveCollection: (FavoriteCollection, MoveDirection) -> Unit,
-    val onRenameCollection: (FavoriteCollection) -> Unit,
-    val onDeleteCollection: (FavoriteCollection) -> Unit,
-    val onEntryClick: (FileEntry) -> Unit,
-    val onEntryLongClick: (FileEntry) -> Unit,
-)
-
 @Composable
 fun FavoritesScreen(
     onOpenDrawer: () -> Unit,

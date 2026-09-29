@@ -3,17 +3,8 @@ package com.efm.filemanager.ui.feature.favorites
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
-import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.TextInputDialog
-
-internal sealed interface FavoritesDialog {
-    data class CreateCollection(val parentId: Long?) : FavoritesDialog
-
-    data class Rename(val collection: FavoriteCollection) : FavoritesDialog
-
-    data class Delete(val collection: FavoriteCollection) : FavoritesDialog
-}
 
 @Composable
 internal fun FavoritesDialogHost(

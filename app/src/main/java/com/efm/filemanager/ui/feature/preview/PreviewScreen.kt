@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,8 +33,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
+import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,14 +67,11 @@ private fun PreviewContent(
     val selectedUris = remember { mutableStateListOf<Uri>() }
     var tagPickerVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val currentEntry = session.entries.getOrNull(pagerState.currentPage)
-    val currentUri = currentEntry?.uri
-    val currentSelected = currentUri != null && selectedUris.contains(currentUri)
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
     // instead of only ever acting on whichever file happens to be on screen right now.
     LaunchedEffect(pagerState.currentPage) {
-        val entry = currentEntry
+        val entry = session.entries.getOrNull(pagerState.currentPage)
         if (entry != null && selectedUris.isNotEmpty() && entry.uri !in selectedUris) {
             selectedUris.add(entry.uri)
         }
@@ -78,33 +79,13 @@ private fun PreviewContent(
 
     Scaffold(
         topBar = {
-            if (selectedUris.isEmpty()) {
-                PreviewNormalTopBar(
-                    title = currentEntry?.name.orEmpty(),
-                    onNavigateBack = onNavigateBack,
-                    onStartSelection = { currentEntry?.let { selectedUris.add(it.uri) } },
-                )
-            } else {
-                val actions =
-                    PreviewSelectionActions(
-                        onClose = { selectedUris.clear() },
-                        onToggleCurrent = { currentEntry?.let { toggleSelection(selectedUris, it.uri) } },
-                        onAddTag = { tagPickerVisible = true },
-                        onToggleFavorite = {
-                            val entries = session.entries.filter { it.uri in selectedUris }
-                            scope.launch { viewModel.metadataActions.toggleFavorite(entries) }
-                        },
-                        onToggleLock = {
-                            val entries = session.entries.filter { it.uri in selectedUris }
-                            scope.launch { viewModel.metadataActions.toggleLock(entries) }
-                        },
-                    )
-                PreviewSelectionTopBar(
-                    count = selectedUris.size,
-                    currentSelected = currentSelected,
-                    actions = actions,
-                )
-            }
+            PreviewTopBar(
+                session = session,
+                pagerState = pagerState,
+                selectedUris = selectedUris,
+                callbacks = PreviewTopBarCallbacks(onNavigateBack = onNavigateBack, onAddTag = { tagPickerVisible = true }),
+                viewModel = viewModel,
+            )
         },
     ) { innerPadding ->
         HorizontalPager(
@@ -114,20 +95,86 @@ private fun PreviewContent(
     }
 
     if (tagPickerVisible) {
-        TagPickerDialog(
+        PreviewTagPickerSheet(
             tags = tags,
-            onApply = { tagIds ->
-                val uris = selectedUris.toList()
-                scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
-                tagPickerVisible = false
-            },
-            onManageTags = {
-                tagPickerVisible = false
-                onOpenManageTags()
-            },
+            selectedUris = selectedUris,
+            scope = scope,
+            metadataActions = viewModel.metadataActions,
+            onOpenManageTags = onOpenManageTags,
             onDismiss = { tagPickerVisible = false },
         )
     }
+}
+
+private data class PreviewTopBarCallbacks(
+    val onNavigateBack: () -> Unit,
+    val onAddTag: () -> Unit,
+)
+
+@Composable
+private fun PreviewTopBar(
+    session: PreviewSession,
+    pagerState: PagerState,
+    selectedUris: SnapshotStateList<Uri>,
+    callbacks: PreviewTopBarCallbacks,
+    viewModel: PreviewViewModel,
+) {
+    val scope = rememberCoroutineScope()
+    val currentEntry = session.entries.getOrNull(pagerState.currentPage)
+    val currentUri = currentEntry?.uri
+    val currentSelected = currentUri != null && selectedUris.contains(currentUri)
+
+    if (selectedUris.isEmpty()) {
+        PreviewNormalTopBar(
+            title = currentEntry?.name.orEmpty(),
+            onNavigateBack = callbacks.onNavigateBack,
+            onStartSelection = { currentEntry?.let { selectedUris.add(it.uri) } },
+        )
+    } else {
+        val actions =
+            PreviewSelectionActions(
+                onClose = { selectedUris.clear() },
+                onToggleCurrent = { currentEntry?.let { toggleSelection(selectedUris, it.uri) } },
+                onAddTag = callbacks.onAddTag,
+                onToggleFavorite = {
+                    val entries = session.entries.filter { it.uri in selectedUris }
+                    scope.launch { viewModel.metadataActions.toggleFavorite(entries) }
+                },
+                onToggleLock = {
+                    val entries = session.entries.filter { it.uri in selectedUris }
+                    scope.launch { viewModel.metadataActions.toggleLock(entries) }
+                },
+            )
+        PreviewSelectionTopBar(
+            count = selectedUris.size,
+            currentSelected = currentSelected,
+            actions = actions,
+        )
+    }
+}
+
+@Composable
+private fun PreviewTagPickerSheet(
+    tags: List<FileTag>,
+    selectedUris: List<Uri>,
+    scope: CoroutineScope,
+    metadataActions: SelectionMetadataActions,
+    onOpenManageTags: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    TagPickerDialog(
+        tags = tags,
+        onApply = { tagIds ->
+            val uris = selectedUris.toList()
+            scope.launch { tagIds.forEach { tagId -> metadataActions.applyTag(uris, tagId) } }
+            onDismiss()
+        },
+        onManageTags = {
+            onDismiss()
+            onOpenManageTags()
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 private fun toggleSelection(

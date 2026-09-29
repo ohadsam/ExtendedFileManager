@@ -2,7 +2,9 @@ package com.efm.filemanager.data.metadata
 
 import android.content.Context
 import android.net.Uri
+import androidx.room.withTransaction
 import com.efm.filemanager.R
+import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FileTagCrossRefEntity
 import com.efm.filemanager.data.local.TagDao
 import com.efm.filemanager.data.local.TagEntity
@@ -23,6 +25,7 @@ class TagRepository
     constructor(
         @ApplicationContext private val context: Context,
         private val tagDao: TagDao,
+        private val database: EfmDatabase,
     ) {
         val tags: Flow<List<FileTag>> = tagDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
@@ -53,10 +56,17 @@ class TagRepository
 
         suspend fun deleteTag(tag: FileTag) = tagDao.delete(tag.id)
 
+        /** Merges [from] into [into]: a file that already carried both keeps just [into]. */
         suspend fun mergeTags(
             from: FileTag,
             into: FileTag,
-        ) = tagDao.mergeTag(from.id, into.id)
+        ) {
+            database.withTransaction {
+                tagDao.deleteConflictingCrossRefs(from.id, into.id)
+                tagDao.reassignCrossRefs(from.id, into.id)
+                tagDao.delete(from.id)
+            }
+        }
 
         suspend fun addTagToFiles(
             fileUris: List<Uri>,

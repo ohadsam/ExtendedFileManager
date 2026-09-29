@@ -1,6 +1,8 @@
 package com.efm.filemanager.data.metadata
 
 import android.net.Uri
+import androidx.room.withTransaction
+import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.FavoriteCollectionEntity
 import com.efm.filemanager.data.local.FavoriteDao
 import com.efm.filemanager.data.local.FavoriteEntity
@@ -22,6 +24,7 @@ class FavoriteRepository
     @Inject
     constructor(
         private val favoriteDao: FavoriteDao,
+        private val database: EfmDatabase,
     ) {
         val collections: Flow<List<FavoriteCollection>> = favoriteDao.observeCollections().map { it.map { c -> c.toDomain() } }
 
@@ -41,7 +44,14 @@ class FavoriteRepository
             name: String,
         ) = favoriteDao.updateCollection(collection.copy(name = name).toEntity())
 
-        suspend fun deleteCollection(collection: FavoriteCollection) = favoriteDao.deleteCollectionCascadingSafely(collection.id)
+        /** Deleting a collection never deletes what was inside it -- favorites and child collections move to the root. */
+        suspend fun deleteCollection(collection: FavoriteCollection) {
+            database.withTransaction {
+                favoriteDao.orphanFavoritesOf(collection.id)
+                favoriteDao.orphanChildCollectionsOf(collection.id)
+                favoriteDao.deleteCollection(collection.id)
+            }
+        }
 
         suspend fun moveCollection(
             collection: FavoriteCollection,

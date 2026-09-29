@@ -224,29 +224,37 @@ private fun SelectionMoreMenu(
                 state.actions.onCopy()
             },
         )
+        ArchiveMenuItems(state = state, onDismiss = onDismiss)
+    }
+}
+
+@Composable
+private fun ArchiveMenuItems(
+    state: SelectionBarState,
+    onDismiss: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_compress)) },
+        onClick = {
+            onDismiss()
+            state.archiveActions.onCompress()
+        },
+    )
+    if (state.canExtract) {
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.action_compress)) },
+            text = { Text(stringResource(R.string.action_extract)) },
             onClick = {
                 onDismiss()
-                state.archiveActions.onCompress()
+                state.archiveActions.onExtract()
             },
         )
-        if (state.canExtract) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_extract)) },
-                onClick = {
-                    onDismiss()
-                    state.archiveActions.onExtract()
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_extract_replace)) },
-                onClick = {
-                    onDismiss()
-                    state.archiveActions.onExtractAndReplace()
-                },
-            )
-        }
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_extract_replace)) },
+            onClick = {
+                onDismiss()
+                state.archiveActions.onExtractAndReplace()
+            },
+        )
     }
 }
 

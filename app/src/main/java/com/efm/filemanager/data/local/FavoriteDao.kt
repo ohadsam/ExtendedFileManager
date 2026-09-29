@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -33,14 +32,6 @@ interface FavoriteDao {
 
     @Query("UPDATE favorite_collections SET parentId = NULL WHERE parentId = :id")
     suspend fun orphanChildCollectionsOf(id: Long)
-
-    /** Deleting a collection never deletes what was inside it -- favorites and child collections move to the root. */
-    @Transaction
-    suspend fun deleteCollectionCascadingSafely(id: Long) {
-        orphanFavoritesOf(id)
-        orphanChildCollectionsOf(id)
-        deleteCollection(id)
-    }
 
     @Query("SELECT * FROM favorites")
     fun observeAll(): Flow<List<FavoriteEntity>>

@@ -2,8 +2,8 @@ package com.efm.filemanager.ui.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
-import com.efm.filemanager.data.metadata.TagRepository
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.data.search.SearchIndexRepository
 import com.efm.filemanager.domain.model.FileEntry
@@ -33,14 +33,15 @@ class SearchViewModel
         private val searchIndexRepository: SearchIndexRepository,
         private val previewSessionHolder: PreviewSessionHolder,
         private val preferencesRepository: PreferencesRepository,
-        private val tagRepository: TagRepository,
-        val metadataActions: SelectionMetadataActions,
+        private val screenMetadataSupport: ScreenMetadataSupport,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SearchUiState())
         val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
+        val metadataActions: SelectionMetadataActions get() = screenMetadataSupport.metadataActions
+
         val tags: StateFlow<List<FileTag>> =
-            tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+            screenMetadataSupport.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         private var searchJob: Job? = null
 

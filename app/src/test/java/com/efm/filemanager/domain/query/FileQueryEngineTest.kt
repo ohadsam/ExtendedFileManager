@@ -100,7 +100,7 @@ class FileQueryEngineTest {
 
     @Test
     fun `favorite-only filter keeps only favorited entries`() {
-        val files = listOf(entry("a.txt", isFavorite = true), entry("b.txt"))
+        val files = listOf(entry("a.txt", flags = setOf(EntryFlag.FAVORITE)), entry("b.txt"))
         val spec = QuerySpec(favoriteOnly = true)
 
         val result = spec.applyTo(files)
@@ -110,7 +110,7 @@ class FileQueryEngineTest {
 
     @Test
     fun `locked-only filter keeps only locked entries`() {
-        val files = listOf(entry("a.txt", isLocked = true), entry("b.txt"))
+        val files = listOf(entry("a.txt", flags = setOf(EntryFlag.LOCKED)), entry("b.txt"))
         val spec = QuerySpec(lockedOnly = true)
 
         val result = spec.applyTo(files)
@@ -118,14 +118,15 @@ class FileQueryEngineTest {
         assertEquals(listOf("a.txt"), result.map { it.name })
     }
 
+    private enum class EntryFlag { FAVORITE, LOCKED }
+
     private fun entry(
         name: String,
         isDirectory: Boolean = false,
         size: Long = 0L,
         mimeType: String? = null,
         tags: List<FileTag> = emptyList(),
-        isFavorite: Boolean = false,
-        isLocked: Boolean = false,
+        flags: Set<EntryFlag> = emptySet(),
     ) = FileEntry(
         uri = mockk<Uri>(),
         documentId = name,
@@ -136,7 +137,7 @@ class FileQueryEngineTest {
         mimeType = mimeType,
         sourceApp = null,
         tags = tags,
-        isFavorite = isFavorite,
-        isLocked = isLocked,
+        isFavorite = EntryFlag.FAVORITE in flags,
+        isLocked = EntryFlag.LOCKED in flags,
     )
 }

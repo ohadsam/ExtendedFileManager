@@ -19,16 +19,6 @@ import com.efm.filemanager.domain.model.TagColor
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.TagColorPicker
 
-internal sealed interface ManageTagsDialog {
-    data object Create : ManageTagsDialog
-
-    data class Edit(val tag: FileTag) : ManageTagsDialog
-
-    data class Merge(val tag: FileTag) : ManageTagsDialog
-
-    data class Delete(val tag: FileTag) : ManageTagsDialog
-}
-
 @Composable
 internal fun ManageTagsDialogHost(
     dialog: ManageTagsDialog?,

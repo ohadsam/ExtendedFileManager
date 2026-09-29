@@ -40,8 +40,7 @@ class SearchIndexRepository
 
         suspend fun search(rawQuery: String): List<FileEntry> {
             val ftsQuery = buildFtsQuery(rawQuery)
-            if (ftsQuery.isBlank()) return emptyList()
-            val uris = fileSearchDao.matchUris(ftsQuery)
+            val uris = if (ftsQuery.isBlank()) emptyList() else fileSearchDao.matchUris(ftsQuery)
             if (uris.isEmpty()) return emptyList()
             val snapshot = fileMetadataRepository.snapshotOnce()
             return fileEntryDao.getByUris(uris).map { it.toDomain().enrich(snapshot) }
