@@ -5,13 +5,8 @@ import androidx.room.Room
 import com.efm.filemanager.data.audit.AuditEventDao
 import com.efm.filemanager.data.local.DuplicateFileDao
 import com.efm.filemanager.data.local.EfmDatabase
-import com.efm.filemanager.data.local.FavoriteCollectionDao
-import com.efm.filemanager.data.local.FavoriteDao
 import com.efm.filemanager.data.local.FileEntryDao
-import com.efm.filemanager.data.local.FileFlagsDao
 import com.efm.filemanager.data.local.FileSearchDao
-import com.efm.filemanager.data.local.TagCrossRefDao
-import com.efm.filemanager.data.local.TagDao
 import com.efm.filemanager.data.trash.TrashedFileDao
 import dagger.Module
 import dagger.Provides
@@ -48,19 +43,4 @@ object DatabaseModule {
 
     @Provides
     fun provideDuplicateFileDao(database: EfmDatabase): DuplicateFileDao = database.duplicateFileDao()
-
-    @Provides
-    fun provideTagDao(database: EfmDatabase): TagDao = database.tagDao()
-
-    @Provides
-    fun provideTagCrossRefDao(database: EfmDatabase): TagCrossRefDao = database.tagCrossRefDao()
-
-    @Provides
-    fun provideFavoriteDao(database: EfmDatabase): FavoriteDao = database.favoriteDao()
-
-    @Provides
-    fun provideFavoriteCollectionDao(database: EfmDatabase): FavoriteCollectionDao = database.favoriteCollectionDao()
-
-    @Provides
-    fun provideFileFlagsDao(database: EfmDatabase): FileFlagsDao = database.fileFlagsDao()
 }
