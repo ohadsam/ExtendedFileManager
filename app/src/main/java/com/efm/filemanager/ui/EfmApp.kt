@@ -91,6 +91,7 @@ private fun NavGraphBuilder.efmDestinations(
         FavoritesScreen(
             onOpenDrawer = { scope.launch { drawerState.open() } },
             onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
+            onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
         )
     }
     composable(EfmDestination.Settings.route) {

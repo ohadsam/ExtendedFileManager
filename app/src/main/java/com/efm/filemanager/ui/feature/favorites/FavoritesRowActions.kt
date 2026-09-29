@@ -11,4 +11,5 @@ internal data class FavoritesRowActions(
     val onDeleteCollection: (FavoriteCollection) -> Unit,
     val onEntryClick: (FileEntry) -> Unit,
     val onEntryLongClick: (FileEntry) -> Unit,
+    val onShowDetails: (FileEntry) -> Unit,
 )

@@ -48,45 +48,39 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.ui.components.FileRow
+import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 
 private val COLLECTION_ROW_HEIGHT = 48.dp
+
+/** [FavoritesScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
+private class FavoritesScreenState {
+    var pathStack by mutableStateOf(listOf<FavoriteCollection>())
+    var dialog by mutableStateOf<FavoritesDialog?>(null)
+    var detailsTarget by mutableStateOf<FileEntry?>(null)
+}
 
 @Composable
 fun FavoritesScreen(
     onOpenDrawer: () -> Unit,
     onOpenPreview: () -> Unit,
+    onOpenManageTags: () -> Unit,
     viewModel: FavoritesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var pathStack by remember { mutableStateOf(listOf<FavoriteCollection>()) }
-    var dialog by remember { mutableStateOf<FavoritesDialog?>(null) }
-    val currentId = pathStack.lastOrNull()?.id
+    val state = remember { FavoritesScreenState() }
+    val currentId = state.pathStack.lastOrNull()?.id
     val childCollections = uiState.collections.filter { it.parentId == currentId }
     val childEntries = uiState.entries.filter { it.favoriteCollectionId == currentId }
-
-    val actions =
-        FavoritesRowActions(
-            onOpenCollection = { collection -> pathStack = pathStack + collection },
-            onMoveCollection = viewModel::moveCollection,
-            onRenameCollection = { collection -> dialog = FavoritesDialog.Rename(collection) },
-            onDeleteCollection = { collection -> dialog = FavoritesDialog.Delete(collection) },
-            onEntryClick = { entry ->
-                if (entry.previewType() != PreviewType.NONE) {
-                    viewModel.openPreview(childEntries, entry)
-                    onOpenPreview()
-                }
-            },
-            onEntryLongClick = { entry -> viewModel.removeFavorite(entry) },
-        )
+    val actions = buildFavoritesActions(state, childEntries, viewModel, onOpenPreview)
 
     Scaffold(
         topBar = {
             FavoritesTopBar(
-                title = pathStack.lastOrNull()?.name ?: stringResource(R.string.nav_favorites),
-                atRoot = pathStack.isEmpty(),
+                title = state.pathStack.lastOrNull()?.name ?: stringResource(R.string.nav_favorites),
+                atRoot = state.pathStack.isEmpty(),
                 onOpenDrawer = onOpenDrawer,
-                onNavigateBack = { pathStack = pathStack.dropLast(1) },
-                onCreateCollection = { dialog = FavoritesDialog.CreateCollection(currentId) },
+                onNavigateBack = { state.pathStack = state.pathStack.dropLast(1) },
+                onCreateCollection = { state.dialog = FavoritesDialog.CreateCollection(currentId) },
             )
         },
     ) { innerPadding ->
@@ -98,7 +92,41 @@ fun FavoritesScreen(
         )
     }
 
-    FavoritesDialogHost(dialog = dialog, viewModel = viewModel, onDismiss = { dialog = null })
+    FavoritesDialogsSection(state = state, viewModel = viewModel, onOpenManageTags = onOpenManageTags)
+}
+
+private fun buildFavoritesActions(
+    state: FavoritesScreenState,
+    childEntries: List<FileEntry>,
+    viewModel: FavoritesViewModel,
+    onOpenPreview: () -> Unit,
+): FavoritesRowActions =
+    FavoritesRowActions(
+        onOpenCollection = { collection -> state.pathStack = state.pathStack + collection },
+        onMoveCollection = viewModel::moveCollection,
+        onRenameCollection = { collection -> state.dialog = FavoritesDialog.Rename(collection) },
+        onDeleteCollection = { collection -> state.dialog = FavoritesDialog.Delete(collection) },
+        onEntryClick = { entry ->
+            if (entry.previewType() != PreviewType.NONE) {
+                viewModel.openPreview(childEntries, entry)
+                onOpenPreview()
+            }
+        },
+        onEntryLongClick = { entry -> viewModel.removeFavorite(entry) },
+        onShowDetails = { entry -> state.detailsTarget = entry },
+    )
+
+@Composable
+private fun FavoritesDialogsSection(
+    state: FavoritesScreenState,
+    viewModel: FavoritesViewModel,
+    onOpenManageTags: () -> Unit,
+) {
+    FavoritesDialogHost(dialog = state.dialog, viewModel = viewModel, onDismiss = { state.dialog = null })
+
+    state.detailsTarget?.let { target ->
+        FileDetailsSheet(entry = target, onDismiss = { state.detailsTarget = null }, onOpenManageTags = onOpenManageTags)
+    }
 }
 
 @Composable
@@ -175,12 +203,39 @@ private fun FavoritesBody(
             CollectionRow(collection = collection, actions = actions, drag = drag)
         }
         items(entries, key = { it.uri.toString() }) { entry ->
+            FavoritesEntryRow(entry = entry, actions = actions)
+        }
+    }
+}
+
+@Composable
+private fun FavoritesEntryRow(
+    entry: FileEntry,
+    actions: FavoritesRowActions,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.weight(1f)) {
             FileRow(
                 entry = entry,
                 isSelected = false,
                 onClick = { actions.onEntryClick(entry) },
                 onLongClick = { actions.onEntryLongClick(entry) },
             )
+        }
+        Box {
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.file_details_title)) },
+                    onClick = {
+                        menuExpanded = false
+                        actions.onShowDetails(entry)
+                    },
+                )
+            }
         }
     }
 }

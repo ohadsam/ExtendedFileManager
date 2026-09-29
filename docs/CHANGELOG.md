@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.2 (2026-09-29)
+
+- Favorites: each favorited file now has its own "⋮" menu with a
+  "Details" item, opening the same favorite/tags/lock/note sheet
+  available elsewhere in the app -- Favorites was the one screen it
+  hadn't reached yet, since it has no multi-select bar to hang it off
+  of (long-press there is already "remove from favorites").
+
 ## v0.10.1 (2026-09-29)
 
 - Phase 9 follow-up, closing gaps from the initial v0.10.0 ship:
