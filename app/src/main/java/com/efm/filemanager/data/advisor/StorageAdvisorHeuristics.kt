@@ -19,8 +19,9 @@ internal data class LargeFileThresholds(
 
 /**
  * Returns the matched pattern (e.g. ".tmp", ".trashed-*") for display, or null if [name] doesn't
- * look temporary. A leftover Android trash-rename is checked by prefix; everything else, by
- * extension, so a name like "notes.tmp.pdf" still matches on its real extension.
+ * look temporary. A leftover Android trash-rename is checked by prefix; everything else, by the
+ * name's real, final extension -- "notes.tmp.pdf" is a PDF, not a temp file, and correctly
+ * doesn't match, while "report.v2.tmp" does.
  */
 internal fun matchesTemporaryPattern(name: String): String? {
     if (name.startsWith(TRASHED_PREFIX)) return "$TRASHED_PREFIX*"

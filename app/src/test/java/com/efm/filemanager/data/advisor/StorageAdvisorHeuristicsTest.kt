@@ -17,8 +17,9 @@ class StorageAdvisorHeuristicsTest {
     }
 
     @Test
-    fun `matches on the real extension even when it follows a temp-like segment`() {
-        assertEquals(".pdf", matchesTemporaryPattern("notes.tmp.pdf"))
+    fun `matches on the real, final extension -- a non-temp extension after a temp-like segment is not a match`() {
+        assertNull(matchesTemporaryPattern("notes.tmp.pdf"))
+        assertEquals(".tmp", matchesTemporaryPattern("report.v2.tmp"))
     }
 
     @Test
