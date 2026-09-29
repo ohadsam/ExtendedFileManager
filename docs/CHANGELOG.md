@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.0 (2026-09-29)
+
+- Phase 8 — view modes & UI polish: choose how file lists look, from
+  Settings' Display section or a quick-toggle button right on Browse's
+  toolbar. List (as before), Compact (smaller rows to scan more files at
+  once), Detailed (bigger thumbnails plus the source app), and a new
+  Grid view with thumbnail-forward tiles. The choice applies everywhere
+  you browse or search.
+
 ## v0.8.0 (2026-09-29)
 
 - Phase 7 — preview: tapping a previewable file in Browse, Search, or

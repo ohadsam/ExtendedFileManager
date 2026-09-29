@@ -13,10 +13,11 @@ Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settin
 Phase 3 (core file operations: create/rename/move/copy/delete with confirmation, undo-able trash,
 audit logging), Phase 4 (compress/extract, with a conflict policy and Extract & Replace), Phase 5
 (a shared filter/sort/group-by spec plus global full-text search), Phase 6 (a background,
-WorkManager-driven duplicate finder with grouped results and bulk delete), and Phase 7 (image/
-video/audio/PDF preview, with inline thumbnails and a swipeable full-screen viewer) are done — CI
-is green end-to-end, including a successful `assembleDebug`. Phase 8 (view modes & UI polish) is
-next. See `docs/PLAN.md` for the full phase list.
+WorkManager-driven duplicate finder with grouped results and bulk delete), Phase 7 (image/
+video/audio/PDF preview, with inline thumbnails and a swipeable full-screen viewer), and Phase 8
+(list/compact/detailed/grid view modes, chosen from Settings or a Browse toolbar quick-toggle) are
+done — CI is green end-to-end, including a successful `assembleDebug`. Phase 9 (per-file
+metadata: favorites, tags, lock, notes) is next. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

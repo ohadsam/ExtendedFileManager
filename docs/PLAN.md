@@ -111,8 +111,8 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
 - **Phase 7 — Preview** ✅ *(done)*
   Images (Coil), video/audio (Media3/ExoPlayer), PDF (PdfRenderer). Inline preview pane + full-screen viewer, works from browse, search, and duplicate-review screens.
 
-- **Phase 8 — View modes & UI polish**
-  List / grid / compact / detailed density options, remembered per-folder or globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3) — including auditing every screen built so far against the navigation drawer / toolbar-dropdown / long-press conventions from Phase 1, since a real-world screen doesn't always end up following its own pattern perfectly on the first pass.
+- **Phase 8 — View modes & UI polish** ✅ *(done)*
+  List / grid / compact / detailed density options, remembered globally, and this is where the Settings screen's Display section gets its real control (Phase 2 built the shell). Also where general UI/UX passes happen continuously (item 3) — including auditing every screen built so far against the navigation drawer / toolbar-dropdown / long-press conventions from Phase 1, since a real-world screen doesn't always end up following its own pattern perfectly on the first pass.
 
 - **Phase 9 — Per-file metadata: favorites, tags, lock, notes**
   One Room feature, not four, since all of these are the same shape (metadata attached to a file/folder, independent of its content) and share one "file details" UI surface:
