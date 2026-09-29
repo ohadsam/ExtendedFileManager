@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.7.0 (2026-09-29)
+
+- Phase 6 — duplicate & identical-file finder: a new Duplicates screen scans every
+  granted folder for files with identical content (regardless of name or extension),
+  in three stages so it stays fast even with many files — same size, then a quick
+  partial check, then a full verification hash only on genuine candidates. The scan
+  runs in the background (so leaving the screen doesn't cancel it), shows live
+  progress, and can be cancelled. Results are grouped by content, with a "Keep one"
+  shortcut that selects every extra copy for you, and bulk delete goes through the
+  same confirm-and-trash flow as every other delete in the app.
+
 ## v0.6.0 (2026-09-28)
 
 - Phase 5 — filter, sort, group-by, and global search: a single reusable

@@ -101,7 +101,7 @@ Each phase = one PR into `main` (via the working branch), green CI, before the n
   - **Global free-text search bar**, reachable from anywhere in the app (persistent search icon in the top bar), matching against filename and path substrings from the Room file index — backed by SQLite FTS (Room's `@Fts4`/`Fts5` entity) rather than a `LIKE` scan, so it stays fast as the index grows into the tens of thousands of files. Results respect whatever filters are currently active (e.g. search "invoice" within "PDFs from the last month").
   - Source app is a first-class filter/group dimension, not an afterthought: filter to "files from WhatsApp," group the current results by owning app (with a distinct "Unknown source" bucket), sort within a group like any other. The confidence flag from Phase 1's index (exact `OWNER_PACKAGE_NAME` vs. heuristic folder match) carries through to these views so a heuristic grouping is visibly marked as such, not presented with the same certainty as an exact one.
 
-- **Phase 6 — Duplicate & identical-file finder**
+- **Phase 6 — Duplicate & identical-file finder** ✅ *(done)*
   Two-stage: cheap pre-filter (file size, then partial/head hash) → full SHA-256 streaming hash only on remaining candidates, to stay fast on large volumes. Cross-extension identical-content detection (hash content, ignore name/extension). Background via WorkManager with progress + cancel; results grouped for bulk review/delete.
 
 - **Phase 7 — Preview**

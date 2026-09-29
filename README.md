@@ -11,9 +11,10 @@ duplicate-file detection, previews, favorites, a full audit trail, and Hebrew/En
 
 Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settings screen),
 Phase 3 (core file operations: create/rename/move/copy/delete with confirmation, undo-able trash,
-audit logging), Phase 4 (compress/extract, with a conflict policy and Extract & Replace), and
-Phase 5 (a shared filter/sort/group-by spec plus global full-text search) are done — CI is green
-end-to-end, including a successful `assembleDebug`. Phase 6 (duplicate & identical-file finder) is
+audit logging), Phase 4 (compress/extract, with a conflict policy and Extract & Replace), Phase 5
+(a shared filter/sort/group-by spec plus global full-text search), and Phase 6 (a background,
+WorkManager-driven duplicate finder with grouped results and bulk delete) are done — CI is green
+end-to-end, including a successful `assembleDebug`. Phase 7 (preview: image/video/audio/pdf) is
 next. See `docs/PLAN.md` for the full phase list.
 
 ## Building
