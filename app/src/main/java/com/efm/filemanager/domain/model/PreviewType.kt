@@ -12,5 +12,4 @@ fun FileEntry.previewType(): PreviewType =
         FileCategory.ARCHIVE, FileCategory.APK, FileCategory.FOLDER, FileCategory.OTHER -> PreviewType.NONE
     }
 
-private fun FileEntry.isPdf(): Boolean =
-    mimeType == "application/pdf" || name.substringAfterLast('.', "").equals("pdf", ignoreCase = true)
+private fun FileEntry.isPdf(): Boolean = mimeType == "application/pdf" || name.substringAfterLast('.', "").equals("pdf", ignoreCase = true)
