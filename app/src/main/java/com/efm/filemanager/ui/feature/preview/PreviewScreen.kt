@@ -58,6 +58,22 @@ fun PreviewScreen(
     }
 }
 
+/** [PreviewContent]'s own transient UI state -- kept off its composable's stack to keep the function short. */
+private class PreviewUiFlags {
+    var tagPickerVisible by mutableStateOf(false)
+    var detailsVisible by mutableStateOf(false)
+    var collectionPickerVisible by mutableStateOf(false)
+}
+
+private data class PreviewContentState(
+    val session: PreviewSession,
+    val pagerState: PagerState,
+    val selectedUris: SnapshotStateList<Uri>,
+    val flags: PreviewUiFlags,
+    val onNavigateBack: () -> Unit,
+    val viewModel: PreviewViewModel,
+)
+
 @Composable
 private fun PreviewContent(
     session: PreviewSession,
@@ -66,12 +82,8 @@ private fun PreviewContent(
     viewModel: PreviewViewModel,
 ) {
     val pagerState = rememberPagerState(initialPage = session.startIndex) { session.entries.size }
-    val tags by viewModel.tags.collectAsStateWithLifecycle()
-    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
-    var tagPickerVisible by remember { mutableStateOf(false) }
-    var detailsVisible by remember { mutableStateOf(false) }
-    var collectionPickerVisible by remember { mutableStateOf(false) }
+    val flags = remember { PreviewUiFlags() }
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
     // instead of only ever acting on whichever file happens to be on screen right now.
@@ -82,60 +94,85 @@ private fun PreviewContent(
         }
     }
 
+    PreviewScaffold(PreviewContentState(session, pagerState, selectedUris, flags, onNavigateBack, viewModel))
+
+    PreviewDialogsSection(
+        flags = flags,
+        session = session,
+        selectedUris = selectedUris,
+        viewModel = viewModel,
+        onOpenManageTags = onOpenManageTags,
+    )
+}
+
+@Composable
+private fun PreviewScaffold(state: PreviewContentState) {
     Scaffold(
         topBar = {
             PreviewTopBar(
-                session = session,
-                pagerState = pagerState,
-                selectedUris = selectedUris,
+                session = state.session,
+                pagerState = state.pagerState,
+                selectedUris = state.selectedUris,
                 callbacks =
                     PreviewTopBarCallbacks(
-                        onNavigateBack = onNavigateBack,
-                        onAddTag = { tagPickerVisible = true },
-                        onShowDetails = { detailsVisible = true },
-                        onNeedsFavoriteCollection = { collectionPickerVisible = true },
+                        onNavigateBack = state.onNavigateBack,
+                        onAddTag = { state.flags.tagPickerVisible = true },
+                        onShowDetails = { state.flags.detailsVisible = true },
+                        onNeedsFavoriteCollection = { state.flags.collectionPickerVisible = true },
                     ),
-                viewModel = viewModel,
+                viewModel = state.viewModel,
             )
         },
     ) { innerPadding ->
         HorizontalPager(
-            state = pagerState,
+            state = state.pagerState,
             modifier = Modifier.padding(innerPadding).fillMaxSize(),
         ) { page ->
-            val entry = session.entries[page]
+            val entry = state.session.entries[page]
             PreviewPage(
                 entry = entry,
-                onLongPress = { if (selectedUris.isEmpty()) selectedUris.add(entry.uri) },
+                onLongPress = { if (state.selectedUris.isEmpty()) state.selectedUris.add(entry.uri) },
             )
         }
     }
+}
 
-    if (tagPickerVisible) {
+@Composable
+private fun PreviewDialogsSection(
+    flags: PreviewUiFlags,
+    session: PreviewSession,
+    selectedUris: SnapshotStateList<Uri>,
+    viewModel: PreviewViewModel,
+    onOpenManageTags: () -> Unit,
+) {
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
+
+    if (flags.tagPickerVisible) {
         PreviewTagPickerSheet(
             tags = tags,
             selectedUris = selectedUris,
             viewModel = viewModel,
             onOpenManageTags = onOpenManageTags,
-            onDismiss = { tagPickerVisible = false },
+            onDismiss = { flags.tagPickerVisible = false },
         )
     }
 
-    if (detailsVisible) {
+    if (flags.detailsVisible) {
         val target = session.entries.firstOrNull { it.uri == selectedUris.firstOrNull() }
         if (target == null) {
-            detailsVisible = false
+            flags.detailsVisible = false
         } else {
-            FileDetailsSheet(entry = target, onDismiss = { detailsVisible = false }, onOpenManageTags = onOpenManageTags)
+            FileDetailsSheet(entry = target, onDismiss = { flags.detailsVisible = false }, onOpenManageTags = onOpenManageTags)
         }
     }
 
-    if (collectionPickerVisible) {
+    if (flags.collectionPickerVisible) {
         PreviewCollectionPicker(
             favoriteCollections = favoriteCollections,
             entries = session.entries.filter { it.uri in selectedUris },
             viewModel = viewModel,
-            onDismiss = { collectionPickerVisible = false },
+            onDismiss = { flags.collectionPickerVisible = false },
         )
     }
 }

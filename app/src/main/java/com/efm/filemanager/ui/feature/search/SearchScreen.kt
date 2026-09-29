@@ -52,6 +52,13 @@ import com.efm.filemanager.ui.components.query.SortGroupMenu
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
 
+/** [SearchScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
+private class SearchUiFlags {
+    var tagPickerVisible by mutableStateOf(false)
+    var detailsVisible by mutableStateOf(false)
+    var collectionPickerVisible by mutableStateOf(false)
+}
+
 @Composable
 fun SearchScreen(
     onNavigateBack: () -> Unit,
@@ -61,19 +68,14 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val tags by viewModel.tags.collectAsStateWithLifecycle()
-    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val groups = remember(uiState.results, uiState.querySpec) { uiState.querySpec.groupResult(uiState.results) }
     val selectedUris = remember { mutableStateListOf<Uri>() }
-    val selectedEntries = uiState.results.filter { selectedUris.contains(it.uri) }
-    var tagPickerVisible by remember { mutableStateOf(false) }
-    var detailsVisible by remember { mutableStateOf(false) }
-    var collectionPickerVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    val flags = remember { SearchUiFlags() }
 
     Scaffold(
         topBar = {
             if (selectedUris.isEmpty()) {
+                val tags by viewModel.tags.collectAsStateWithLifecycle()
                 SearchTopBar(
                     querySpec = uiState.querySpec,
                     onQuerySpecChanged = viewModel::updateQuerySpec,
@@ -81,24 +83,7 @@ fun SearchScreen(
                     tags = tags,
                 )
             } else {
-                val onShowDetails: (() -> Unit)? = if (selectedUris.size == 1) ({ detailsVisible = true }) else null
-                SearchSelectionTopBar(
-                    count = selectedUris.size,
-                    onClose = { selectedUris.clear() },
-                    actions =
-                        MetadataQuickActions(
-                            onAddTag = { tagPickerVisible = true },
-                            onToggleFavorite = {
-                                if (viewModel.metadataActions.willFavorite(selectedEntries)) {
-                                    collectionPickerVisible = true
-                                } else {
-                                    scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) }
-                                }
-                            },
-                            onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
-                            onShowDetails = onShowDetails,
-                        ),
-                )
+                SearchSelectionBar(selectedUris = selectedUris, uiState = uiState, viewModel = viewModel, flags = flags)
             }
         },
     ) { innerPadding ->
@@ -111,40 +96,90 @@ fun SearchScreen(
         )
     }
 
-    if (tagPickerVisible) {
+    SearchDialogsSection(
+        flags = flags,
+        selectedEntries = uiState.results.filter { selectedUris.contains(it.uri) },
+        selectedUris = selectedUris,
+        viewModel = viewModel,
+        onOpenManageTags = onOpenManageTags,
+    )
+}
+
+@Composable
+private fun SearchSelectionBar(
+    selectedUris: SnapshotStateList<Uri>,
+    uiState: SearchUiState,
+    viewModel: SearchViewModel,
+    flags: SearchUiFlags,
+) {
+    val selectedEntries = uiState.results.filter { selectedUris.contains(it.uri) }
+    val scope = rememberCoroutineScope()
+    val onShowDetails: (() -> Unit)? = if (selectedUris.size == 1) ({ flags.detailsVisible = true }) else null
+    SearchSelectionTopBar(
+        count = selectedUris.size,
+        onClose = { selectedUris.clear() },
+        actions =
+            MetadataQuickActions(
+                onAddTag = { flags.tagPickerVisible = true },
+                onToggleFavorite = {
+                    if (viewModel.metadataActions.willFavorite(selectedEntries)) {
+                        flags.collectionPickerVisible = true
+                    } else {
+                        scope.launch { viewModel.metadataActions.toggleFavorite(selectedEntries) }
+                    }
+                },
+                onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+                onShowDetails = onShowDetails,
+            ),
+    )
+}
+
+@Composable
+private fun SearchDialogsSection(
+    flags: SearchUiFlags,
+    selectedEntries: List<FileEntry>,
+    selectedUris: SnapshotStateList<Uri>,
+    viewModel: SearchViewModel,
+    onOpenManageTags: () -> Unit,
+) {
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+
+    if (flags.tagPickerVisible) {
         TagPickerDialog(
             tags = tags,
             onApply = { tagIds ->
                 val uris = selectedEntries.map { it.uri }
                 scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
-                tagPickerVisible = false
+                flags.tagPickerVisible = false
                 selectedUris.clear()
             },
             onManageTags = {
-                tagPickerVisible = false
+                flags.tagPickerVisible = false
                 onOpenManageTags()
             },
-            onDismiss = { tagPickerVisible = false },
+            onDismiss = { flags.tagPickerVisible = false },
         )
     }
 
-    if (detailsVisible) {
+    if (flags.detailsVisible) {
         val target = selectedEntries.firstOrNull()
         if (target == null) {
-            detailsVisible = false
+            flags.detailsVisible = false
         } else {
-            FileDetailsSheet(entry = target, onDismiss = { detailsVisible = false }, onOpenManageTags = onOpenManageTags)
+            FileDetailsSheet(entry = target, onDismiss = { flags.detailsVisible = false }, onOpenManageTags = onOpenManageTags)
         }
     }
 
-    if (collectionPickerVisible) {
+    if (flags.collectionPickerVisible) {
         FavoriteCollectionPickerDialog(
             collections = favoriteCollections,
             onSelect = { collectionId ->
                 scope.launch { viewModel.metadataActions.favoriteInto(selectedEntries, collectionId) }
-                collectionPickerVisible = false
+                flags.collectionPickerVisible = false
             },
-            onDismiss = { collectionPickerVisible = false },
+            onDismiss = { flags.collectionPickerVisible = false },
         )
     }
 }

@@ -66,8 +66,6 @@ fun DuplicatesScreen(
     viewModel: DuplicatesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val tags by viewModel.tags.collectAsStateWithLifecycle()
-    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val flags = remember { DuplicatesUiFlags() }
     val selectedEntries = uiState.groups.flatMap { it.files }.filter { selectedUris.contains(it.uri) }
@@ -95,6 +93,26 @@ fun DuplicatesScreen(
             },
         )
     }
+
+    DuplicatesDialogsSection(
+        flags = flags,
+        selectedEntries = selectedEntries,
+        selectedUris = selectedUris,
+        viewModel = viewModel,
+        onOpenManageTags = onOpenManageTags,
+    )
+}
+
+@Composable
+private fun DuplicatesDialogsSection(
+    flags: DuplicatesUiFlags,
+    selectedEntries: List<FileEntry>,
+    selectedUris: SnapshotStateList<Uri>,
+    viewModel: DuplicatesViewModel,
+    onOpenManageTags: () -> Unit,
+) {
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
 
     if (flags.showDeleteConfirm) {
         DuplicateDeleteConfirmDialog(

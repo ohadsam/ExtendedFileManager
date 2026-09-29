@@ -90,33 +90,13 @@ internal fun BrowseDialogs(
                 },
                 onDismiss = onFinished,
             )
-        BrowseDialog.TAG_PICKER ->
-            TagPickerDialog(
-                tags = context.tags,
-                onApply = { tagIds ->
-                    val uris = context.selectedEntries.map { it.uri }
-                    scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
-                    onFinished()
-                },
-                onManageTags = {
-                    onFinished()
-                    context.onOpenManageTags()
-                },
-                onDismiss = onFinished,
-            )
+        BrowseDialog.TAG_PICKER -> TagPickerCase(context = context, viewModel = viewModel, scope = scope, onFinished = onFinished)
         BrowseDialog.DETAILS ->
             context.selectedEntries.firstOrNull()?.let { entry ->
                 FileDetailsSheet(entry = entry, onDismiss = onFinished, onOpenManageTags = context.onOpenManageTags)
             }
         BrowseDialog.FAVORITE_COLLECTION_PICKER ->
-            FavoriteCollectionPickerDialog(
-                collections = context.favoriteCollections,
-                onSelect = { collectionId ->
-                    scope.launch { viewModel.metadataActions.favoriteInto(context.selectedEntries, collectionId) }
-                    onFinished()
-                },
-                onDismiss = onFinished,
-            )
+            FavoriteCollectionPickerCase(context = context, viewModel = viewModel, scope = scope, onFinished = onFinished)
         null -> Unit
     }
 
@@ -129,6 +109,45 @@ internal fun BrowseDialogs(
             onDismiss = viewModel.picker::dismiss,
         )
     }
+}
+
+@Composable
+private fun TagPickerCase(
+    context: DialogsContext,
+    viewModel: BrowseViewModel,
+    scope: CoroutineScope,
+    onFinished: () -> Unit,
+) {
+    TagPickerDialog(
+        tags = context.tags,
+        onApply = { tagIds ->
+            val uris = context.selectedEntries.map { it.uri }
+            scope.launch { tagIds.forEach { tagId -> viewModel.metadataActions.applyTag(uris, tagId) } }
+            onFinished()
+        },
+        onManageTags = {
+            onFinished()
+            context.onOpenManageTags()
+        },
+        onDismiss = onFinished,
+    )
+}
+
+@Composable
+private fun FavoriteCollectionPickerCase(
+    context: DialogsContext,
+    viewModel: BrowseViewModel,
+    scope: CoroutineScope,
+    onFinished: () -> Unit,
+) {
+    FavoriteCollectionPickerDialog(
+        collections = context.favoriteCollections,
+        onSelect = { collectionId ->
+            scope.launch { viewModel.metadataActions.favoriteInto(context.selectedEntries, collectionId) }
+            onFinished()
+        },
+        onDismiss = onFinished,
+    )
 }
 
 @Composable

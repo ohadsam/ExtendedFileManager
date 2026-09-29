@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
@@ -48,9 +49,7 @@ fun BrowseScreen(
     archiveViewModel: ArchiveViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val pickerState by viewModel.picker.pickerState.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
-    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val treePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -66,10 +65,50 @@ fun BrowseScreen(
 
     BrowseSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
+    BrowseScaffold(
+        inputs = BrowseScaffoldInputs(uiState, tags, selectionBarState, selectedUris, navActions, viewModel),
+        onGrantClick = { treePickerLauncher.launch(null) },
+        snackbarHostState = snackbarHostState,
+        dialogState = dialogState,
+    )
+
+    BrowseDialogsSection(
+        dialogState = dialogState,
+        viewModel = viewModel,
+        archiveViewModel = archiveViewModel,
+        inputs =
+            BrowseDialogsInputs(
+                selectedEntries = selectedEntries,
+                parentUri = uiState.breadcrumbs.lastOrNull()?.uri,
+                onOpenManageTags = navActions.onOpenManageTags,
+                onSelectionCleared = { selectedUris.clear() },
+            ),
+    )
+}
+
+private data class BrowseScaffoldInputs(
+    val uiState: BrowseUiState,
+    val tags: List<FileTag>,
+    val selectionBarState: SelectionBarState,
+    val selectedUris: SnapshotStateList<Uri>,
+    val navActions: BrowseNavActions,
+    val viewModel: BrowseViewModel,
+)
+
+@Composable
+private fun BrowseScaffold(
+    inputs: BrowseScaffoldInputs,
+    onGrantClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    dialogState: BrowseScreenDialogState,
+) {
+    val uiState = inputs.uiState
+    val navActions = inputs.navActions
+    val viewModel = inputs.viewModel
     Scaffold(
         topBar = {
             BrowseTopBar(
-                state = BrowseTopBarState(uiState.breadcrumbs, selectionBarState, uiState.querySpec, uiState.viewMode, tags),
+                state = BrowseTopBarState(uiState.breadcrumbs, inputs.selectionBarState, uiState.querySpec, uiState.viewMode, inputs.tags),
                 actions =
                     BrowseTopBarActions(
                         onOpenDrawer = navActions.onOpenDrawer,
@@ -83,35 +122,19 @@ fun BrowseScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             BrowseFab(
-                visible = uiState.hasAccess && selectedUris.isEmpty(),
+                visible = uiState.hasAccess && inputs.selectedUris.isEmpty(),
                 onClick = { dialogState.dialog = BrowseDialog.CREATE },
             )
         },
     ) { innerPadding ->
         BrowseBody(
             uiState = uiState,
-            selectedUris = selectedUris,
+            selectedUris = inputs.selectedUris,
             modifier = Modifier.padding(innerPadding),
-            onGrantClick = { treePickerLauncher.launch(null) },
-            onEntryClick = { entry -> onFileEntryTapped(entry, selectedUris, viewModel, navActions.onOpenPreview) },
+            onGrantClick = onGrantClick,
+            onEntryClick = { entry -> onFileEntryTapped(entry, inputs.selectedUris, viewModel, navActions.onOpenPreview) },
         )
     }
-
-    BrowseScreenDialogs(
-        dialogState = dialogState,
-        viewModel = viewModel,
-        archiveViewModel = archiveViewModel,
-        context =
-            DialogsContext(
-                selectedEntries = selectedEntries,
-                pickerState = pickerState,
-                parentUri = uiState.breadcrumbs.lastOrNull()?.uri,
-                tags = tags,
-                favoriteCollections = favoriteCollections,
-                onOpenManageTags = navActions.onOpenManageTags,
-            ),
-        onSelectionCleared = { selectedUris.clear() },
-    )
 }
 
 @Composable
@@ -124,6 +147,36 @@ private fun BrowseFab(
             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.create_entry_title))
         }
     }
+}
+
+private data class BrowseDialogsInputs(
+    val selectedEntries: List<FileEntry>,
+    val parentUri: Uri?,
+    val onOpenManageTags: () -> Unit,
+    val onSelectionCleared: () -> Unit,
+)
+
+/** Collects the picker/tags/favorites state [DialogsContext] needs on its own, so [BrowseScreen] doesn't have to. */
+@Composable
+private fun BrowseDialogsSection(
+    dialogState: BrowseScreenDialogState,
+    viewModel: BrowseViewModel,
+    archiveViewModel: ArchiveViewModel,
+    inputs: BrowseDialogsInputs,
+) {
+    val pickerState by viewModel.picker.pickerState.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val favoriteCollections by viewModel.favoriteCollections.collectAsStateWithLifecycle()
+    val context =
+        DialogsContext(
+            selectedEntries = inputs.selectedEntries,
+            pickerState = pickerState,
+            parentUri = inputs.parentUri,
+            tags = tags,
+            favoriteCollections = favoriteCollections,
+            onOpenManageTags = inputs.onOpenManageTags,
+        )
+    BrowseScreenDialogs(dialogState, viewModel, archiveViewModel, context, inputs.onSelectionCleared)
 }
 
 @Composable

@@ -13,15 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
 
-/** [MetadataQuickActionsMenu]'s actions, bundled to keep that composable's own param count down. */
-data class MetadataQuickActions(
-    val onAddTag: () -> Unit,
-    val onToggleFavorite: () -> Unit,
-    val onToggleLock: () -> Unit,
-    /** Null hides the "Details" item -- only offered when exactly one file is selected. */
-    val onShowDetails: (() -> Unit)? = null,
-)
-
 /**
  * The tag/favorite/lock quick-actions any selection bar can offer (Browse, Search, Duplicates,
  * Preview -- docs/PLAN.md Phase 9). [MetadataMenuItems] is the bare items, reusable inside a
