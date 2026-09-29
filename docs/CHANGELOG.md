@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.10.0 (2026-09-29)
+
+- Phase 9 — favorites, tags, lock & notes: mark any file or folder as a
+  favorite and organize favorites into nested collections (a new
+  Favorites screen, reachable from the drawer). Create your own colored
+  tags — or use the four built-in ones (Important, Work, To sort,
+  Archive) — and apply them to any number of files; a new Manage Tags
+  screen handles renaming, recoloring, merging, deleting, and pinning
+  a tag for quick access. Lock a file against deletion (blocks Delete
+  and Extract & Replace alike, with an "unlock" action right in the
+  message explaining why). Add a free-text note to any file. All of it
+  lives in one new file-details view (opened from Browse for now), and
+  the same tag/favorite/lock quick-actions and multi-select are now
+  available from Browse, Search, Duplicates, and Preview — selecting
+  files in Preview never disturbs a selection you already made
+  elsewhere, and swiping to the next file while selecting adds it to
+  your selection. The filter menu gained Favorites-only, Locked-only,
+  and tag filters.
+
 ## v0.9.0 (2026-09-29)
 
 - Phase 8 — view modes & UI polish: choose how file lists look, from

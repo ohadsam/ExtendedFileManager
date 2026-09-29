@@ -15,9 +15,12 @@ audit logging), Phase 4 (compress/extract, with a conflict policy and Extract & 
 (a shared filter/sort/group-by spec plus global full-text search), Phase 6 (a background,
 WorkManager-driven duplicate finder with grouped results and bulk delete), Phase 7 (image/
 video/audio/PDF preview, with inline thumbnails and a swipeable full-screen viewer), and Phase 8
-(list/compact/detailed/grid view modes, chosen from Settings or a Browse toolbar quick-toggle) are
-done — CI is green end-to-end, including a successful `assembleDebug`. Phase 9 (per-file
-metadata: favorites, tags, lock, notes) is next. See `docs/PLAN.md` for the full phase list.
+(list/compact/detailed/grid view modes, chosen from Settings or a Browse toolbar quick-toggle), and
+Phase 9 (favorites with nested collections, a reusable colored tag catalog with a Manage Tags
+screen, lock-against-deletion, free-text notes, and the same multi-select quick-actions reachable
+from Browse/Search/Duplicates/Preview alike) are done — CI is green end-to-end, including a
+successful `assembleDebug`. Phase 10 (storage optimization advisor) is next. See `docs/PLAN.md`
+for the full phase list.
 
 ## Building
 
