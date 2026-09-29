@@ -12,7 +12,6 @@ import com.efm.filemanager.data.local.StorageRecommendationDao
 import com.efm.filemanager.data.local.StorageRecommendationEntity
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.local.toRecommendationEntity
-import com.efm.filemanager.data.metadata.FileFlagsRepository
 import com.efm.filemanager.domain.model.RecommendationReason
 import com.efm.filemanager.domain.model.StorageRecommendation
 import com.efm.filemanager.domain.model.StorageRecommendationCategory
@@ -28,6 +27,7 @@ private data class AdvisorScanContext(
     val isPackageInstalled: (String) -> Boolean,
     val lastOpenedAtByUri: Map<String, Long>,
     val now: Long,
+    val thresholds: LargeFileThresholds,
     val onProgress: (AdvisorScanProgress) -> Unit,
 )
 
@@ -49,7 +49,7 @@ class StorageAdvisorRepository
         private val documentTreeRepository: DocumentTreeRepository,
         private val storageRecommendationDao: StorageRecommendationDao,
         private val fileOperationsRepository: FileOperationsRepository,
-        private val fileFlagsRepository: FileFlagsRepository,
+        private val advisorScanSettings: AdvisorScanSettings,
     ) {
         fun observeRecommendations(): Flow<List<StorageRecommendation>> =
             storageRecommendationDao.observeAll().map { entities -> entities.mapNotNull { it.toDomain() } }
@@ -59,8 +59,9 @@ class StorageAdvisorRepository
                 val scanContext =
                     AdvisorScanContext(
                         isPackageInstalled = ::isPackageInstalled,
-                        lastOpenedAtByUri = fileFlagsRepository.lastOpenedAtByUriOnce(),
+                        lastOpenedAtByUri = advisorScanSettings.lastOpenedAtByUri(),
                         now = System.currentTimeMillis(),
+                        thresholds = advisorScanSettings.largeFileThresholds(),
                         onProgress = onProgress,
                     )
                 val accumulator = AdvisorScanAccumulator()
@@ -135,7 +136,7 @@ class StorageAdvisorRepository
                 accumulator.results += recommendation
             }
             val lastOpenedAt = scanContext.lastOpenedAtByUri[file.uri]
-            largeUnusedReason(file.size, file.lastModified, lastOpenedAt, scanContext.now)?.let { reason ->
+            largeUnusedReason(file.size, file.lastModified, lastOpenedAt, scanContext.now, scanContext.thresholds)?.let { reason ->
                 accumulator.results += file.toRecommendationEntity(StorageRecommendationCategory.LARGE_UNUSED, reason)
             }
         }

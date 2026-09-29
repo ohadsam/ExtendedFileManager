@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.efm.filemanager.domain.model.AppearanceMode
@@ -14,6 +15,9 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 private val Context.dataStore by preferencesDataStore(name = "efm_preferences")
+
+private const val DEFAULT_ADVISOR_MIN_SIZE_MB = 100
+private const val DEFAULT_ADVISOR_UNUSED_MONTHS = 6
 
 /**
  * Shared DataStore-backed preferences store -- later phases (per-folder settings, ...)
@@ -33,6 +37,13 @@ class PreferencesRepository
         val viewMode: Flow<ViewMode> =
             context.dataStore.data.map { prefs -> viewModeFromStoredValue(prefs[VIEW_MODE_KEY]) }
 
+        /** Phase 10's "large and unused" thresholds, in the user-facing units Settings shows (MB, months). */
+        val advisorMinSizeMb: Flow<Int> =
+            context.dataStore.data.map { prefs -> prefs[ADVISOR_MIN_SIZE_MB_KEY] ?: DEFAULT_ADVISOR_MIN_SIZE_MB }
+
+        val advisorUnusedMonths: Flow<Int> =
+            context.dataStore.data.map { prefs -> prefs[ADVISOR_UNUSED_MONTHS_KEY] ?: DEFAULT_ADVISOR_UNUSED_MONTHS }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -45,10 +56,20 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[VIEW_MODE_KEY] = mode.name }
         }
 
+        suspend fun setAdvisorMinSizeMb(mb: Int) {
+            context.dataStore.edit { prefs -> prefs[ADVISOR_MIN_SIZE_MB_KEY] = mb }
+        }
+
+        suspend fun setAdvisorUnusedMonths(months: Int) {
+            context.dataStore.edit { prefs -> prefs[ADVISOR_UNUSED_MONTHS_KEY] = months }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
             val VIEW_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("view_mode")
+            val ADVISOR_MIN_SIZE_MB_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_min_size_mb")
+            val ADVISOR_UNUSED_MONTHS_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_unused_months")
         }
     }
 

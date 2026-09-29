@@ -235,4 +235,9 @@
     <string name="storage_advisor_reason_app_cache">מטמון האפליקציה</string>
     <string name="storage_advisor_reason_temp_file_pattern">קובץ זמני (%1$s)</string>
     <string name="storage_advisor_dismiss">התעלם</string>
+    <string name="storage_advisor_settings_section">יועץ אחסון</string>
+    <string name="storage_advisor_settings_min_size">גודל קובץ מינימלי</string>
+    <string name="storage_advisor_settings_unused_duration">להחשיב כלא בשימוש אחרי</string>
+    <string name="storage_advisor_size_mb">%d מגה-בייט</string>
+    <string name="storage_advisor_unused_months">%d חודשים</string>
 </resources>

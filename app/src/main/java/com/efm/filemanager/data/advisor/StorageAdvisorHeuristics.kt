@@ -8,14 +8,24 @@ private val TEMP_FILE_EXTENSIONS = setOf("tmp", "temp", "log", "bak", "cache", "
 /** Android's own trash-rename prefix for a file pending permanent deletion. */
 private const val TRASHED_PREFIX = ".trashed-"
 
-internal const val DEFAULT_LARGE_FILE_MIN_BYTES = 100L * 1024 * 1024
-internal const val DEFAULT_UNUSED_THRESHOLD_MILLIS = 1000L * 60 * 60 * 24 * 30 * 6 // ~6 months
+internal const val MILLIS_PER_MONTH = 1000L * 60 * 60 * 24 * 30
+internal const val BYTES_PER_MB = 1024L * 1024
+
+internal const val DEFAULT_ADVISOR_MIN_SIZE_MB = 100
+internal const val DEFAULT_ADVISOR_UNUSED_MONTHS = 6
 
 /** [largeUnusedReason]'s two tunable thresholds, bundled so the function's own param count stays down. */
 internal data class LargeFileThresholds(
-    val minSizeBytes: Long = DEFAULT_LARGE_FILE_MIN_BYTES,
-    val unusedThresholdMillis: Long = DEFAULT_UNUSED_THRESHOLD_MILLIS,
+    val minSizeBytes: Long = DEFAULT_ADVISOR_MIN_SIZE_MB * BYTES_PER_MB,
+    val unusedThresholdMillis: Long = DEFAULT_ADVISOR_UNUSED_MONTHS * MILLIS_PER_MONTH,
 )
+
+/** Builds [LargeFileThresholds] from the Settings-configurable, user-facing units (megabytes, months). */
+internal fun thresholdsFrom(
+    minSizeMb: Int,
+    unusedMonths: Int,
+): LargeFileThresholds =
+    LargeFileThresholds(minSizeBytes = minSizeMb * BYTES_PER_MB, unusedThresholdMillis = unusedMonths * MILLIS_PER_MONTH)
 
 /**
  * Returns the matched pattern (e.g. ".tmp", ".trashed-*") for display, or null if [name] doesn't

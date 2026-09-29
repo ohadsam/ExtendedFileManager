@@ -47,7 +47,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) { viewModel.refreshPermissionsStatus() }
 
@@ -63,40 +62,53 @@ fun SettingsScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier =
-                Modifier
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState()),
-        ) {
-            AppearanceSection(
-                uiState = uiState,
-                onAppearanceModeChange = viewModel::setAppearanceMode,
-                onDynamicColorChange = viewModel::setDynamicColorEnabled,
-            )
-            HorizontalDivider()
-            LanguageSection(
-                languageOption = viewModel.currentLanguageOption(),
-                onLanguageChange = viewModel::setLanguage,
-            )
-            HorizontalDivider()
-            PermissionsSection(
-                grantedFolderCount = uiState.grantedFolderCount,
-                onOpenSystemSettings = { openAppSystemSettings(context) },
-            )
-            HorizontalDivider()
-            DisplaySection(
-                viewMode = uiState.viewMode,
-                onViewModeChange = viewModel::setViewMode,
-            )
-            HorizontalDivider()
-            StubSection(
-                title = stringResource(R.string.logs_section),
-                subtitle = stringResource(R.string.logs_coming_soon),
-            )
-            HorizontalDivider()
-            HelpSection(onOpenHelp = onOpenHelp)
-        }
+        SettingsBody(modifier = Modifier.padding(innerPadding), uiState = uiState, viewModel = viewModel, onOpenHelp = onOpenHelp)
+    }
+}
+
+@Composable
+private fun SettingsBody(
+    modifier: Modifier,
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    onOpenHelp: () -> Unit,
+) {
+    val context = LocalContext.current
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+        AppearanceSection(
+            uiState = uiState,
+            onAppearanceModeChange = viewModel::setAppearanceMode,
+            onDynamicColorChange = viewModel::setDynamicColorEnabled,
+        )
+        HorizontalDivider()
+        LanguageSection(
+            languageOption = viewModel.currentLanguageOption(),
+            onLanguageChange = viewModel::setLanguage,
+        )
+        HorizontalDivider()
+        PermissionsSection(
+            grantedFolderCount = uiState.grantedFolderCount,
+            onOpenSystemSettings = { openAppSystemSettings(context) },
+        )
+        HorizontalDivider()
+        DisplaySection(
+            viewMode = uiState.viewMode,
+            onViewModeChange = viewModel::setViewMode,
+        )
+        HorizontalDivider()
+        StorageAdvisorSettingsSection(
+            minSizeMb = uiState.advisorMinSizeMb,
+            unusedMonths = uiState.advisorUnusedMonths,
+            onMinSizeChange = viewModel::setAdvisorMinSizeMb,
+            onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
+        )
+        HorizontalDivider()
+        StubSection(
+            title = stringResource(R.string.logs_section),
+            subtitle = stringResource(R.string.logs_coming_soon),
+        )
+        HorizontalDivider()
+        HelpSection(onOpenHelp = onOpenHelp)
     }
 }
 
@@ -216,6 +228,45 @@ private fun DisplaySection(
                 label = stringResource(mode.labelRes()),
                 selected = viewMode == mode,
                 onClick = { onViewModeChange(mode) },
+            )
+        }
+    }
+}
+
+private val ADVISOR_MIN_SIZE_PRESETS_MB = listOf(50, 100, 250, 500)
+private val ADVISOR_UNUSED_PRESETS_MONTHS = listOf(3, 6, 12)
+
+@Composable
+private fun StorageAdvisorSettingsSection(
+    minSizeMb: Int,
+    unusedMonths: Int,
+    onMinSizeChange: (Int) -> Unit,
+    onUnusedMonthsChange: (Int) -> Unit,
+) {
+    Column {
+        SectionHeader(title = stringResource(R.string.storage_advisor_settings_section))
+        Text(
+            text = stringResource(R.string.storage_advisor_settings_min_size),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+        ADVISOR_MIN_SIZE_PRESETS_MB.forEach { mb ->
+            RadioOptionRow(
+                label = stringResource(R.string.storage_advisor_size_mb, mb),
+                selected = minSizeMb == mb,
+                onClick = { onMinSizeChange(mb) },
+            )
+        }
+        Text(
+            text = stringResource(R.string.storage_advisor_settings_unused_duration),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+        ADVISOR_UNUSED_PRESETS_MONTHS.forEach { months ->
+            RadioOptionRow(
+                label = stringResource(R.string.storage_advisor_unused_months, months),
+                selected = unusedMonths == months,
+                onClick = { onUnusedMonthsChange(months) },
             )
         }
     }

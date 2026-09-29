@@ -22,6 +22,8 @@ data class SettingsUiState(
     val dynamicColorEnabled: Boolean = true,
     val grantedFolderCount: Int = 0,
     val viewMode: ViewMode = ViewMode.LIST,
+    val advisorMinSizeMb: Int = 100,
+    val advisorUnusedMonths: Int = 6,
 )
 
 @HiltViewModel
@@ -33,14 +35,20 @@ class SettingsViewModel
     ) : ViewModel() {
         private val grantedFolderCount = MutableStateFlow(currentGrantedFolderCount())
 
+        private val advisorThresholds =
+            combine(preferencesRepository.advisorMinSizeMb, preferencesRepository.advisorUnusedMonths) { minSizeMb, unusedMonths ->
+                minSizeMb to unusedMonths
+            }
+
         val uiState: StateFlow<SettingsUiState> =
             combine(
                 preferencesRepository.appearanceMode,
                 preferencesRepository.dynamicColorEnabled,
                 grantedFolderCount,
                 preferencesRepository.viewMode,
-            ) { appearanceMode, dynamicColorEnabled, folderCount, viewMode ->
-                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount, viewMode)
+                advisorThresholds,
+            ) { appearanceMode, dynamicColorEnabled, folderCount, viewMode, (advisorMinSizeMb, advisorUnusedMonths) ->
+                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount, viewMode, advisorMinSizeMb, advisorUnusedMonths)
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
 
         fun setAppearanceMode(mode: AppearanceMode) {
@@ -53,6 +61,14 @@ class SettingsViewModel
 
         fun setViewMode(mode: ViewMode) {
             viewModelScope.launch { preferencesRepository.setViewMode(mode) }
+        }
+
+        fun setAdvisorMinSizeMb(mb: Int) {
+            viewModelScope.launch { preferencesRepository.setAdvisorMinSizeMb(mb) }
+        }
+
+        fun setAdvisorUnusedMonths(months: Int) {
+            viewModelScope.launch { preferencesRepository.setAdvisorUnusedMonths(months) }
         }
 
         fun refreshPermissionsStatus() {

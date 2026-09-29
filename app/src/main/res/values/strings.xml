@@ -235,4 +235,9 @@
     <string name="storage_advisor_reason_app_cache">App cache</string>
     <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
     <string name="storage_advisor_dismiss">Dismiss</string>
+    <string name="storage_advisor_settings_section">Storage Advisor</string>
+    <string name="storage_advisor_settings_min_size">Minimum file size</string>
+    <string name="storage_advisor_settings_unused_duration">Consider unused after</string>
+    <string name="storage_advisor_size_mb">%d MB</string>
+    <string name="storage_advisor_unused_months">%d months</string>
 </resources>

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.1 (2026-09-29)
+
+- Storage Advisor's "large and unused" thresholds are now yours to
+  tune: a new Storage Advisor section in Settings lets you pick the
+  minimum file size (50/100/250/500MB) and how long before a file
+  counts as unused (3/6/12 months). Every scan reads your current
+  choice, defaulting to 100MB / 6 months if you haven't changed it.
+
 ## v0.11.0 (2026-09-29)
 
 - Phase 10 (first slice) — Storage Advisor: a new screen (reachable
