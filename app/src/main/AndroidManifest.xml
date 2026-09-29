@@ -2,6 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Phase 10's storage advisor needs to check whether an arbitrary package name (found from
+         an Android/media/PACKAGE folder at scan time, not knowable ahead of time) is still
+         installed. A static queries entry can't cover that, since it only works for
+         predetermined targets. Google Play's policy explicitly lists file manager apps as a core
+         use case for this permission; the Play Console submission still needs its own
+         declaration/justification for that policy, which is outside what this manifest change
+         can do on its own. -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:name=".EfmApplication"
         android:allowBackup="false"

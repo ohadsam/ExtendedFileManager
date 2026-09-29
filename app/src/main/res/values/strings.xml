@@ -235,6 +235,11 @@
     <string name="storage_advisor_reason_app_cache">App cache</string>
     <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
     <string name="storage_advisor_dismiss">Dismiss</string>
+    <string name="storage_advisor_stage_for_later">Stage for later</string>
+    <string name="storage_advisor_unstage">Unstage</string>
+    <string name="storage_advisor_tab_recommendations">Recommendations</string>
+    <string name="storage_advisor_tab_staged">Staged (%d)</string>
+    <string name="storage_advisor_staged_empty">Nothing staged. Select recommendations and choose \"Stage for later\" to decide on them another time.</string>
     <string name="storage_advisor_settings_section">Storage Advisor</string>
     <string name="storage_advisor_settings_min_size">Minimum file size</string>
     <string name="storage_advisor_settings_unused_duration">Consider unused after</string>

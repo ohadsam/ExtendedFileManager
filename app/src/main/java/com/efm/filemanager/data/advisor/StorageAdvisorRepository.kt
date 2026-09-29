@@ -12,6 +12,7 @@ import com.efm.filemanager.data.local.StorageRecommendationDao
 import com.efm.filemanager.data.local.StorageRecommendationEntity
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.local.toRecommendationEntity
+import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.RecommendationReason
 import com.efm.filemanager.domain.model.StorageRecommendation
 import com.efm.filemanager.domain.model.StorageRecommendationCategory
@@ -84,6 +85,16 @@ class StorageAdvisorRepository
             storageRecommendationDao.delete(recommendation.entry.uri.toString(), recommendation.category.name)
         }
 
+        /** Deletes a staged file directly -- it may or may not still be a live recommendation, so any matching row is cleared too. */
+        suspend fun deleteStagedEntry(entry: FileEntry): Result<Unit> {
+            val parentUri =
+                documentTreeRepository.parentUriOf(entry.uri)
+                    ?: return Result.failure(IllegalStateException("Unknown parent for ${entry.uri}"))
+            return fileOperationsRepository.delete(entry, parentUri).map {
+                storageRecommendationDao.deleteAllCategoriesForUri(entry.uri.toString())
+            }
+        }
+
         /** Lists [folderUri]'s children once; an empty result flags [selfEntity] itself as [RecommendationReason.EMPTY_FOLDER]. */
         private suspend fun visitFolder(
             folderUri: Uri,
@@ -143,9 +154,11 @@ class StorageAdvisorRepository
 
         /**
          * A specific-package point check rather than [PackageManager.getInstalledApplications] --
-         * on API 30+ that listing is filtered by package-visibility rules the same way a single
-         * lookup is, so there's no accuracy to gain from enumerating everything up front, and a
-         * point check needs no version-gated bulk-query permission.
+         * simpler to write against an arbitrary, discovered-at-scan-time package name than
+         * enumerating every installed app up front. The manifest declares QUERY_ALL_PACKAGES
+         * (file managers are one of Google Play's documented exceptions to the API 30+
+         * package-visibility restriction) specifically so this lookup sees every installed app,
+         * not just the ones EFM would otherwise be visible to.
          */
         private fun isPackageInstalled(packageName: String): Boolean =
             runCatching {

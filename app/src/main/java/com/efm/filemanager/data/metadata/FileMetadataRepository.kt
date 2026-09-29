@@ -33,4 +33,12 @@ class FileMetadataRepository
             if (uris.isEmpty()) return emptyList()
             return fileEntryDao.getByUris(uris).map { it.toDomain().enrich(snap) }
         }
+
+        /** Resolves every file currently staged for Phase 10's "decide later" deletion review. */
+        suspend fun resolveStagedEntries(): List<FileEntry> {
+            val snap = snapshotOnce()
+            val uris = snap.flagsByFileUri.filterValues { it.stagedAt != null }.keys.toList()
+            if (uris.isEmpty()) return emptyList()
+            return fileEntryDao.getByUris(uris).map { it.toDomain().enrich(snap) }
+        }
     }

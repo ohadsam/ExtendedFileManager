@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.0 (2026-09-29)
+
+- Storage Advisor gained a "Stage for later" option: select any
+  recommendations you're not ready to decide on and mark them instead
+  of dismissing or deleting them right away. They show up in a new
+  Staged tab on the same screen, where you can unstage them or delete
+  them with confirmation whenever you're ready -- nothing is ever
+  deleted automatically.
+- Orphaned-folder detection (leftover `Android/media` folders from
+  apps you've since uninstalled) now reliably sees every installed
+  app, not just the ones EFM happens to already be visible to.
+
 ## v0.11.1 (2026-09-29)
 
 - Storage Advisor's "large and unused" thresholds are now yours to

@@ -1,20 +1,28 @@
 package com.efm.filemanager.ui.feature.advisor
 
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,8 +45,12 @@ import com.efm.filemanager.domain.model.StorageRecommendationCategory
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 
 /** [StorageAdvisorScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
-private class AdvisorUiFlags {
+private class AdvisorScreenState {
+    var tab by mutableStateOf(AdvisorTab.RECOMMENDATIONS)
+    val selectedKeys = mutableStateListOf<RecommendationKey>()
+    val selectedStagedUris = mutableStateListOf<Uri>()
     var showDeleteConfirm by mutableStateOf(false)
+    var showStagedDeleteConfirm by mutableStateOf(false)
 }
 
 @Composable
@@ -48,9 +60,7 @@ fun StorageAdvisorScreen(
     viewModel: StorageAdvisorViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val selectedKeys = remember { mutableStateListOf<RecommendationKey>() }
-    val flags = remember { AdvisorUiFlags() }
-    val selectedEntries = uiState.recommendations.filter { selectedKeys.contains(it.key()) }
+    val state = remember { AdvisorScreenState() }
 
     Scaffold(
         topBar = {
@@ -61,40 +71,122 @@ fun StorageAdvisorScreen(
                 onCancel = viewModel::cancelScan,
             )
         },
-        floatingActionButton = {
-            AdvisorFab(selectedEntries = selectedEntries, viewModel = viewModel, flags = flags, selectedKeys = selectedKeys)
-        },
+        floatingActionButton = { AdvisorScreenFab(state = state, uiState = uiState, viewModel = viewModel) },
     ) { innerPadding ->
-        AdvisorBody(
+        AdvisorScreenBody(
             modifier = Modifier.padding(innerPadding),
+            state = state,
             uiState = uiState,
-            selectedKeys = selectedKeys,
-            onPreview = { recommendation ->
-                viewModel.openPreview(uiState.recommendations, recommendation)
-                onOpenPreview()
-            },
+            viewModel = viewModel,
+            onOpenPreview = onOpenPreview,
         )
     }
 
-    AdvisorDialogsSection(flags = flags, selectedEntries = selectedEntries, selectedKeys = selectedKeys, viewModel = viewModel)
+    AdvisorScreenDialogs(state = state, uiState = uiState, viewModel = viewModel)
 }
 
 @Composable
-private fun AdvisorDialogsSection(
-    flags: AdvisorUiFlags,
-    selectedEntries: List<StorageRecommendation>,
-    selectedKeys: SnapshotStateList<RecommendationKey>,
+private fun AdvisorScreenFab(
+    state: AdvisorScreenState,
+    uiState: StorageAdvisorUiState,
     viewModel: StorageAdvisorViewModel,
 ) {
-    if (flags.showDeleteConfirm) {
-        AdvisorDeleteConfirmDialog(
-            entries = selectedEntries,
-            onConfirm = {
-                viewModel.deleteRecommendations(selectedEntries)
-                selectedKeys.clear()
-                flags.showDeleteConfirm = false
+    if (state.tab == AdvisorTab.RECOMMENDATIONS) {
+        val selected = uiState.recommendations.filter { state.selectedKeys.contains(it.key()) }
+        AdvisorFab(selectedEntries = selected, viewModel = viewModel, state = state)
+    } else {
+        val selected = uiState.stagedEntries.filter { state.selectedStagedUris.contains(it.uri) }
+        StagedFab(
+            selectedEntries = selected,
+            onUnstageClick = {
+                viewModel.unstage(selected)
+                state.selectedStagedUris.clear()
             },
-            onDismiss = { flags.showDeleteConfirm = false },
+            onDeleteClick = { state.showStagedDeleteConfirm = true },
+        )
+    }
+}
+
+@Composable
+private fun AdvisorScreenBody(
+    modifier: Modifier,
+    state: AdvisorScreenState,
+    uiState: StorageAdvisorUiState,
+    viewModel: StorageAdvisorViewModel,
+    onOpenPreview: () -> Unit,
+) {
+    Column(modifier = modifier) {
+        AdvisorTabRow(tab = state.tab, stagedCount = uiState.stagedEntries.size, onTabSelected = { state.tab = it })
+        if (state.tab == AdvisorTab.RECOMMENDATIONS) {
+            AdvisorBody(
+                uiState = uiState,
+                selectedKeys = state.selectedKeys,
+                onPreview = { recommendation ->
+                    viewModel.openPreview(uiState.recommendations, recommendation)
+                    onOpenPreview()
+                },
+            )
+        } else {
+            StagedBody(
+                entries = uiState.stagedEntries,
+                selectedUris = state.selectedStagedUris,
+                onPreview = { entry ->
+                    viewModel.openStagedPreview(uiState.stagedEntries, entry)
+                    onOpenPreview()
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AdvisorTabRow(
+    tab: AdvisorTab,
+    stagedCount: Int,
+    onTabSelected: (AdvisorTab) -> Unit,
+) {
+    TabRow(selectedTabIndex = tab.ordinal) {
+        Tab(
+            selected = tab == AdvisorTab.RECOMMENDATIONS,
+            onClick = { onTabSelected(AdvisorTab.RECOMMENDATIONS) },
+            text = { Text(stringResource(R.string.storage_advisor_tab_recommendations)) },
+        )
+        Tab(
+            selected = tab == AdvisorTab.STAGED,
+            onClick = { onTabSelected(AdvisorTab.STAGED) },
+            text = { Text(stringResource(R.string.storage_advisor_tab_staged, stagedCount)) },
+        )
+    }
+}
+
+@Composable
+private fun AdvisorScreenDialogs(
+    state: AdvisorScreenState,
+    uiState: StorageAdvisorUiState,
+    viewModel: StorageAdvisorViewModel,
+) {
+    if (state.showDeleteConfirm) {
+        val selected = uiState.recommendations.filter { state.selectedKeys.contains(it.key()) }
+        AdvisorDeleteConfirmDialog(
+            entries = selected,
+            onConfirm = {
+                viewModel.deleteRecommendations(selected)
+                state.selectedKeys.clear()
+                state.showDeleteConfirm = false
+            },
+            onDismiss = { state.showDeleteConfirm = false },
+        )
+    }
+    if (state.showStagedDeleteConfirm) {
+        val selected = uiState.stagedEntries.filter { state.selectedStagedUris.contains(it.uri) }
+        StagedDeleteConfirmDialog(
+            entries = selected,
+            onConfirm = {
+                viewModel.deleteStagedEntries(selected)
+                state.selectedStagedUris.clear()
+                state.showStagedDeleteConfirm = false
+            },
+            onDismiss = { state.showStagedDeleteConfirm = false },
         )
     }
 }
@@ -103,35 +195,55 @@ private fun AdvisorDialogsSection(
 private fun AdvisorFab(
     selectedEntries: List<StorageRecommendation>,
     viewModel: StorageAdvisorViewModel,
-    flags: AdvisorUiFlags,
-    selectedKeys: SnapshotStateList<RecommendationKey>,
+    state: AdvisorScreenState,
 ) {
     if (selectedEntries.isEmpty()) return
     AdvisorSelectionFabs(
+        onStageClick = {
+            viewModel.stageForLater(selectedEntries.map { it.entry })
+            state.selectedKeys.clear()
+        },
         onDismissClick = {
             viewModel.dismiss(selectedEntries)
-            selectedKeys.clear()
+            state.selectedKeys.clear()
         },
-        onDeleteClick = { flags.showDeleteConfirm = true },
+        onDeleteClick = { state.showDeleteConfirm = true },
     )
 }
 
 @Composable
 private fun AdvisorSelectionFabs(
+    onStageClick: () -> Unit,
     onDismissClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.End) {
-        ExtendedFloatingActionButton(
-            onClick = onDismissClick,
-            icon = { Icon(Icons.Filled.Close, contentDescription = null) },
-            text = { Text(stringResource(R.string.storage_advisor_dismiss)) },
-        )
+    var menuExpanded by remember { mutableStateOf(false) }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box {
+            FloatingActionButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.storage_advisor_stage_for_later)) },
+                    onClick = {
+                        menuExpanded = false
+                        onStageClick()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.storage_advisor_dismiss)) },
+                    onClick = {
+                        menuExpanded = false
+                        onDismissClick()
+                    },
+                )
+            }
+        }
         ExtendedFloatingActionButton(
             onClick = onDeleteClick,
             icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
             text = { Text(stringResource(R.string.action_delete)) },
-            modifier = Modifier.padding(top = 12.dp),
         )
     }
 }
