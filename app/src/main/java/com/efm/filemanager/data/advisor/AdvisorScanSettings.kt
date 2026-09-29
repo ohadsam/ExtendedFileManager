@@ -18,6 +18,6 @@ class AdvisorScanSettings
     ) {
         suspend fun lastOpenedAtByUri(): Map<String, Long> = fileFlagsRepository.lastOpenedAtByUriOnce()
 
-        suspend fun largeFileThresholds(): LargeFileThresholds =
+        internal suspend fun largeFileThresholds(): LargeFileThresholds =
             thresholdsFrom(preferencesRepository.advisorMinSizeMb.first(), preferencesRepository.advisorUnusedMonths.first())
     }
