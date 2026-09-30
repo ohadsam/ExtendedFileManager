@@ -29,14 +29,22 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.efm.filemanager.R
 
+internal data class VaultGateState(
+    val isPasswordSet: Boolean,
+    val biometricEnabled: Boolean,
+)
+
+internal data class VaultGateActions(
+    val onSetPassword: (CharArray, CharArray) -> Unit,
+    val onUnlock: (CharArray) -> Unit,
+    val onBiometricUnlock: () -> Unit,
+)
+
 /** The password/biometric gate shown in place of the vault's contents until [VaultViewModel.isUnlocked]. */
 @Composable
 internal fun VaultGateBody(
-    isPasswordSet: Boolean,
-    biometricEnabled: Boolean,
-    onSetPassword: (CharArray, CharArray) -> Unit,
-    onUnlock: (CharArray) -> Unit,
-    onBiometricUnlock: () -> Unit,
+    state: VaultGateState,
+    actions: VaultGateActions,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -45,10 +53,14 @@ internal fun VaultGateBody(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.padding(bottom = 16.dp))
-        if (isPasswordSet) {
-            VaultUnlockForm(onUnlock = onUnlock, biometricEnabled = biometricEnabled, onBiometricUnlock = onBiometricUnlock)
+        if (state.isPasswordSet) {
+            VaultUnlockForm(
+                onUnlock = actions.onUnlock,
+                biometricEnabled = state.biometricEnabled,
+                onBiometricUnlock = actions.onBiometricUnlock,
+            )
         } else {
-            VaultSetupForm(onSetPassword)
+            VaultSetupForm(actions.onSetPassword)
         }
     }
 }

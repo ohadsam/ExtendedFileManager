@@ -28,6 +28,21 @@ import androidx.compose.ui.window.Dialog
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
 
+/** [DestinationPickerDialog]'s breadcrumb/folder/loading state, bundled to keep its own parameter count down. */
+data class DestinationPickerContent(
+    val breadcrumbs: List<BreadcrumbEntry>,
+    val folders: List<FileEntry>,
+    val isLoading: Boolean,
+)
+
+/** [DestinationPickerDialog]'s callbacks, bundled for the same reason as [DestinationPickerContent]. */
+data class DestinationPickerActions(
+    val onNavigateInto: (FileEntry) -> Unit,
+    val onNavigateToBreadcrumb: (Int) -> Unit,
+    val onConfirm: () -> Unit,
+    val onDismiss: () -> Unit,
+)
+
 /**
  * A folder picker over the app's granted storage tree -- shared by Browse's move/copy and the
  * Vault's export-to-folder, so it takes its title and breadcrumb/folder state as plain
@@ -36,33 +51,28 @@ import com.efm.filemanager.domain.model.FileEntry
 @Composable
 fun DestinationPickerDialog(
     title: String,
-    breadcrumbs: List<BreadcrumbEntry>,
-    folders: List<FileEntry>,
-    isLoading: Boolean,
-    onNavigateInto: (FileEntry) -> Unit,
-    onNavigateToBreadcrumb: (Int) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+    content: DestinationPickerContent,
+    actions: DestinationPickerActions,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = actions.onDismiss) {
         Column(modifier = Modifier.fillMaxWidth().height(420.dp).padding(4.dp)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
-            PickerBreadcrumbBar(breadcrumbs = breadcrumbs, onCrumbClick = onNavigateToBreadcrumb)
+            PickerBreadcrumbBar(breadcrumbs = content.breadcrumbs, onCrumbClick = actions.onNavigateToBreadcrumb)
             Box(modifier = Modifier.weight(1f)) {
                 when {
-                    isLoading && folders.isEmpty() ->
+                    content.isLoading && content.folders.isEmpty() ->
                         CircularProgressIndicator(modifier = Modifier.padding(32.dp))
                     else ->
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(folders, key = { it.uri.toString() }) { folder ->
-                                PickerFolderRow(folder = folder, onClick = { onNavigateInto(folder) })
+                            items(content.folders, key = { it.uri.toString() }) { folder ->
+                                PickerFolderRow(folder = folder, onClick = { actions.onNavigateInto(folder) })
                             }
                         }
                 }
             }
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
-                Button(onClick = onConfirm, modifier = Modifier.padding(start = 8.dp)) {
+                TextButton(onClick = actions.onDismiss) { Text(stringResource(R.string.close)) }
+                Button(onClick = actions.onConfirm, modifier = Modifier.padding(start = 8.dp)) {
                     Text(stringResource(R.string.picker_choose_folder))
                 }
             }
