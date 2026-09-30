@@ -49,6 +49,13 @@ internal fun BrowseSnackbarEffect(
                         viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
                     }
                 }
+                is BrowseEvent.AddToVaultBlockedByLock -> {
+                    val message = context.getString(R.string.add_to_vault_blocked_by_lock, event.lockedEntries.size)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
+                    }
+                }
                 BrowseEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
             }
         }
@@ -97,6 +104,7 @@ internal fun BrowseDialogs(
             }
         BrowseDialog.FAVORITE_COLLECTION_PICKER ->
             FavoriteCollectionPickerCase(context = context, viewModel = viewModel, scope = scope, onFinished = onFinished)
+        BrowseDialog.ADD_TO_VAULT -> AddToVaultCase(context = context, viewModel = viewModel, onFinished = onFinished)
         null -> Unit
     }
 
@@ -144,6 +152,24 @@ private fun FavoriteCollectionPickerCase(
         collections = context.favoriteCollections,
         onSelect = { collectionId ->
             scope.launch { viewModel.metadataActions.favoriteInto(context.selectedEntries, collectionId) }
+            onFinished()
+        },
+        onDismiss = onFinished,
+    )
+}
+
+@Composable
+private fun AddToVaultCase(
+    context: DialogsContext,
+    viewModel: BrowseViewModel,
+    onFinished: () -> Unit,
+) {
+    ConfirmDangerousActionDialog(
+        title = stringResource(R.string.add_to_vault_confirm_title),
+        message = stringResource(R.string.add_to_vault_confirm_message, context.selectedEntries.size),
+        confirmLabel = stringResource(R.string.add_to_vault_confirm_button),
+        onConfirm = {
+            viewModel.addToVault(context.selectedEntries)
             onFinished()
         },
         onDismiss = onFinished,

@@ -73,6 +73,7 @@ internal fun buildSelectionActions(
             }
         },
         onToggleLock = { scope.launch { viewModel.metadataActions.toggleLock(selectedEntries) } },
+        onAddToVault = { onDialogRequested(BrowseDialog.ADD_TO_VAULT) },
     )
 
 internal fun buildArchiveActions(
@@ -228,6 +229,13 @@ private fun SelectionMoreMenu(
             onClick = {
                 onDismiss()
                 state.actions.onCopy()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_add_to_vault)) },
+            onClick = {
+                onDismiss()
+                state.actions.onAddToVault()
             },
         )
         ArchiveMenuItems(state = state, onDismiss = onDismiss)

@@ -15,7 +15,6 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.ViewMode
-import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
 import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -65,6 +64,8 @@ sealed interface BrowseEvent {
 
     data class DeleteBlockedByLock(val lockedEntries: List<FileEntry>) : BrowseEvent
 
+    data class AddToVaultBlockedByLock(val lockedEntries: List<FileEntry>) : BrowseEvent
+
     data object OperationFailed : BrowseEvent
 }
 
@@ -75,7 +76,7 @@ class BrowseViewModel
         private val documentTreeAccessManager: DocumentTreeAccessManager,
         private val repository: DocumentTreeRepository,
         private val fileOperationsRepository: FileOperationsRepository,
-        private val previewSessionHolder: PreviewSessionHolder,
+        private val delegateSupport: BrowseDelegateSupport,
         private val preferencesRepository: PreferencesRepository,
         private val screenMetadataSupport: ScreenMetadataSupport,
     ) : ViewModel() {
@@ -151,7 +152,7 @@ class BrowseViewModel
         /** Starts a preview session over the current folder's previewable files, starting at [entry]. */
         fun openPreview(entry: FileEntry) {
             val session = buildPreviewSession(_uiState.value.files, entry) ?: return
-            previewSessionHolder.start(session.entries, session.startIndex)
+            delegateSupport.previewSessionHolder.start(session.entries, session.startIndex)
         }
 
         /** Jumps straight to a location found via search, rebuilding its breadcrumb trail. */
@@ -191,6 +192,17 @@ class BrowseViewModel
                 val otherFailureCount = entries.size - trashedIds.size - lockedEntries.size
                 if (trashedIds.isNotEmpty()) _events.emit(BrowseEvent.UndoDelete(trashedIds))
                 if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.DeleteBlockedByLock(lockedEntries))
+                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed)
+            }
+        }
+
+        fun addToVault(entries: List<FileEntry>) {
+            val parentUri = currentParentUri() ?: return
+            viewModelScope.launch {
+                val results = entries.associateWith { entry -> delegateSupport.vaultRepository.addToVault(entry, parentUri) }
+                val lockedEntries = results.filterValues { it.exceptionOrNull() is LockedFileException }.keys.toList()
+                val otherFailureCount = entries.size - results.count { it.value.isSuccess } - lockedEntries.size
+                if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.AddToVaultBlockedByLock(lockedEntries))
                 if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed)
             }
         }

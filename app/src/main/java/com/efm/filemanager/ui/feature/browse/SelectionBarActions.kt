@@ -10,4 +10,5 @@ internal data class SelectionBarActions(
     val onAddTag: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onToggleLock: () -> Unit,
+    val onAddToVault: () -> Unit,
 )

@@ -247,4 +247,25 @@
     <string name="storage_advisor_settings_unused_duration">Consider unused after</string>
     <string name="storage_advisor_size_mb">%d MB</string>
     <string name="storage_advisor_unused_months">%d months</string>
+
+    <string name="nav_vault">Vault</string>
+    <string name="vault_setup_title">Set a vault password</string>
+    <string name="vault_setup_body">This password protects the vault -- there\'s no way to recover it if you forget it, only to clear and start over.</string>
+    <string name="vault_password_label">Password</string>
+    <string name="vault_confirm_password_label">Confirm password</string>
+    <string name="vault_setup_button">Create vault</string>
+    <string name="vault_unlock_title">Unlock Vault</string>
+    <string name="vault_unlock_button">Unlock</string>
+    <string name="vault_wrong_password">Incorrect password</string>
+    <string name="vault_passwords_dont_match">Passwords don\'t match</string>
+    <string name="vault_empty">The vault is empty</string>
+    <string name="vault_lock_action">Lock vault</string>
+    <string name="vault_remove_confirm_title">Remove from vault?</string>
+    <string name="vault_remove_confirm_message">Permanently delete %d item(s) from the vault? This can\'t be undone.</string>
+    <string name="vault_remove_confirm_button">Remove</string>
+    <string name="action_add_to_vault">Add to Vault</string>
+    <string name="add_to_vault_confirm_title">Add to Vault?</string>
+    <string name="add_to_vault_confirm_message">Move %d item(s) into the encrypted vault? They\'ll be removed from here until you unlock the vault again.</string>
+    <string name="add_to_vault_confirm_button">Add to Vault</string>
+    <string name="add_to_vault_blocked_by_lock">%d locked item(s) were not added to the vault</string>
 </resources>

@@ -7,4 +7,5 @@ internal enum class BrowseDialog {
     TAG_PICKER,
     DETAILS,
     FAVORITE_COLLECTION_PICKER,
+    ADD_TO_VAULT,
 }

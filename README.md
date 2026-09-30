@@ -30,8 +30,10 @@ CI also now builds a real, minified `assembleRelease` on every push (with its R8
 uploaded as an artifact), catching a shrink/obfuscation failure immediately instead of only at an
 actual release, and CI submits the project's dependencies to GitHub's Dependency Graph on every
 push, turning on Dependabot vulnerability alerts (once enabled for this repo under Settings → Code
-security -- a one-time manual step, same kind of gap as Phase 10's Play Console declaration). The
-Keystore-backed encrypted vault is still to come. See `docs/PLAN.md` for the full phase list.
+security -- a one-time manual step, same kind of gap as Phase 10's Play Console declaration). A new
+password-gated, Keystore-encrypted Vault (its own drawer entry) is also live -- "Add to Vault" from
+Browse's selection menu moves a file in, encrypted at rest, until you remove it; biometric unlock
+and exporting a file back out are still to come. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

@@ -27,6 +27,7 @@ import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
 import com.efm.filemanager.ui.feature.tags.ManageTagsScreen
+import com.efm.filemanager.ui.feature.vault.VaultScreen
 import com.efm.filemanager.ui.nav.EfmDestination
 import com.efm.filemanager.ui.nav.EfmDrawerContent
 import kotlinx.coroutines.CoroutineScope
@@ -109,6 +110,9 @@ private fun NavGraphBuilder.efmDrawerDestinations(
             onOpenDrawer = { scope.launch { drawerState.open() } },
             onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },
         )
+    }
+    composable(EfmDestination.Vault.route) {
+        VaultScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
     }
     composable(EfmDestination.Settings.route) {
         SettingsScreen(

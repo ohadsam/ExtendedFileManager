@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.14.0 (2026-09-30)
+
+- New: Encrypted Vault. A password-gated Vault screen (new drawer
+  entry) holds files moved out of normal storage and encrypted at
+  rest -- set a password the first time you open it, then unlock with
+  that password each session. "Add to Vault" (Browse's "⋮" selection
+  menu) moves the selected file(s) in: they're encrypted and removed
+  from where they were, reappearing only inside the Vault. Multi-select
+  inside the Vault to permanently remove entries (with confirmation --
+  this isn't the same as the regular trash-backed delete elsewhere in
+  the app, since the vault exists to keep this content out of ordinary,
+  recoverable storage). A locked file can't be added to the vault, same
+  as it can't be deleted. Biometric unlock and exporting a file back
+  out of the vault are still to come.
+
 ## v0.13.2 (2026-09-30)
 
 - Phase 11 (third slice) — CI now submits this project's resolved
