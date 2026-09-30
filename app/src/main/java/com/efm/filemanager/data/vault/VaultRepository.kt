@@ -108,7 +108,7 @@ class VaultRepository
                     }
             }
 
-        private fun decryptOutOfVault(
+        private suspend fun decryptOutOfVault(
             stored: VaultEntryEntity,
             targetParentUri: Uri,
         ) {
