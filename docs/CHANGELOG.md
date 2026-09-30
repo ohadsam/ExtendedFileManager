@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.13.0 (2026-09-30)
+
+- Phase 11 (first slice) — a protected-path guard now refuses to
+  create, rename, move, copy, delete, or extract into `Android/data`,
+  `Android/obb`, or another app's private storage, and rejects any
+  name that would traverse out of its folder (blank, `.`, `..`, or
+  containing a path separator) -- across every mutating operation in
+  the app, archive extraction included. Settings' Permissions section
+  explains it via its info button.
+
 ## v0.12.1 (2026-09-29)
 
 - Storage Advisor now flags Extended File Manager's own cache as a

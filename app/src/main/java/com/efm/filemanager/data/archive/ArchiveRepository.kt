@@ -8,6 +8,9 @@ import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.requireSingleDocument
 import com.efm.filemanager.data.documenttree.requireTreeDocument
 import com.efm.filemanager.data.documenttree.uniqueNameIn
+import com.efm.filemanager.data.security.PathGuard
+import com.efm.filemanager.data.security.PathTraversalException
+import com.efm.filemanager.data.security.isUnsafeName
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +44,8 @@ class ArchiveRepository
         ): Result<Unit> =
             runCatching {
                 withContext(Dispatchers.IO) {
+                    PathGuard.checkAllowed(targetParentUri)
+                    PathGuard.checkNameAllowed(archiveName)
                     val targetParent = requireTreeDocument(context, targetParentUri)
                     val archiveFile =
                         requireNotNull(targetParent.createFile(ZIP_MIME_TYPE, archiveName)) { "Could not create archive" }
@@ -58,6 +63,7 @@ class ArchiveRepository
         ): Result<Unit> =
             runCatching {
                 withContext(Dispatchers.IO) {
+                    PathGuard.checkAllowed(targetParentUri)
                     val targetParent = requireTreeDocument(context, targetParentUri)
                     readZip(archive.uri, targetParent, conflictPolicy, onProgress)
                     documentTreeRepository.refresh(targetParentUri)
@@ -153,6 +159,7 @@ class ArchiveRepository
             dirCache: MutableMap<String, DocumentFile>,
         ): Pair<DocumentFile, String> {
             val segments = entryName.split('/').filter { it.isNotEmpty() }
+            if (segments.isEmpty() || segments.any(::isUnsafeName)) throw PathTraversalException(entryName)
             var currentDir = root
             var pathSoFar = ""
             segments.dropLast(1).forEach { segment ->

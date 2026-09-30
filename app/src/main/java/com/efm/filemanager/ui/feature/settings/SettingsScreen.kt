@@ -278,7 +278,10 @@ private fun PermissionsSection(
     onOpenSystemSettings: () -> Unit,
 ) {
     Column {
-        SectionHeader(title = stringResource(R.string.permissions_section))
+        SectionHeader(
+            title = stringResource(R.string.permissions_section),
+            infoDescription = stringResource(R.string.permissions_protected_paths_explanation),
+        )
         Text(
             text = stringResource(R.string.permissions_granted_count, grantedFolderCount),
             style = MaterialTheme.typography.bodyMedium,

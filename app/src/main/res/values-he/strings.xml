@@ -92,6 +92,7 @@
     <string name="permissions_section">הרשאות</string>
     <string name="permissions_granted_count">גישה ניתנה כרגע ל-%d תיקיות</string>
     <string name="permissions_open_system_settings">פתח הגדרות מערכת</string>
+    <string name="permissions_protected_paths_explanation">EFM מסרבת ליצור, לשנות שם, להעביר, להעתיק, למחוק או לחלץ אל תוך Android/data,‏ Android/obb, או אחסון פרטי של אפליקציה אחרת -- גם בתוך תיקייה שניתנה לה גישה אליה -- אלו מיקומי מערכת מוגנים, לא רק לא מומלצים.</string>
 
     <string name="display_section">תצוגה</string>
     <string name="view_mode_menu">מצב תצוגה</string>

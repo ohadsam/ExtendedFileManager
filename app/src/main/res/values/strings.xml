@@ -92,6 +92,7 @@
     <string name="permissions_section">Permissions</string>
     <string name="permissions_granted_count">%d folder(s) currently granted access</string>
     <string name="permissions_open_system_settings">Open system settings</string>
+    <string name="permissions_protected_paths_explanation">EFM refuses to create, rename, move, copy, delete, or extract into Android/data, Android/obb, or another app\'s private storage, even inside a folder you\'ve granted access to -- these are protected system locations, not just off-limits by convention.</string>
 
     <string name="display_section">Display</string>
     <string name="view_mode_menu">View mode</string>

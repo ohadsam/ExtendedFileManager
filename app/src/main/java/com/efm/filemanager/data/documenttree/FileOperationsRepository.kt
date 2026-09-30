@@ -7,6 +7,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.efm.filemanager.data.audit.AuditAction
 import com.efm.filemanager.data.audit.AuditLogger
 import com.efm.filemanager.data.metadata.FileFlagsRepository
+import com.efm.filemanager.data.security.PathGuard
 import com.efm.filemanager.data.trash.TrashedFileDao
 import com.efm.filemanager.data.trash.TrashedFileEntity
 import com.efm.filemanager.domain.model.FileEntry
@@ -41,6 +42,8 @@ class FileOperationsRepository
             name: String,
         ): Result<Unit> =
             runOperation(AuditAction.CREATE_FOLDER, name, parentUri) {
+                PathGuard.checkAllowed(parentUri)
+                PathGuard.checkNameAllowed(name)
                 val parent = requireTreeDocument(context, parentUri)
                 requireNotNull(parent.createDirectory(name)) { "Could not create folder" }
                 documentTreeRepository.refresh(parentUri)
@@ -51,6 +54,8 @@ class FileOperationsRepository
             name: String,
         ): Result<Unit> =
             runOperation(AuditAction.CREATE_FILE, name, parentUri) {
+                PathGuard.checkAllowed(parentUri)
+                PathGuard.checkNameAllowed(name)
                 val parent = requireTreeDocument(context, parentUri)
                 requireNotNull(parent.createFile(FILE_MIME_TYPE, name)) { "Could not create file" }
                 documentTreeRepository.refresh(parentUri)
@@ -62,6 +67,8 @@ class FileOperationsRepository
             newName: String,
         ): Result<Unit> =
             runOperation(AuditAction.RENAME, entry.name, entry.uri, detail = newName) {
+                PathGuard.checkAllowed(entry.uri)
+                PathGuard.checkNameAllowed(newName)
                 val document = requireSingleDocument(context, entry.uri)
                 require(document.renameTo(newName)) { "Could not rename ${entry.name}" }
                 documentTreeRepository.refresh(parentUri)
@@ -77,6 +84,7 @@ class FileOperationsRepository
             }
             return runCatching {
                 withContext(Dispatchers.IO) {
+                    PathGuard.checkAllowed(entry.uri)
                     val parent = requireTreeDocument(context, parentUri)
                     val trashFolder = parent.findFile(TRASH_FOLDER_NAME) ?: parent.createDirectory(TRASH_FOLDER_NAME)
                     requireNotNull(trashFolder) { "Could not prepare trash folder" }
@@ -105,6 +113,7 @@ class FileOperationsRepository
                     ?: return Result.failure(IllegalStateException("Nothing to restore"))
             val originalParentUri = Uri.parse(trashed.originalParentUri)
             return runOperation(AuditAction.RESTORE, trashed.originalName, originalParentUri) {
+                PathGuard.checkAllowed(originalParentUri)
                 val trashUri = Uri.parse(trashed.trashUri)
                 val trashFolderUri =
                     requireTreeDocument(context, originalParentUri).findFile(TRASH_FOLDER_NAME)?.uri
@@ -121,6 +130,8 @@ class FileOperationsRepository
             targetParentUri: Uri,
         ): Result<Unit> =
             runOperation(AuditAction.MOVE, entry.name, entry.uri, detail = targetParentUri.toString()) {
+                PathGuard.checkAllowed(entry.uri)
+                PathGuard.checkAllowed(targetParentUri)
                 moveDocument(context, entry.uri, sourceParentUri, targetParentUri)
                 documentTreeRepository.refresh(sourceParentUri)
                 documentTreeRepository.refresh(targetParentUri)
@@ -131,6 +142,7 @@ class FileOperationsRepository
             targetParentUri: Uri,
         ): Result<Unit> =
             runOperation(AuditAction.COPY, entry.name, entry.uri, detail = targetParentUri.toString()) {
+                PathGuard.checkAllowed(targetParentUri)
                 val source = requireSingleDocument(context, entry.uri)
                 val targetParent = requireTreeDocument(context, targetParentUri)
                 requireNotNull(copyRecursively(context, source, targetParent)) { "Could not copy ${entry.name}" }
