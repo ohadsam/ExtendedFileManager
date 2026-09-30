@@ -19,10 +19,11 @@ video/audio/PDF preview, with inline thumbnails and a swipeable full-screen view
 Phase 9 (favorites with nested collections, a reusable colored tag catalog with a Manage Tags
 screen, lock-against-deletion, free-text notes, and the same multi-select quick-actions reachable
 from Browse/Search/Duplicates/Preview alike) are done — CI is green end-to-end, including a
-successful `assembleDebug`. Phase 10 (storage optimization advisor: a new Storage Advisor screen
-scans for large-unused/junk/temporary-file recommendations, reviewed and dismissed or deleted the
-same way as Duplicates) is in progress -- a staged-for-deletion review workflow and
-Settings-tunable thresholds are still to come. See `docs/PLAN.md` for the full phase list.
+successful `assembleDebug`. Phase 10 (storage optimization advisor: a Storage Advisor screen scans
+for large-unused/junk/temporary-file recommendations -- reviewed, staged for later, dismissed, or
+deleted, with Settings-tunable thresholds) is in progress -- everything from the original spec has
+landed except the periodic staged-review reminder, deferred to Phase 17's proper notification
+infrastructure. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

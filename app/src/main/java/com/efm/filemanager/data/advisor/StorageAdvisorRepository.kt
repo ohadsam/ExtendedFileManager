@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import com.efm.filemanager.R
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
@@ -22,6 +23,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+/** [FileEntry.uri] scheme for EFM's own app-private cache -- it never came from SAF, so it needs its own deletion path. */
+private const val APP_CACHE_URI_SCHEME = "file"
 
 /** What one scan pass needs at every folder it visits -- bundled so the walk's own functions stay under a handful of params. */
 private data class AdvisorScanContext(
@@ -67,17 +71,25 @@ class StorageAdvisorRepository
                     )
                 val accumulator = AdvisorScanAccumulator()
                 documentTreeAccessManager.grantedTreeUris().forEach { root -> visitFolder(root, emptyList(), scanContext, accumulator) }
+                appCacheEntity()?.let { cache ->
+                    accumulator.results += cache.toRecommendationEntity(StorageRecommendationCategory.JUNK, RecommendationReason.APP_CACHE)
+                }
                 storageRecommendationDao.replaceAll(accumulator.results)
                 accumulator.results.size
             }
 
         suspend fun deleteRecommendation(recommendation: StorageRecommendation): Result<Unit> {
             val uri = recommendation.entry.uri.toString()
-            val stored =
-                storageRecommendationDao.get(uri, recommendation.category.name)
-                    ?: return Result.failure(IllegalStateException("Not in the current recommendations"))
-            return fileOperationsRepository.delete(recommendation.entry, Uri.parse(stored.parentUri)).map {
-                storageRecommendationDao.deleteAllCategoriesForUri(uri)
+            if (recommendation.entry.uri.scheme == APP_CACHE_URI_SCHEME) {
+                return deleteAppCache().also { result -> if (result.isSuccess) storageRecommendationDao.deleteAllCategoriesForUri(uri) }
+            }
+            val stored = storageRecommendationDao.get(uri, recommendation.category.name)
+            return if (stored == null) {
+                Result.failure(IllegalStateException("Not in the current recommendations"))
+            } else {
+                fileOperationsRepository.delete(recommendation.entry, Uri.parse(stored.parentUri)).map {
+                    storageRecommendationDao.deleteAllCategoriesForUri(uri)
+                }
             }
         }
 
@@ -87,11 +99,17 @@ class StorageAdvisorRepository
 
         /** Deletes a staged file directly -- it may or may not still be a live recommendation, so any matching row is cleared too. */
         suspend fun deleteStagedEntry(entry: FileEntry): Result<Unit> {
-            val parentUri =
-                documentTreeRepository.parentUriOf(entry.uri)
-                    ?: return Result.failure(IllegalStateException("Unknown parent for ${entry.uri}"))
-            return fileOperationsRepository.delete(entry, parentUri).map {
-                storageRecommendationDao.deleteAllCategoriesForUri(entry.uri.toString())
+            val uri = entry.uri.toString()
+            if (entry.uri.scheme == APP_CACHE_URI_SCHEME) {
+                return deleteAppCache().also { result -> if (result.isSuccess) storageRecommendationDao.deleteAllCategoriesForUri(uri) }
+            }
+            val parentUri = documentTreeRepository.parentUriOf(entry.uri)
+            return if (parentUri == null) {
+                Result.failure(IllegalStateException("Unknown parent for $uri"))
+            } else {
+                fileOperationsRepository.delete(entry, parentUri).map {
+                    storageRecommendationDao.deleteAllCategoriesForUri(uri)
+                }
             }
         }
 
@@ -169,4 +187,34 @@ class StorageAdvisorRepository
                     context.packageManager.getApplicationInfo(packageName, 0)
                 }
             }.isSuccess
+
+        /**
+         * EFM's own app-private cache never came from SAF -- there's exactly one of it, it's
+         * always at a known path, and [context] already has direct java.io.File access to it, so
+         * this doesn't need the granted-tree walk [visitFolder] does. Returns null when empty,
+         * same as any other recommendation category that found nothing.
+         */
+        private fun appCacheEntity(): FileEntryEntity? {
+            val cacheDir = context.cacheDir
+            val size = cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+            if (size <= 0) return null
+            return FileEntryEntity(
+                uri = Uri.fromFile(cacheDir).toString(),
+                parentUri = "",
+                documentId = "app_cache",
+                name = context.getString(R.string.storage_advisor_app_cache_name),
+                isDirectory = true,
+                size = size,
+                lastModified = cacheDir.lastModified(),
+                mimeType = null,
+            )
+        }
+
+        /** Clears EFM's own cache directly via [java.io.File], then recreates it -- Android expects it to keep existing. */
+        private fun deleteAppCache(): Result<Unit> =
+            runCatching {
+                check(context.cacheDir.deleteRecursively()) { "Could not fully clear the app cache" }
+                context.cacheDir.mkdirs()
+                Unit
+            }
     }

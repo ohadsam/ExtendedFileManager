@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.12.1 (2026-09-29)
+
+- Storage Advisor now flags Extended File Manager's own cache as a
+  junk recommendation too, alongside orphaned folders and empty ones
+  -- review it and clear it with the same Dismiss/Stage/Delete actions
+  as everything else.
+
 ## v0.12.0 (2026-09-29)
 
 - Storage Advisor gained a "Stage for later" option: select any

@@ -74,6 +74,16 @@ Treat "pushed, CI green" as the actual verification step — read Kotlin/Gradle
 changes carefully by eye before pushing, since there's no local compile to
 catch typos first.
 
+## Scope constraint (important for future sessions)
+
+This sandbox account also has an unrelated repo, `ohadsam/system_diagram` (a
+vanilla-JS system-design-diagram tool), checked out alongside this one. A
+session working on EFM must **never** read, edit, or push to `system_diagram`
+— if a session's working directory or environment context ever points there
+instead of this repo, stop and confirm with the user before touching
+anything, rather than acting on it. This repo (`extendedfilemanager`) is the
+only one in scope for EFM work.
+
 ## Model-tier guidance for maintaining this project
 
 - Routine work (UI tweaks, strings, wiring an existing pattern to a new

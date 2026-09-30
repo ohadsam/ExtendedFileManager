@@ -232,7 +232,8 @@
     <string name="storage_advisor_reason_not_modified_recently">לא השתנה זמן מה</string>
     <string name="storage_advisor_reason_orphaned_app_folder">תיקייה שנותרה מאפליקציה שהוסרה</string>
     <string name="storage_advisor_reason_empty_folder">תיקייה ריקה</string>
-    <string name="storage_advisor_reason_app_cache">מטמון האפליקציה</string>
+    <string name="storage_advisor_reason_app_cache">נתונים זמניים ש-Extended File Manager שומר לשימושה -- בטוח לנקות</string>
+    <string name="storage_advisor_app_cache_name">מטמון האפליקציה</string>
     <string name="storage_advisor_reason_temp_file_pattern">קובץ זמני (%1$s)</string>
     <string name="storage_advisor_dismiss">התעלם</string>
     <string name="storage_advisor_stage_for_later">סמן להחלטה מאוחר יותר</string>

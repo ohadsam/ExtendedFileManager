@@ -232,7 +232,8 @@
     <string name="storage_advisor_reason_not_modified_recently">Not modified in a while</string>
     <string name="storage_advisor_reason_orphaned_app_folder">Leftover folder from an uninstalled app</string>
     <string name="storage_advisor_reason_empty_folder">Empty folder</string>
-    <string name="storage_advisor_reason_app_cache">App cache</string>
+    <string name="storage_advisor_reason_app_cache">Temporary data Extended File Manager keeps for its own use -- safe to clear</string>
+    <string name="storage_advisor_app_cache_name">App cache</string>
     <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
     <string name="storage_advisor_dismiss">Dismiss</string>
     <string name="storage_advisor_stage_for_later">Stage for later</string>
