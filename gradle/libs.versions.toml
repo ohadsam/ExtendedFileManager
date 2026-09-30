@@ -15,6 +15,7 @@ coilCompose = "2.7.0"
 media3 = "1.5.0"
 timber = "5.0.1"
 securityCrypto = "1.1.0-alpha06"
+biometric = "1.1.0"
 documentfile = "1.0.1"
 datastorePreferences = "1.1.1"
 appcompat = "1.7.0"
@@ -58,6 +59,7 @@ media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", versi
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

@@ -100,6 +100,7 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.timber)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.appcompat)
