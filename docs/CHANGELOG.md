@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.13.2 (2026-09-30)
+
+- Phase 11 (third slice) — CI now submits this project's resolved
+  dependencies to GitHub's Dependency Graph on every push, which is
+  what turns on Dependabot vulnerability alerts -- no new tool or
+  secret needed. Requires Dependabot alerts to actually be turned on
+  for this repo under Settings → Code security, a one-time manual
+  step outside what a workflow file alone can do.
+
 ## v0.13.1 (2026-09-30)
 
 - Phase 11 (second slice) — CI now builds a real, minified release

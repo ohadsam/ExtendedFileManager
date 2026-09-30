@@ -28,8 +28,10 @@ refuses to create/rename/move/copy/delete/extract into Android/data, Android/obb
 app's private storage, and rejects any traversal-unsafe name, across every mutating repository;
 CI also now builds a real, minified `assembleRelease` on every push (with its R8/ProGuard mapping
 uploaded as an artifact), catching a shrink/obfuscation failure immediately instead of only at an
-actual release. Dependency vulnerability scanning wired into CI, and the Keystore-backed encrypted
-vault, are still to come. See `docs/PLAN.md` for the full phase list.
+actual release, and CI submits the project's dependencies to GitHub's Dependency Graph on every
+push, turning on Dependabot vulnerability alerts (once enabled for this repo under Settings → Code
+security -- a one-time manual step, same kind of gap as Phase 10's Play Console declaration). The
+Keystore-backed encrypted vault is still to come. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

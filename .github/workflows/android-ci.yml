@@ -15,6 +15,11 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Dependency Graph submission (below) needs write access to report the
+    # project's dependencies to GitHub -- read-only for every other step,
+    # narrowed here rather than raised for the whole workflow.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,8 +30,16 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # Submits this build's resolved dependencies to GitHub's Dependency
+      # Graph, which is what turns on Dependabot vulnerability alerts for
+      # this project -- no extra tool, network call, or secret needed. A
+      # fork pull_request run has no write token regardless of what's
+      # requested above, so this step degrades to a no-op there rather
+      # than failing the job.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          dependency-graph: generate-and-submit
 
       - name: Ktlint check
         run: ./gradlew ktlintCheck
