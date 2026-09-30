@@ -207,6 +207,8 @@ class StorageAdvisorRepository
                 size = size,
                 lastModified = cacheDir.lastModified(),
                 mimeType = null,
+                ownerPackageName = null,
+                sourceConfidence = null,
             )
         }
 
