@@ -43,6 +43,9 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug
 
+      - name: Assemble release APK (R8/ProGuard)
+        run: ./gradlew assembleRelease
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -54,3 +57,12 @@ jobs:
             app/build/reports/detekt
             app/build/reports/lint-results-debug.html
           retention-days: 14
+
+      - name: Upload R8/ProGuard mapping
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proguard-mapping
+          path: app/build/outputs/mapping/release
+          retention-days: 14
+          if-no-files-found: ignore

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.13.1 (2026-09-30)
+
+- Phase 11 (second slice) — CI now builds a real, minified release
+  APK (`assembleRelease`) on every push, not just the unminified
+  debug build, so an R8/ProGuard shrink or obfuscation failure gets
+  caught immediately instead of only at an actual release. The
+  mapping file is uploaded as a CI artifact so a release crash stays
+  symbolicate-able. `proguard-rules.pro` gained its first real rule:
+  keep line numbers (not full source paths) in obfuscated stack
+  traces.
+
 ## v0.13.0 (2026-09-30)
 
 - Phase 11 (first slice) — a protected-path guard now refuses to

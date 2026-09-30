@@ -26,8 +26,10 @@ notification infrastructure) are done — CI is green end-to-end, including a su
 `assembleDebug`. Phase 11 (security hardening) is in progress -- a protected-path guard now
 refuses to create/rename/move/copy/delete/extract into Android/data, Android/obb, or another
 app's private storage, and rejects any traversal-unsafe name, across every mutating repository;
-R8/ProGuard release config, CI-wired dependency vulnerability scanning, and the Keystore-backed
-encrypted vault are still to come. See `docs/PLAN.md` for the full phase list.
+CI also now builds a real, minified `assembleRelease` on every push (with its R8/ProGuard mapping
+uploaded as an artifact), catching a shrink/obfuscation failure immediately instead of only at an
+actual release. Dependency vulnerability scanning wired into CI, and the Keystore-backed encrypted
+vault, are still to come. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 
