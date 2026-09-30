@@ -2,16 +2,20 @@ package com.efm.filemanager.ui.feature.vault
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
+import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.vault.VaultAuthRepository
 import com.efm.filemanager.data.vault.VaultRepository
 import com.efm.filemanager.data.vault.VaultUnlockState
 import com.efm.filemanager.domain.model.VaultEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,6 +37,8 @@ class VaultViewModel
         private val vaultAuthRepository: VaultAuthRepository,
         private val vaultRepository: VaultRepository,
         private val vaultUnlockState: VaultUnlockState,
+        documentTreeAccessManager: DocumentTreeAccessManager,
+        documentTreeRepository: DocumentTreeRepository,
     ) : ViewModel() {
         val isUnlocked: StateFlow<Boolean> = vaultUnlockState.isUnlocked
 
@@ -41,8 +47,25 @@ class VaultViewModel
 
         val isPasswordSet: Boolean get() = vaultAuthRepository.isPasswordSet()
 
+        private val _biometricEnabled = MutableStateFlow(vaultAuthRepository.biometricEnabled)
+        val biometricEnabled: StateFlow<Boolean> = _biometricEnabled.asStateFlow()
+
+        fun setBiometricEnabled(enabled: Boolean) {
+            vaultAuthRepository.biometricEnabled = enabled
+            _biometricEnabled.value = enabled
+        }
+
         private val _events = MutableSharedFlow<VaultEvent>()
         val events: SharedFlow<VaultEvent> = _events.asSharedFlow()
+
+        val exportPicker =
+            VaultExportPickerController(
+                scope = viewModelScope,
+                documentTreeAccessManager = documentTreeAccessManager,
+                documentTreeRepository = documentTreeRepository,
+                vaultRepository = vaultRepository,
+                onOperationFailed = { _events.emit(VaultEvent.OperationFailed) },
+            )
 
         fun setPassword(
             password: CharArray,
@@ -67,6 +90,9 @@ class VaultViewModel
                 }
             }
         }
+
+        /** The OS already authenticated the user via [androidx.biometric.BiometricPrompt] -- no password check needed here. */
+        fun unlockWithBiometric() = vaultUnlockState.markUnlocked()
 
         fun lock() = vaultUnlockState.lock()
 

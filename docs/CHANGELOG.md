@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.14.1 (2026-09-30)
+
+- Vault: you can now get a file back out. Select entries in the
+  Vault and choose Export to decrypt them into any folder you still
+  have access to, picked from the same kind of folder browser Move/
+  Copy already use. Also new: biometric unlock -- once a device with
+  enrolled biometrics has a vault password set, turn it on from the
+  Vault's "⋮" menu (confirms with a biometric prompt before turning
+  on) and a "Use biometric unlock" option appears right on the lock
+  screen from then on, alongside the password field.
+
 ## v0.14.0 (2026-09-30)
 
 - New: Encrypted Vault. A password-gated Vault screen (new drawer

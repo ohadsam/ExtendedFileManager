@@ -268,4 +268,8 @@
     <string name="add_to_vault_confirm_message">להעביר %d פריט/ים לכספת המוצפנת? הם יוסרו מכאן עד שתפתח שוב את הכספת.</string>
     <string name="add_to_vault_confirm_button">הוסף לכספת</string>
     <string name="add_to_vault_blocked_by_lock">%d פריט/ים נעולים לא נוספו לכספת</string>
+    <string name="vault_export_action">ייצוא</string>
+    <string name="vault_use_biometric">שימוש בפתיחה ביומטרית</string>
+    <string name="vault_enable_biometric">הפעל פתיחה ביומטרית</string>
+    <string name="vault_disable_biometric">בטל פתיחה ביומטרית</string>
 </resources>

@@ -109,8 +109,12 @@ internal fun BrowseDialogs(
     }
 
     if (context.pickerState.visible) {
+        val titleRes = if (context.pickerState.purpose == PickerPurpose.COPY) R.string.picker_title_copy else R.string.picker_title_move
         DestinationPickerDialog(
-            state = context.pickerState,
+            title = stringResource(titleRes),
+            breadcrumbs = context.pickerState.breadcrumbs,
+            folders = context.pickerState.folders,
+            isLoading = context.pickerState.isLoading,
             onNavigateInto = viewModel.picker::navigateInto,
             onNavigateToBreadcrumb = viewModel.picker::navigateToBreadcrumb,
             onConfirm = viewModel.picker::confirm,

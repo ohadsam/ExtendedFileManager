@@ -268,4 +268,8 @@
     <string name="add_to_vault_confirm_message">Move %d item(s) into the encrypted vault? They\'ll be removed from here until you unlock the vault again.</string>
     <string name="add_to_vault_confirm_button">Add to Vault</string>
     <string name="add_to_vault_blocked_by_lock">%d locked item(s) were not added to the vault</string>
+    <string name="vault_export_action">Export</string>
+    <string name="vault_use_biometric">Use biometric unlock</string>
+    <string name="vault_enable_biometric">Enable biometric unlock</string>
+    <string name="vault_disable_biometric">Disable biometric unlock</string>
 </resources>

@@ -1,18 +1,18 @@
 package com.efm.filemanager.ui.feature.vault
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -21,9 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
+import com.efm.filemanager.ui.feature.browse.DestinationPickerDialog
 
 @Composable
 fun VaultScreen(
@@ -31,6 +33,7 @@ fun VaultScreen(
     viewModel: VaultViewModel = hiltViewModel(),
 ) {
     val isUnlocked by viewModel.isUnlocked.collectAsStateWithLifecycle()
+    val biometricEnabled by viewModel.biometricEnabled.collectAsStateWithLifecycle()
     val entries by viewModel.entries.collectAsStateWithLifecycle()
     val selectedIds = remember { mutableStateListOf<Long>() }
     var showRemoveConfirm by remember { mutableStateOf(false) }
@@ -41,24 +44,39 @@ fun VaultScreen(
     Scaffold(
         topBar = {
             VaultTopBar(
-                onOpenDrawer = onOpenDrawer,
-                isUnlocked = isUnlocked,
-                onLock = {
-                    selectedIds.clear()
-                    viewModel.lock()
-                },
+                state = VaultTopBarState(isUnlocked = isUnlocked, biometricEnabled = biometricEnabled),
+                actions =
+                    VaultTopBarActions(
+                        onOpenDrawer = onOpenDrawer,
+                        onLock = {
+                            selectedIds.clear()
+                            viewModel.lock()
+                        },
+                        onSetBiometricEnabled = viewModel::setBiometricEnabled,
+                    ),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = { VaultRemoveFab(visible = selectedIds.isNotEmpty(), onClick = { showRemoveConfirm = true }) },
+        floatingActionButton = {
+            VaultSelectionFabs(
+                visible = selectedIds.isNotEmpty(),
+                onExport = {
+                    viewModel.exportPicker.open(selectedIds.toList())
+                    selectedIds.clear()
+                },
+                onRemove = { showRemoveConfirm = true },
+            )
+        },
     ) { innerPadding ->
         if (isUnlocked) {
             VaultListBody(entries = entries, selectedIds = selectedIds, modifier = Modifier.padding(innerPadding))
         } else {
             VaultGateBody(
                 isPasswordSet = viewModel.isPasswordSet,
+                biometricEnabled = biometricEnabled,
                 onSetPassword = viewModel::setPassword,
                 onUnlock = viewModel::unlockWithPassword,
+                onBiometricUnlock = viewModel::unlockWithBiometric,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -75,40 +93,41 @@ fun VaultScreen(
             onDismiss = { showRemoveConfirm = false },
         )
     }
+
+    VaultExportPickerDialog(viewModel.exportPicker)
 }
 
 @Composable
-private fun VaultTopBar(
-    onOpenDrawer: () -> Unit,
-    isUnlocked: Boolean,
-    onLock: () -> Unit,
-) {
-    TopAppBar(
-        navigationIcon = {
-            IconButton(onClick = onOpenDrawer) {
-                Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
-            }
-        },
-        title = { Text(stringResource(R.string.nav_vault)) },
-        actions = {
-            if (isUnlocked) {
-                IconButton(onClick = onLock) {
-                    Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.vault_lock_action))
-                }
-            }
-        },
-    )
-}
-
-@Composable
-private fun VaultRemoveFab(
+private fun VaultSelectionFabs(
     visible: Boolean,
-    onClick: () -> Unit,
+    onExport: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     if (!visible) return
-    ExtendedFloatingActionButton(
-        onClick = onClick,
-        icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
-        text = { Text(stringResource(R.string.vault_remove_confirm_button)) },
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FloatingActionButton(onClick = onExport) {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.vault_export_action))
+        }
+        ExtendedFloatingActionButton(
+            onClick = onRemove,
+            icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+            text = { Text(stringResource(R.string.vault_remove_confirm_button)) },
+        )
+    }
+}
+
+@Composable
+private fun VaultExportPickerDialog(picker: VaultExportPickerController) {
+    val pickerState by picker.pickerState.collectAsStateWithLifecycle()
+    if (!pickerState.visible) return
+    DestinationPickerDialog(
+        title = stringResource(R.string.vault_export_action),
+        breadcrumbs = pickerState.breadcrumbs,
+        folders = pickerState.folders,
+        isLoading = pickerState.isLoading,
+        onNavigateInto = picker::navigateInto,
+        onNavigateToBreadcrumb = picker::navigateToBreadcrumb,
+        onConfirm = picker::confirm,
+        onDismiss = picker::dismiss,
     )
 }

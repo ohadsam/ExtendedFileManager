@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,18 +21,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import com.efm.filemanager.R
 
-/** The password gate shown in place of the vault's contents until [VaultViewModel.isUnlocked]. */
+/** The password/biometric gate shown in place of the vault's contents until [VaultViewModel.isUnlocked]. */
 @Composable
 internal fun VaultGateBody(
     isPasswordSet: Boolean,
+    biometricEnabled: Boolean,
     onSetPassword: (CharArray, CharArray) -> Unit,
     onUnlock: (CharArray) -> Unit,
+    onBiometricUnlock: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -40,7 +45,11 @@ internal fun VaultGateBody(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.padding(bottom = 16.dp))
-        if (isPasswordSet) VaultUnlockForm(onUnlock) else VaultSetupForm(onSetPassword)
+        if (isPasswordSet) {
+            VaultUnlockForm(onUnlock = onUnlock, biometricEnabled = biometricEnabled, onBiometricUnlock = onBiometricUnlock)
+        } else {
+            VaultSetupForm(onSetPassword)
+        }
     }
 }
 
@@ -71,8 +80,15 @@ private fun VaultSetupForm(onSetPassword: (CharArray, CharArray) -> Unit) {
 }
 
 @Composable
-private fun VaultUnlockForm(onUnlock: (CharArray) -> Unit) {
+private fun VaultUnlockForm(
+    onUnlock: (CharArray) -> Unit,
+    biometricEnabled: Boolean,
+    onBiometricUnlock: () -> Unit,
+) {
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val showBiometricOption = biometricEnabled && remember { biometricAvailable(context) }
+
     Text(stringResource(R.string.vault_unlock_title), style = MaterialTheme.typography.titleMedium)
     PasswordField(
         value = password,
@@ -86,6 +102,25 @@ private fun VaultUnlockForm(onUnlock: (CharArray) -> Unit) {
         modifier = Modifier.padding(top = 16.dp),
     ) {
         Text(stringResource(R.string.vault_unlock_button))
+    }
+    if (showBiometricOption) {
+        BiometricUnlockButton(onUnlocked = onBiometricUnlock)
+    }
+}
+
+@Composable
+private fun BiometricUnlockButton(onUnlocked: () -> Unit) {
+    val context = LocalContext.current
+    val promptTitle = stringResource(R.string.vault_unlock_title)
+    val cancelLabel = stringResource(R.string.close)
+    TextButton(
+        onClick = {
+            val activity = context as? FragmentActivity ?: return@TextButton
+            showBiometricPrompt(activity, promptTitle, cancelLabel, onSuccess = onUnlocked, onError = {})
+        },
+        modifier = Modifier.padding(top = 8.dp),
+    ) {
+        Text(stringResource(R.string.vault_use_biometric))
     }
 }
 

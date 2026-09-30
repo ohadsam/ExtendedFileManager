@@ -28,31 +28,33 @@ import androidx.compose.ui.window.Dialog
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileEntry
 
+/**
+ * A folder picker over the app's granted storage tree -- shared by Browse's move/copy and the
+ * Vault's export-to-folder, so it takes its title and breadcrumb/folder state as plain
+ * parameters rather than Browse's own [PickerUiState], which only Browse's move/copy flow uses.
+ */
 @Composable
 fun DestinationPickerDialog(
-    state: PickerUiState,
+    title: String,
+    breadcrumbs: List<BreadcrumbEntry>,
+    folders: List<FileEntry>,
+    isLoading: Boolean,
     onNavigateInto: (FileEntry) -> Unit,
     onNavigateToBreadcrumb: (Int) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val titleRes = if (state.purpose == PickerPurpose.COPY) R.string.picker_title_copy else R.string.picker_title_move
-
     Dialog(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.fillMaxWidth().height(420.dp).padding(4.dp)) {
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp),
-            )
-            PickerBreadcrumbBar(breadcrumbs = state.breadcrumbs, onCrumbClick = onNavigateToBreadcrumb)
+            Text(text = title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+            PickerBreadcrumbBar(breadcrumbs = breadcrumbs, onCrumbClick = onNavigateToBreadcrumb)
             Box(modifier = Modifier.weight(1f)) {
                 when {
-                    state.isLoading && state.folders.isEmpty() ->
+                    isLoading && folders.isEmpty() ->
                         CircularProgressIndicator(modifier = Modifier.padding(32.dp))
                     else ->
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(state.folders, key = { it.uri.toString() }) { folder ->
+                            items(folders, key = { it.uri.toString() }) { folder ->
                                 PickerFolderRow(folder = folder, onClick = { onNavigateInto(folder) })
                             }
                         }
