@@ -10,7 +10,6 @@ import com.efm.filemanager.data.documenttree.requireTreeDocument
 import com.efm.filemanager.data.local.VaultEntryDao
 import com.efm.filemanager.data.local.VaultEntryEntity
 import com.efm.filemanager.data.local.toDomain
-import com.efm.filemanager.data.metadata.FileFlagsRepository
 import com.efm.filemanager.data.security.PathGuard
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.VaultEntry
@@ -40,7 +39,7 @@ class VaultRepository
         private val vaultEntryDao: VaultEntryDao,
         private val vaultFileCrypto: VaultFileCrypto,
         private val fileOperationsRepository: FileOperationsRepository,
-        private val fileFlagsRepository: FileFlagsRepository,
+        private val entryLookup: VaultEntryLookupSupport,
         private val auditLogger: AuditLogger,
     ) {
         fun observeEntries(): Flow<List<VaultEntry>> = vaultEntryDao.observeAll().map { entries -> entries.map { it.toDomain() } }
@@ -48,22 +47,28 @@ class VaultRepository
         /**
          * Encrypts [entry]'s bytes into the vault first, then deletes the original via the
          * normal, lock-and-protected-path-guarded delete path -- in that order, so a failure
-         * partway through never loses the original before a safe encrypted copy exists.
+         * partway through never loses the original before a safe encrypted copy exists. Resolves
+         * the parent folder itself (via [VaultEntryLookupSupport.parentUriOf]) rather than
+         * requiring every calling screen to track it -- not every screen has a single "current
+         * folder" the way Browse does (Search/Duplicates/Favorites results can come from
+         * anywhere), so this needs to work from just the entry alone.
          */
-        suspend fun addToVault(
-            entry: FileEntry,
-            parentUri: Uri,
-        ): Result<Unit> =
+        suspend fun addToVault(entry: FileEntry): Result<Unit> =
             withContext(Dispatchers.IO) {
-                if (fileFlagsRepository.isLocked(entry.uri)) {
+                if (entryLookup.isLocked(entry.uri)) {
                     auditLogger.log(AuditAction.ADD_TO_VAULT, entry.name, entry.uri, success = false, detail = "locked")
                     Result.failure(LockedFileException(entry.name))
                 } else {
-                    runCatching { encryptIntoVault(entry, parentUri) }
-                        .onSuccess { auditLogger.log(AuditAction.ADD_TO_VAULT, entry.name, entry.uri, success = true) }
-                        .onFailure {
-                            auditLogger.log(AuditAction.ADD_TO_VAULT, entry.name, entry.uri, success = false, detail = it.message)
-                        }
+                    val parentUri = entryLookup.parentUriOf(entry.uri)
+                    if (parentUri == null) {
+                        Result.failure(IllegalStateException("Unknown parent for ${entry.uri}"))
+                    } else {
+                        runCatching { encryptIntoVault(entry, parentUri) }
+                            .onSuccess { auditLogger.log(AuditAction.ADD_TO_VAULT, entry.name, entry.uri, success = true) }
+                            .onFailure {
+                                auditLogger.log(AuditAction.ADD_TO_VAULT, entry.name, entry.uri, success = false, detail = it.message)
+                            }
+                    }
                 }
             }
 

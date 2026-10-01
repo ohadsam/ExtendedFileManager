@@ -197,9 +197,8 @@ class BrowseViewModel
         }
 
         fun addToVault(entries: List<FileEntry>) {
-            val parentUri = currentParentUri() ?: return
             viewModelScope.launch {
-                val results = entries.associateWith { entry -> delegateSupport.vaultRepository.addToVault(entry, parentUri) }
+                val results = entries.associateWith { entry -> delegateSupport.vaultRepository.addToVault(entry) }
                 val lockedEntries = results.filterValues { it.exceptionOrNull() is LockedFileException }.keys.toList()
                 val otherFailureCount = entries.size - results.count { it.value.isSuccess } - lockedEntries.size
                 if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.AddToVaultBlockedByLock(lockedEntries))
