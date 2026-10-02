@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14.5 (2026-10-02)
+
+- "Add to Vault" has reached every screen that shows files: it's now
+  in Preview's selection "⋮" menu too, same confirm dialog and
+  locked-file guard as everywhere else. Browse, Duplicates, Favorites,
+  Search, and Preview all offer it now -- the full rollout Phase 9's
+  tag/favorite/lock actions had.
+
 ## v0.14.4 (2026-10-02)
 
 - "Add to Vault" is now in Search too, from the selection bar's "⋮"
