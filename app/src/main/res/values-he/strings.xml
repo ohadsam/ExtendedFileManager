@@ -121,8 +121,12 @@
     <string name="audit_section">יומן ביקורת</string>
     <string name="audit_subtitle">הצגת כל פעולות הקבצים שהאפליקציה ביצעה</string>
     <string name="audit_empty">אין עדיין רשומות ביקורת</string>
+    <string name="audit_empty_filtered">אין רשומות ביקורת התואמות לסינון זה</string>
     <string name="audit_failed_label">נכשל</string>
     <string name="audit_tamper_warning">אזהרה: שרשרת הגיבוב של יומן הביקורת שבורה -- ייתכן שרשומה שונתה או נמחקה.</string>
+    <string name="audit_filter_menu">סינון יומן ביקורת</string>
+    <string name="audit_filter_all">הכול</string>
+    <string name="audit_filter_failed_only">כשלונות בלבד</string>
     <string name="audit_action_create_folder">יצירת תיקייה</string>
     <string name="audit_action_create_file">יצירת קובץ</string>
     <string name="audit_action_rename">שינוי שם</string>

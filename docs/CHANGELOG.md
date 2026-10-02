@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.16.1 (2026-10-02)
+
+- Phase 13 — The Audit log screen can now be filtered to show only
+  failed operations, from a new filter icon in its top bar (the same
+  dropdown shape the Logs screen's priority filter already uses).
+  Search and export are still to come.
+
 ## v0.16.0 (2026-10-02)
 
 - Phase 13 — Audit trail: a new Audit log screen (its own drawer entry,

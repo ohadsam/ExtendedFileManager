@@ -6,8 +6,11 @@ import com.efm.filemanager.data.audit.AuditEventEntity
 import com.efm.filemanager.data.audit.AuditHashChain
 import com.efm.filemanager.data.audit.AuditRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -21,13 +24,25 @@ class AuditViewModel
         auditRepository: AuditRepository,
     ) : ViewModel() {
         private val allEntries = auditRepository.observeAll()
+        private val _filter = MutableStateFlow(AuditFilter.ALL)
+        val filter: StateFlow<AuditFilter> = _filter.asStateFlow()
 
         val entries: StateFlow<List<AuditEventEntity>> =
-            allEntries.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+            combine(allEntries, _filter) { all, filter ->
+                if (filter == AuditFilter.FAILED_ONLY) all.filter { !it.success } else all
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+
+        /** Independent of [filter], so the filter menu doesn't disappear just because it happens to match nothing right now. */
+        val hasEntries: StateFlow<Boolean> =
+            allEntries.map { it.isNotEmpty() }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
 
         /** Non-null once the hash chain (see [AuditHashChain]) finds a tampered or missing entry -- surfaced as a warning banner. */
         val tamperedEntry: StateFlow<AuditEventEntity?> =
             allEntries
                 .map { AuditHashChain.findFirstBrokenLink(it) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+        fun setFilter(filter: AuditFilter) {
+            _filter.value = filter
+        }
     }

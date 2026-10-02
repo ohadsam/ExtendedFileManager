@@ -121,8 +121,12 @@
     <string name="audit_section">Audit log</string>
     <string name="audit_subtitle">View every file operation this app has made</string>
     <string name="audit_empty">No audit entries yet</string>
+    <string name="audit_empty_filtered">No audit entries match this filter</string>
     <string name="audit_failed_label">Failed</string>
     <string name="audit_tamper_warning">Warning: the audit log\'s hash chain is broken -- an entry may have been altered or deleted.</string>
+    <string name="audit_filter_menu">Filter audit log</string>
+    <string name="audit_filter_all">All</string>
+    <string name="audit_filter_failed_only">Failed only</string>
     <string name="audit_action_create_folder">Created folder</string>
     <string name="audit_action_create_file">Created file</string>
     <string name="audit_action_rename">Renamed</string>

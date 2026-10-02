@@ -53,8 +53,8 @@ errors when that's all you need, and an Export action writes the currently-filte
 plain text via the system "Save As" picker. Phase 13 (audit trail) is now in progress too: every
 file operation this app makes was already being recorded (since Phase 3); that record is now
 hash-chained for tamper-evidence, and a new Audit log screen (its own drawer entry, also reachable
-from Settings) lists every entry newest-first, warning if the chain is ever broken. See
-`docs/PLAN.md` for the full phase list.
+from Settings) lists every entry newest-first, warning if the chain is ever broken, with a filter
+to show only failed operations. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

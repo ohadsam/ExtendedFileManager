@@ -6,14 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,17 +27,19 @@ fun AuditScreen(
     viewModel: AuditViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.entries.collectAsStateWithLifecycle()
+    val hasEntries by viewModel.hasEntries.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
     val tamperedEntry by viewModel.tamperedEntry.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
-                    }
-                },
-                title = { Text(stringResource(R.string.nav_audit)) },
+            AuditTopBar(
+                state = AuditTopBarState(hasEntries = hasEntries, filter = filter),
+                actions =
+                    AuditTopBarActions(
+                        onOpenDrawer = onOpenDrawer,
+                        onSelectFilter = viewModel::setFilter,
+                    ),
             )
         },
     ) { innerPadding ->
@@ -51,7 +48,7 @@ fun AuditScreen(
                 AuditTamperWarning()
             }
             if (entries.isEmpty()) {
-                AuditEmptyState(modifier = Modifier.fillMaxWidth())
+                AuditEmptyState(isFiltered = filter != AuditFilter.ALL, modifier = Modifier.fillMaxWidth())
             } else {
                 LazyColumn {
                     items(entries, key = { it.id }) { entry -> AuditEntryRow(entry) }
@@ -72,9 +69,15 @@ private fun AuditTamperWarning() {
 }
 
 @Composable
-private fun AuditEmptyState(modifier: Modifier = Modifier) {
+private fun AuditEmptyState(
+    isFiltered: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Text(text = stringResource(R.string.audit_empty), modifier = Modifier.padding(24.dp))
+        Text(
+            text = stringResource(if (isFiltered) R.string.audit_empty_filtered else R.string.audit_empty),
+            modifier = Modifier.padding(24.dp),
+        )
     }
 }
 
