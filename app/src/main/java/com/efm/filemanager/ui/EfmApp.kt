@@ -139,7 +139,10 @@ private fun NavGraphBuilder.efmModalDestinations(navController: NavHostControlle
 }
 
 @Composable
-private fun EfmSearchDestination(navController: NavHostController, entry: NavBackStackEntry) {
+private fun EfmSearchDestination(
+    navController: NavHostController,
+    entry: NavBackStackEntry,
+) {
     // Browse is the graph's start destination, so its back stack entry (and this shared
     // ViewModel instance) outlives navigating here and back -- letting a tapped search result
     // jump straight into Browse's own navigation state instead of duplicating
