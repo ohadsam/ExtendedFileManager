@@ -9,17 +9,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,11 +49,12 @@ import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.QuerySpec
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.domain.query.groupResult
+import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
 import com.efm.filemanager.ui.components.FileEntryActions
 import com.efm.filemanager.ui.components.GroupedFileList
+import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
-import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
@@ -57,6 +66,7 @@ private class SearchUiFlags {
     var tagPickerVisible by mutableStateOf(false)
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
+    var addToVaultConfirmVisible by mutableStateOf(false)
 }
 
 @Composable
@@ -71,6 +81,9 @@ fun SearchScreen(
     val groups = remember(uiState.results, uiState.querySpec) { uiState.querySpec.groupResult(uiState.results) }
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val flags = remember { SearchUiFlags() }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    SearchSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
     Scaffold(
         topBar = {
@@ -86,6 +99,7 @@ fun SearchScreen(
                 SearchSelectionBar(selectedUris = selectedUris, uiState = uiState, viewModel = viewModel, flags = flags)
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         SearchBody(
             modifier = Modifier.padding(innerPadding),
@@ -106,6 +120,31 @@ fun SearchScreen(
 }
 
 @Composable
+private fun SearchSnackbarEffect(
+    viewModel: SearchViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    val operationFailedMessage = stringResource(R.string.operation_failed)
+    val unlockLabel = stringResource(R.string.file_details_lock)
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is SearchEvent.AddToVaultBlockedByLock -> {
+                    val message = context.getString(R.string.add_to_vault_blocked_by_lock, event.lockedEntries.size)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
+                    }
+                }
+                SearchEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+            }
+        }
+    }
+}
+
+@Composable
 private fun SearchSelectionBar(
     selectedUris: SnapshotStateList<Uri>,
     uiState: SearchUiState,
@@ -118,6 +157,7 @@ private fun SearchSelectionBar(
     SearchSelectionTopBar(
         count = selectedUris.size,
         onClose = { selectedUris.clear() },
+        onAddToVault = { flags.addToVaultConfirmVisible = true },
         actions =
             MetadataQuickActions(
                 onAddTag = { flags.tagPickerVisible = true },
@@ -182,6 +222,33 @@ private fun SearchDialogsSection(
             onDismiss = { flags.collectionPickerVisible = false },
         )
     }
+
+    if (flags.addToVaultConfirmVisible) {
+        SearchAddToVaultConfirmDialog(
+            entries = selectedEntries,
+            onConfirm = {
+                viewModel.addToVault(selectedEntries)
+                selectedUris.clear()
+                flags.addToVaultConfirmVisible = false
+            },
+            onDismiss = { flags.addToVaultConfirmVisible = false },
+        )
+    }
+}
+
+@Composable
+private fun SearchAddToVaultConfirmDialog(
+    entries: List<FileEntry>,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ConfirmDangerousActionDialog(
+        title = stringResource(R.string.add_to_vault_confirm_title),
+        message = stringResource(R.string.add_to_vault_confirm_message, entries.size),
+        confirmLabel = stringResource(R.string.add_to_vault_confirm_button),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 private fun onSearchResultTapped(
@@ -264,6 +331,7 @@ private fun SearchTopBar(
 private fun SearchSelectionTopBar(
     count: Int,
     onClose: () -> Unit,
+    onAddToVault: () -> Unit,
     actions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -279,14 +347,58 @@ private fun SearchSelectionTopBar(
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
                 }
-                MetadataQuickActionsMenu(
+                SearchOverflowMenu(
                     expanded = menuExpanded,
                     onDismiss = { menuExpanded = false },
-                    actions = actions,
+                    quickActions = actions,
+                    onAddToVault = onAddToVault,
                 )
             }
         },
     )
+}
+
+@Composable
+private fun SearchOverflowMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    quickActions: MetadataQuickActions,
+    onAddToVault: () -> Unit,
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        val onShowDetails = quickActions.onShowDetails
+        if (onShowDetails != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.file_details_title)) },
+                leadingIcon = { Icon(Icons.Filled.Info, contentDescription = null) },
+                onClick = {
+                    onDismiss()
+                    onShowDetails()
+                },
+            )
+        }
+        MetadataMenuItems(
+            onAddTag = {
+                onDismiss()
+                quickActions.onAddTag()
+            },
+            onToggleFavorite = {
+                onDismiss()
+                quickActions.onToggleFavorite()
+            },
+            onToggleLock = {
+                onDismiss()
+                quickActions.onToggleLock()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_add_to_vault)) },
+            onClick = {
+                onDismiss()
+                onAddToVault()
+            },
+        )
+    }
 }
 
 @Composable
