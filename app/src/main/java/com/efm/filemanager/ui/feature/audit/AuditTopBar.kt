@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,11 +21,15 @@ import com.efm.filemanager.R
 internal data class AuditTopBarState(
     val hasEntries: Boolean,
     val filter: AuditFilter,
+    val isSearchActive: Boolean,
+    val searchQuery: String,
 )
 
 internal data class AuditTopBarActions(
     val onOpenDrawer: () -> Unit,
     val onSelectFilter: (AuditFilter) -> Unit,
+    val onToggleSearch: () -> Unit,
+    val onSearchQueryChange: (String) -> Unit,
 )
 
 @Composable
@@ -37,7 +43,18 @@ internal fun AuditTopBar(
                 Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
             }
         },
-        title = { Text(stringResource(R.string.nav_audit)) },
+        title = {
+            if (state.isSearchActive) {
+                TextField(
+                    value = state.searchQuery,
+                    onValueChange = actions.onSearchQueryChange,
+                    placeholder = { Text(stringResource(R.string.search_hint)) },
+                    singleLine = true,
+                )
+            } else {
+                Text(stringResource(R.string.nav_audit))
+            }
+        },
         actions = { if (state.hasEntries) AuditTopBarEntryActions(state, actions) },
     )
 }
@@ -48,6 +65,12 @@ private fun AuditTopBarEntryActions(
     actions: AuditTopBarActions,
 ) {
     var filterMenuExpanded by remember { mutableStateOf(false) }
+    IconButton(onClick = actions.onToggleSearch) {
+        Icon(
+            Icons.Filled.Search,
+            contentDescription = stringResource(if (state.isSearchActive) R.string.close else R.string.search_icon),
+        )
+    }
     Box {
         IconButton(onClick = { filterMenuExpanded = true }) {
             Icon(Icons.Filled.FilterList, contentDescription = stringResource(R.string.audit_filter_menu))

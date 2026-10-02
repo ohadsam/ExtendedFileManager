@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.16.2 (2026-10-02)
+
+- Phase 13 — The Audit log screen can now be searched by file name:
+  a new search icon in its top bar toggles the title into a free-text
+  field, filtering the list (combined with the failed-only filter, if
+  also active) as you type. Export is the only piece of this phase
+  still to come.
+
 ## v0.16.1 (2026-10-02)
 
 - Phase 13 — The Audit log screen can now be filtered to show only

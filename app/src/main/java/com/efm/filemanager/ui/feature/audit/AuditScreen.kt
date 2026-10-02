@@ -11,6 +11,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,16 +32,29 @@ fun AuditScreen(
     val entries by viewModel.entries.collectAsStateWithLifecycle()
     val hasEntries by viewModel.hasEntries.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val tamperedEntry by viewModel.tamperedEntry.collectAsStateWithLifecycle()
+    var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             AuditTopBar(
-                state = AuditTopBarState(hasEntries = hasEntries, filter = filter),
+                state =
+                    AuditTopBarState(
+                        hasEntries = hasEntries,
+                        filter = filter,
+                        isSearchActive = isSearchActive,
+                        searchQuery = searchQuery,
+                    ),
                 actions =
                     AuditTopBarActions(
                         onOpenDrawer = onOpenDrawer,
                         onSelectFilter = viewModel::setFilter,
+                        onToggleSearch = {
+                            isSearchActive = !isSearchActive
+                            if (!isSearchActive) viewModel.setSearchQuery("")
+                        },
+                        onSearchQueryChange = viewModel::setSearchQuery,
                     ),
             )
         },
@@ -48,7 +64,8 @@ fun AuditScreen(
                 AuditTamperWarning()
             }
             if (entries.isEmpty()) {
-                AuditEmptyState(isFiltered = filter != AuditFilter.ALL, modifier = Modifier.fillMaxWidth())
+                val isFiltered = filter != AuditFilter.ALL || searchQuery.isNotBlank()
+                AuditEmptyState(isFiltered = isFiltered, modifier = Modifier.fillMaxWidth())
             } else {
                 LazyColumn {
                     items(entries, key = { it.id }) { entry -> AuditEntryRow(entry) }

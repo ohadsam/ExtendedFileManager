@@ -26,10 +26,13 @@ class AuditViewModel
         private val allEntries = auditRepository.observeAll()
         private val _filter = MutableStateFlow(AuditFilter.ALL)
         val filter: StateFlow<AuditFilter> = _filter.asStateFlow()
+        private val _searchQuery = MutableStateFlow("")
+        val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
         val entries: StateFlow<List<AuditEventEntity>> =
-            combine(allEntries, _filter) { all, filter ->
-                if (filter == AuditFilter.FAILED_ONLY) all.filter { !it.success } else all
+            combine(allEntries, _filter, _searchQuery) { all, filter, query ->
+                val byFilter = if (filter == AuditFilter.FAILED_ONLY) all.filter { !it.success } else all
+                if (query.isBlank()) byFilter else byFilter.filter { it.targetName.contains(query, ignoreCase = true) }
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         /** Independent of [filter], so the filter menu doesn't disappear just because it happens to match nothing right now. */
@@ -44,5 +47,9 @@ class AuditViewModel
 
         fun setFilter(filter: AuditFilter) {
             _filter.value = filter
+        }
+
+        fun setSearchQuery(query: String) {
+            _searchQuery.value = query
         }
     }
