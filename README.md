@@ -47,7 +47,8 @@ crash-readability baseline rule -- CI's real `assembleRelease` shrinks and obfus
 zero missing-class warnings. Phase 12 (logs) is now in progress: a new Logs screen (its own
 drawer entry, also reachable from Settings) shows the app's diagnostic log, newest first --
 `Timber` now backs onto a Room-backed store instead of just Logcat, starting with every failed
-file operation. See `docs/PLAN.md` for the full phase list.
+file operation -- entries older than 7 days are purged automatically in the background, and a
+"Clear logs" action empties it on demand. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

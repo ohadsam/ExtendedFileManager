@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.15.1 (2026-10-02)
+
+- Phase 12 — Logs also gained a weekly auto-purge (entries older than 7
+  days are removed automatically in the background, keeping the log from
+  growing unbounded) and a "Clear logs" action in the Logs screen's top
+  bar, with the same "are you sure" confirmation every other destructive
+  action in the app uses. Filtering and export are still to come.
+
 ## v0.15.0 (2026-10-02)
 
 - Phase 12 — Logs: a new Logs screen (its own drawer entry, and also

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,6 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +37,7 @@ fun LogsScreen(
     viewModel: LogsViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.entries.collectAsStateWithLifecycle()
+    var showClearConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -43,6 +48,13 @@ fun LogsScreen(
                     }
                 },
                 title = { Text(stringResource(R.string.nav_logs)) },
+                actions = {
+                    if (entries.isNotEmpty()) {
+                        IconButton(onClick = { showClearConfirm = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.logs_clear_action))
+                        }
+                    }
+                },
             )
         },
     ) { innerPadding ->
@@ -53,6 +65,16 @@ fun LogsScreen(
                 items(entries, key = { it.id }) { entry -> LogEntryRow(entry) }
             }
         }
+    }
+
+    if (showClearConfirm) {
+        LogsClearConfirmDialog(
+            onConfirm = {
+                viewModel.clearAll()
+                showClearConfirm = false
+            },
+            onDismiss = { showClearConfirm = false },
+        )
     }
 }
 
