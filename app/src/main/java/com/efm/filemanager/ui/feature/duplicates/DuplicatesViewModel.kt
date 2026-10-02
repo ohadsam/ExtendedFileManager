@@ -6,6 +6,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.efm.filemanager.data.documenttree.LockedFileException
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.duplicates.DuplicateScanWorker
 import com.efm.filemanager.data.duplicates.SCAN_WORK_NAME
@@ -13,14 +14,18 @@ import com.efm.filemanager.data.duplicates.ScanProgress
 import com.efm.filemanager.data.duplicates.toScanProgress
 import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
+import com.efm.filemanager.data.vault.VaultRepository
 import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
 import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -29,15 +34,25 @@ import javax.inject.Inject
 
 private const val STOP_TIMEOUT_MS = 5_000L
 
+sealed interface DuplicatesEvent {
+    data class AddToVaultBlockedByLock(val lockedEntries: List<FileEntry>) : DuplicatesEvent
+
+    data object OperationFailed : DuplicatesEvent
+}
+
 @HiltViewModel
 class DuplicatesViewModel
     @Inject
     constructor(
         private val workManager: WorkManager,
         private val duplicateScanRepository: DuplicateScanRepository,
+        private val vaultRepository: VaultRepository,
         private val previewSessionHolder: PreviewSessionHolder,
         private val screenMetadataSupport: ScreenMetadataSupport,
     ) : ViewModel() {
+        private val _events = MutableSharedFlow<DuplicatesEvent>()
+        val events: SharedFlow<DuplicatesEvent> = _events.asSharedFlow()
+
         val uiState: StateFlow<DuplicatesUiState> =
             combine(
                 workManager.getWorkInfosForUniqueWorkFlow(SCAN_WORK_NAME).map { infos -> infos.toRunState() },
@@ -69,6 +84,16 @@ class DuplicatesViewModel
         fun deleteEntries(entries: List<FileEntry>) {
             viewModelScope.launch {
                 entries.forEach { entry -> duplicateScanRepository.deleteFile(entry) }
+            }
+        }
+
+        fun addToVault(entries: List<FileEntry>) {
+            viewModelScope.launch {
+                val results = entries.associateWith { entry -> vaultRepository.addToVault(entry) }
+                val lockedEntries = results.filterValues { it.exceptionOrNull() is LockedFileException }.keys.toList()
+                val otherFailureCount = entries.size - results.count { it.value.isSuccess } - lockedEntries.size
+                if (lockedEntries.isNotEmpty()) _events.emit(DuplicatesEvent.AddToVaultBlockedByLock(lockedEntries))
+                if (otherFailureCount > 0) _events.emit(DuplicatesEvent.OperationFailed)
             }
         }
 

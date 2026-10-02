@@ -12,15 +12,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,8 +52,8 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
+import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
-import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
@@ -53,6 +61,7 @@ import kotlinx.coroutines.launch
 /** [DuplicatesScreen]'s own transient UI state -- kept off its composable's stack to keep the function short. */
 private class DuplicatesUiFlags {
     var showDeleteConfirm by mutableStateOf(false)
+    var showAddToVaultConfirm by mutableStateOf(false)
     var tagPickerVisible by mutableStateOf(false)
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
@@ -69,6 +78,9 @@ fun DuplicatesScreen(
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val flags = remember { DuplicatesUiFlags() }
     val selectedEntries = uiState.groups.flatMap { it.files }.filter { selectedUris.contains(it.uri) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    DuplicatesSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
     Scaffold(
         topBar = {
@@ -79,6 +91,7 @@ fun DuplicatesScreen(
                 onCancel = viewModel::cancelScan,
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             DuplicatesFab(selectedEntries = selectedEntries, viewModel = viewModel, flags = flags)
         },
@@ -104,6 +117,31 @@ fun DuplicatesScreen(
 }
 
 @Composable
+private fun DuplicatesSnackbarEffect(
+    viewModel: DuplicatesViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    val operationFailedMessage = stringResource(R.string.operation_failed)
+    val unlockLabel = stringResource(R.string.file_details_lock)
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is DuplicatesEvent.AddToVaultBlockedByLock -> {
+                    val message = context.getString(R.string.add_to_vault_blocked_by_lock, event.lockedEntries.size)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
+                    }
+                }
+                DuplicatesEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+            }
+        }
+    }
+}
+
+@Composable
 private fun DuplicatesDialogsSection(
     flags: DuplicatesUiFlags,
     selectedEntries: List<FileEntry>,
@@ -123,6 +161,18 @@ private fun DuplicatesDialogsSection(
                 flags.showDeleteConfirm = false
             },
             onDismiss = { flags.showDeleteConfirm = false },
+        )
+    }
+
+    if (flags.showAddToVaultConfirm) {
+        DuplicatesAddToVaultConfirmDialog(
+            entries = selectedEntries,
+            onConfirm = {
+                viewModel.addToVault(selectedEntries)
+                selectedUris.removeAll(selectedEntries.map { it.uri })
+                flags.showAddToVaultConfirm = false
+            },
+            onDismiss = { flags.showAddToVaultConfirm = false },
         )
     }
 
@@ -183,6 +233,7 @@ private fun DuplicatesFab(
     val scope = rememberCoroutineScope()
     DuplicatesSelectionFabs(
         onDeleteClick = { flags.showDeleteConfirm = true },
+        onAddToVaultClick = { flags.showAddToVaultConfirm = true },
         quickActions =
             MetadataQuickActions(
                 onAddTag = { flags.tagPickerVisible = true },
@@ -226,6 +277,7 @@ private fun DuplicatesTagPickerSheet(
 @Composable
 private fun DuplicatesSelectionFabs(
     onDeleteClick: () -> Unit,
+    onAddToVaultClick: () -> Unit,
     quickActions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -234,16 +286,60 @@ private fun DuplicatesSelectionFabs(
             FloatingActionButton(onClick = { menuExpanded = true }) {
                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
             }
-            MetadataQuickActionsMenu(
+            DuplicatesOverflowMenu(
                 expanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
-                actions = quickActions,
+                quickActions = quickActions,
+                onAddToVault = onAddToVaultClick,
             )
         }
         ExtendedFloatingActionButton(
             onClick = onDeleteClick,
             icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
             text = { Text(stringResource(R.string.action_delete)) },
+        )
+    }
+}
+
+@Composable
+private fun DuplicatesOverflowMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    quickActions: MetadataQuickActions,
+    onAddToVault: () -> Unit,
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        val onShowDetails = quickActions.onShowDetails
+        if (onShowDetails != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.file_details_title)) },
+                leadingIcon = { Icon(Icons.Filled.Info, contentDescription = null) },
+                onClick = {
+                    onDismiss()
+                    onShowDetails()
+                },
+            )
+        }
+        MetadataMenuItems(
+            onAddTag = {
+                onDismiss()
+                quickActions.onAddTag()
+            },
+            onToggleFavorite = {
+                onDismiss()
+                quickActions.onToggleFavorite()
+            },
+            onToggleLock = {
+                onDismiss()
+                quickActions.onToggleLock()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_add_to_vault)) },
+            onClick = {
+                onDismiss()
+                onAddToVault()
+            },
         )
     }
 }
@@ -258,6 +354,21 @@ private fun DuplicateDeleteConfirmDialog(
         title = stringResource(R.string.delete_confirm_title),
         message = stringResource(R.string.delete_confirm_message, entries.size),
         confirmLabel = stringResource(R.string.delete_confirm_button),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun DuplicatesAddToVaultConfirmDialog(
+    entries: List<FileEntry>,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ConfirmDangerousActionDialog(
+        title = stringResource(R.string.add_to_vault_confirm_title),
+        message = stringResource(R.string.add_to_vault_confirm_message, entries.size),
+        confirmLabel = stringResource(R.string.add_to_vault_confirm_button),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
     )

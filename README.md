@@ -32,9 +32,10 @@ actual release, and CI submits the project's dependencies to GitHub's Dependency
 push, turning on Dependabot vulnerability alerts (once enabled for this repo under Settings → Code
 security -- a one-time manual step, same kind of gap as Phase 10's Play Console declaration). A new
 password-and-biometric-gated, Keystore-encrypted Vault (its own drawer entry) is also live --
-"Add to Vault" from Browse's selection menu moves a file in, encrypted at rest, until you export
-it back out (to any folder you choose) or remove it for good. Adding to the vault from screens
-besides Browse is still to come. See `docs/PLAN.md` for the full phase list.
+"Add to Vault" from Browse's or Duplicates' selection menu moves a file in, encrypted at rest,
+until you export it back out (to any folder you choose) or remove it for good. Adding to the
+vault from Search, Favorites, or Preview is still to come. See `docs/PLAN.md` for the full phase
+list.
 
 ## Building
 
