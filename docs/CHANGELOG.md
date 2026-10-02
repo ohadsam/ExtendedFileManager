@@ -7,22 +7,21 @@
   this was a version audit instead): `androidx.security:security-crypto`
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
   guarding the Vault itself -- alongside `room`, `media3`, `work`,
-  `datastore-preferences`, `appcompat`, `hilt` (capped at `2.58`, the last
-  release before Hilt's Gradle plugin started requiring AGP 9), and
-  `mockk`. `kotlinx.coroutines` turned out to have the same problem as
-  Hilt one layer down -- its newest release is compiled with Kotlin 2.2
-  metadata, which this project's Kotlin 2.0.21 compiler can't read -- so
-  it stayed on its prior version too, joining Kotlin's own follow-up
-  slice. The new `media3` needed `compileSdk`
-  36, past what this project's `compileSdk = 35`/AGP 8.7.2 could reach, so
-  both went up too -- AGP to `8.9.1` (the minimum that supports it,
-  confirmed from CI's own error message) and `compileSdk` to `36` -- a
-  small, bounded step inside AGP's 8.x line, not the AGP 9 jump. `core-ktx`,
-  `lifecycle`, `navigation-compose`, and the Compose BOM hit the same wall
-  one rung higher still -- their newest releases want `compileSdk` 37,
-  which needs AGP 9.1+ specifically -- so those four stayed on their prior
-  versions, grouped with Kotlin and the AGP 9 jump itself for a separate
-  follow-up slice.
+  `datastore-preferences`, `appcompat`, and `mockk`. `hilt` stayed on its
+  original `2.52`: 2.59+ needs AGP 9 outright, and 2.57+ (so `2.58` too)
+  bundles a `kotlinx-metadata-jvm` upgrade that pulls `kotlin-stdlib` 2.2.x
+  into the compiler classpath -- unreadable by this project's Kotlin 2.0.21
+  -- so it joins Kotlin's own follow-up slice rather than landing
+  half-bumped. The new `media3` needed `compileSdk` 36, past what this
+  project's `compileSdk = 35`/AGP 8.7.2 could reach, so both went up too --
+  AGP to `8.9.1` (the minimum that supports it, confirmed from CI's own
+  error message) and `compileSdk` to `36` -- a small, bounded step inside
+  AGP's 8.x line, not the AGP 9 jump. `core-ktx`, `lifecycle`,
+  `navigation-compose`, and the Compose BOM hit the same wall one rung
+  higher still -- their newest releases want `compileSdk` 37, which needs
+  AGP 9.1+ specifically -- so those four stayed on their prior versions,
+  grouped with Kotlin and the AGP 9 jump itself for a separate follow-up
+  slice.
 
 ## v0.14.5 (2026-10-02)
 
