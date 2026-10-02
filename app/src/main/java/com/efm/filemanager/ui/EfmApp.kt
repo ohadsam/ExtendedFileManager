@@ -24,6 +24,7 @@ import com.efm.filemanager.ui.feature.browse.BrowseViewModel
 import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
 import com.efm.filemanager.ui.feature.favorites.FavoritesScreen
 import com.efm.filemanager.ui.feature.help.HelpScreen
+import com.efm.filemanager.ui.feature.logs.LogsScreen
 import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
@@ -115,9 +116,13 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Vault.route) {
         VaultScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
     }
+    composable(EfmDestination.Logs.route) {
+        LogsScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
+    }
     composable(EfmDestination.Settings.route) {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
+            onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
             onOpenHelp = { navController.navigate(HELP_ROUTE) },
         )
     }

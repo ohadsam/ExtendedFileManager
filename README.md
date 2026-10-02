@@ -44,7 +44,10 @@ with Kotlin and the AGP 9 jump itself for a separate follow-up slice, since a ju
 be pre-verified without a local build; that slice is tracked on its own and doesn't block Phase 11
 itself, which closes out with ProGuard reviewed and found to need nothing beyond its existing
 crash-readability baseline rule -- CI's real `assembleRelease` shrinks and obfuscates clean with
-zero missing-class warnings. See `docs/PLAN.md` for the full phase list.
+zero missing-class warnings. Phase 12 (logs) is now in progress: a new Logs screen (its own
+drawer entry, also reachable from Settings) shows the app's diagnostic log, newest first --
+`Timber` now backs onto a Room-backed store instead of just Logcat, starting with every failed
+file operation. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

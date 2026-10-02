@@ -101,8 +101,10 @@
     <string name="view_mode_detailed">מפורט</string>
     <string name="view_mode_grid">רשת</string>
 
+    <string name="nav_logs">יומנים</string>
     <string name="logs_section">יומנים</string>
-    <string name="logs_coming_soon">צופה היומנים יגיע בקרוב</string>
+    <string name="logs_subtitle">הצגת יומן האבחון של האפליקציה</string>
+    <string name="logs_empty">אין עדיין רשומות יומן</string>
 
     <string name="help_section">מדריך למשתמש</string>
     <string name="help_user_guide">למד מה מנהל הקבצים המתקדם יכול לעשות</string>

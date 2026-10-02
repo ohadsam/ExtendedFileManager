@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.15.0 (2026-10-02)
+
+- Phase 12 — Logs: a new Logs screen (its own drawer entry, and also
+  reachable from Settings) shows the app's diagnostic log, newest first --
+  every entry `Timber` writes anywhere in the app, starting with every
+  failed file operation. Still to come: filtering, export, a "clear now"
+  action, and the weekly auto-purge worker.
+
 ## v0.14.7 (2026-10-02)
 
 - Phase 11 (fifth slice, and the phase's last) — reviewed ProGuard rules

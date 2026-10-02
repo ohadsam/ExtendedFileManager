@@ -43,6 +43,7 @@ import com.efm.filemanager.ui.components.labelRes
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onOpenLogs: () -> Unit,
     onOpenHelp: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -62,7 +63,13 @@ fun SettingsScreen(
             )
         },
     ) { innerPadding ->
-        SettingsBody(modifier = Modifier.padding(innerPadding), uiState = uiState, viewModel = viewModel, onOpenHelp = onOpenHelp)
+        SettingsBody(
+            modifier = Modifier.padding(innerPadding),
+            uiState = uiState,
+            viewModel = viewModel,
+            onOpenLogs = onOpenLogs,
+            onOpenHelp = onOpenHelp,
+        )
     }
 }
 
@@ -71,6 +78,7 @@ private fun SettingsBody(
     modifier: Modifier,
     uiState: SettingsUiState,
     viewModel: SettingsViewModel,
+    onOpenLogs: () -> Unit,
     onOpenHelp: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -103,10 +111,7 @@ private fun SettingsBody(
             onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
         )
         HorizontalDivider()
-        StubSection(
-            title = stringResource(R.string.logs_section),
-            subtitle = stringResource(R.string.logs_coming_soon),
-        )
+        LogsSection(onOpenLogs = onOpenLogs)
         HorizontalDivider()
         HelpSection(onOpenHelp = onOpenHelp)
     }
@@ -297,13 +302,20 @@ private fun PermissionsSection(
 }
 
 @Composable
-private fun StubSection(
-    title: String,
-    subtitle: String,
-) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun LogsSection(onOpenLogs: () -> Unit) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenLogs)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(stringResource(R.string.logs_section), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.logs_subtitle),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

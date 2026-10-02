@@ -101,8 +101,10 @@
     <string name="view_mode_detailed">Detailed</string>
     <string name="view_mode_grid">Grid</string>
 
+    <string name="nav_logs">Logs</string>
     <string name="logs_section">Logs</string>
-    <string name="logs_coming_soon">The log viewer is coming soon</string>
+    <string name="logs_subtitle">View the app\'s diagnostic log</string>
+    <string name="logs_empty">No log entries yet</string>
 
     <string name="help_section">User guide</string>
     <string name="help_user_guide">Learn what Extended File Manager can do</string>
