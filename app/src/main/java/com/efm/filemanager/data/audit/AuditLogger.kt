@@ -15,14 +15,20 @@ class AuditLogger
             success: Boolean,
             detail: String? = null,
         ) {
+            val timestamp = System.currentTimeMillis()
+            val previousHash = auditEventDao.getLastHash()
+            val content = AuditEventContent(timestamp, action.name, targetName, targetUri.toString(), detail, success)
+            val hash = AuditHashChain.computeHash(previousHash, content)
             auditEventDao.insert(
                 AuditEventEntity(
-                    timestamp = System.currentTimeMillis(),
+                    timestamp = timestamp,
                     action = action.name,
                     targetName = targetName,
                     targetUri = targetUri.toString(),
                     detail = detail,
                     success = success,
+                    previousHash = previousHash,
+                    hash = hash,
                 ),
             )
         }
