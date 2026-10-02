@@ -55,8 +55,9 @@ class LogsViewModel
 
 private fun buildExportText(entries: List<LogEntryEntity>): String =
     entries.joinToString(separator = "\n") { entry ->
-        val header = "${formatLogTimestamp(entry.timestamp)} ${logPriorityLabel(entry.priority)}" +
-            (entry.tag?.let { " $it" } ?: "")
+        val header =
+            "${formatLogTimestamp(entry.timestamp)} ${logPriorityLabel(entry.priority)}" +
+                (entry.tag?.let { " $it" } ?: "")
         val stackTrace = entry.stackTrace?.let { "\n$it" } ?: ""
         "$header: ${entry.message}$stackTrace"
     }
