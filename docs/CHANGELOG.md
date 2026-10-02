@@ -7,19 +7,22 @@
   this was a version audit instead): `androidx.security:security-crypto`
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
   guarding the Vault itself -- alongside `room`, `work`,
-  `datastore-preferences`, `appcompat`, and `mockk`. Three more turned out
-  to each need a newer Kotlin than this project's 2.0.21 compiler can read
-  (their binaries carry 2.2.x metadata) and stayed one notch below their
-  very latest: `media3` at `1.10.1` rather than `1.11.1`, which upgraded
-  its internal Kotlin to 2.2.0; `hilt` stayed on its original `2.52`
-  outright, since 2.57+ bundles the same kind of Kotlin-2.2 upgrade in its
-  `kotlinx-metadata-jvm` dependency and 2.59+ needs AGP 9 besides;
-  `core-ktx`, `lifecycle`, `navigation-compose`, and the Compose BOM hit a
-  different wall at their latest -- wanting `compileSdk` 37, which needs
-  AGP 9.1+ -- so those stayed down too. All of it (Kotlin, Hilt 2.57+,
-  Media3 1.11+, the Compose-ecosystem four, and AGP 9 itself) is grouped
-  into one follow-up slice, since bumping any of them for real means
-  bumping Kotlin first.
+  `datastore-preferences`, `appcompat`, and `mockk`. `media3` landed at
+  `1.10.1` rather than its very latest `1.11.1`, for two independent
+  reasons: even `1.10.1` already needs `compileSdk` 36 (past what this
+  project's `compileSdk = 35`/AGP 8.7.2 could reach, so both went up too --
+  AGP to `8.9.1`, the minimum that supports it, and `compileSdk` to `36`,
+  a small, bounded step confirmed by CI's own error message, not AGP 9),
+  and `1.11.0` on top of that upgraded media3's own internal Kotlin to
+  2.2.0, unreadable by this project's Kotlin 2.0.21 compiler. `hilt`
+  stayed on its original `2.52` outright for the same Kotlin reason --
+  2.57+ bundles a `kotlinx-metadata-jvm` upgrade with the same 2.2.x
+  metadata problem, and 2.59+ needs AGP 9 besides. `core-ktx`, `lifecycle`,
+  `navigation-compose`, and the Compose BOM hit a wall one rung higher
+  still -- wanting `compileSdk` 37, which needs AGP 9.1+ specifically --
+  so those four stayed down too. All of it (Kotlin itself, Hilt 2.57+,
+  Media3 1.11+, the Compose-ecosystem four, and AGP 9) is one follow-up
+  slice, since bumping any of them for real starts with bumping Kotlin.
 
 ## v0.14.5 (2026-10-02)
 
