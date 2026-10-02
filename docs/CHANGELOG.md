@@ -6,12 +6,15 @@
   flagged for this repo (no tool in this sandbox can list them directly, so
   this was a version audit instead): `androidx.security:security-crypto`
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
-  guarding the Vault itself -- alongside `core-ktx`, `lifecycle`, `room`,
-  `media3`, `work`, `navigation-compose`, `datastore-preferences`,
-  `appcompat`, `hilt`, `kotlinx.coroutines`, `mockk`, and the Compose BOM,
-  all bumped to their current stable releases. Kotlin and AGP are left for
-  a smaller follow-up slice, since a large jump on either can't be
-  pre-verified without a local build.
+  guarding the Vault itself -- alongside `room`, `media3`, `work`,
+  `datastore-preferences`, `appcompat`, `hilt` (capped at `2.58`, the last
+  release before Hilt's Gradle plugin started requiring AGP 9),
+  `kotlinx.coroutines`, and `mockk`. `core-ktx`, `lifecycle`,
+  `navigation-compose`, and the Compose BOM turned out to have the same
+  problem one level down -- CI's Android Lint caught their newest releases
+  requiring `compileSdk` 36/37, which AGP 8.7.2 can't even target -- so
+  those four stayed on their prior versions too, grouped with Kotlin and
+  AGP for the same follow-up slice.
 
 ## v0.14.5 (2026-10-02)
 
