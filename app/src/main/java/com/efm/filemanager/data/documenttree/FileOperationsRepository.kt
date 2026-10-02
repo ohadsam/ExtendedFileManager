@@ -14,6 +14,7 @@ import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val FILE_MIME_TYPE = "application/octet-stream"
@@ -26,7 +27,8 @@ private const val FILE_MIME_TYPE = "application/octet-stream"
  * just-deleted item can be undone, rather than being removed outright. [delete] refuses
  * (not just warns about) a locked item -- see docs/PLAN.md Phase 9 -- which also covers
  * Phase 4's Extract & Replace and Phase 6's duplicate-delete, since both route through
- * this same [delete].
+ * this same [delete]. A failure also goes to `Timber` (Phase 12's diagnostic log), since
+ * the audit entry alone doesn't carry a stack trace.
  */
 class FileOperationsRepository
     @Inject
@@ -160,6 +162,7 @@ class FileOperationsRepository
                 .onSuccess { auditLogger.log(action, targetName, targetUri, success = true, detail = detail) }
                 .onFailure {
                     auditLogger.log(action, targetName, targetUri, success = false, detail = it.message ?: detail)
+                    Timber.e(it, "%s failed for %s", action.name, targetName)
                 }
     }
 
