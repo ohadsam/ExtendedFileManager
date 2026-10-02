@@ -21,7 +21,9 @@ class RoomLogTree
     ) : Timber.Tree() {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-        override fun isLoggable(
+        // Widened to public (Timber's own isLoggable is protected) so RoomLogTreeTest can
+        // exercise the filtering rule directly instead of only through planted-Tree behavior.
+        public override fun isLoggable(
             tag: String?,
             priority: Int,
         ): Boolean = priority >= Log.INFO
