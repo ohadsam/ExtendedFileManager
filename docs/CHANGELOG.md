@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.14.3 (2026-10-02)
+
+- "Add to Vault" is now in Favorites too, from each entry's "⋮" menu
+  (Favorites has no multi-select, so this adds one file at a time,
+  same as every other per-entry action there). A locked file still
+  can't be added -- the snackbar that tells you so now offers
+  "Details" as its action, opening the same sheet where you'd unlock
+  it. Search and Preview are the only screens left to reach.
+
 ## v0.14.2 (2026-10-02)
 
 - "Add to Vault" is no longer Browse-only: it's now in the Duplicates
