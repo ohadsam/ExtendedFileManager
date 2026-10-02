@@ -23,6 +23,12 @@
   so those four stayed down too. All of it (Kotlin itself, Hilt 2.57+,
   Media3 1.11+, the Compose-ecosystem four, and AGP 9) is one follow-up
   slice, since bumping any of them for real starts with bumping Kotlin.
+  The AGP 8.9.1 bump brought a newer Android Lint with it, which caught a
+  real, pre-existing issue in `EfmApp.kt`'s `EfmSearchDestination`: its
+  `getBackStackEntry` call was `remember`ed keyed on the `NavController`
+  itself rather than on a `NavBackStackEntry`, exactly what
+  `UnrememberedGetBackStackEntry` exists to catch -- fixed by keying it on
+  the search route's own back stack entry instead.
 
 ## v0.14.5 (2026-10-02)
 

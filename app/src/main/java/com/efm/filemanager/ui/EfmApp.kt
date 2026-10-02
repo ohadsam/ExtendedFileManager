@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -126,8 +127,8 @@ private fun NavGraphBuilder.efmModalDestinations(navController: NavHostControlle
     composable(HELP_ROUTE) {
         HelpScreen(onNavigateBack = { navController.popBackStack() })
     }
-    composable(SEARCH_ROUTE) {
-        EfmSearchDestination(navController)
+    composable(SEARCH_ROUTE) { entry ->
+        EfmSearchDestination(navController, entry)
     }
     composable(PREVIEW_ROUTE) {
         PreviewScreen(onNavigateBack = { navController.popBackStack() }, onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) })
@@ -138,12 +139,12 @@ private fun NavGraphBuilder.efmModalDestinations(navController: NavHostControlle
 }
 
 @Composable
-private fun EfmSearchDestination(navController: NavHostController) {
+private fun EfmSearchDestination(navController: NavHostController, entry: NavBackStackEntry) {
     // Browse is the graph's start destination, so its back stack entry (and this shared
     // ViewModel instance) outlives navigating here and back -- letting a tapped search result
     // jump straight into Browse's own navigation state instead of duplicating
     // breadcrumb-rebuilding logic in a second ViewModel.
-    val browseEntry = remember(navController) { navController.getBackStackEntry(EfmDestination.Browse.route) }
+    val browseEntry = remember(entry) { navController.getBackStackEntry(EfmDestination.Browse.route) }
     val browseViewModel: BrowseViewModel = hiltViewModel(browseEntry)
     SearchScreen(
         onNavigateBack = { navController.popBackStack() },
