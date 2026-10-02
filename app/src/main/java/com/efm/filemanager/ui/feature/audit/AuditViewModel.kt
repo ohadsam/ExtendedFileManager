@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.audit
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.audit.AuditEventEntity
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val STOP_TIMEOUT_MS = 5_000L
@@ -21,7 +23,7 @@ private const val STOP_TIMEOUT_MS = 5_000L
 class AuditViewModel
     @Inject
     constructor(
-        auditRepository: AuditRepository,
+        private val auditRepository: AuditRepository,
     ) : ViewModel() {
         private val allEntries = auditRepository.observeAll()
         private val _filter = MutableStateFlow(AuditFilter.ALL)
@@ -51,5 +53,13 @@ class AuditViewModel
 
         fun setSearchQuery(query: String) {
             _searchQuery.value = query
+        }
+
+        /** [text] is pre-built by the caller, which has the `Context`/`stringResource` access needed to localize action labels. */
+        fun exportTo(
+            uri: Uri,
+            text: String,
+        ) {
+            viewModelScope.launch { auditRepository.exportText(uri, text) }
         }
     }

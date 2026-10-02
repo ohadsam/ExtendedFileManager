@@ -1,5 +1,8 @@
 package com.efm.filemanager.ui.feature.audit
 
+import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,17 +28,24 @@ import com.efm.filemanager.R
 import com.efm.filemanager.data.audit.AuditAction
 import com.efm.filemanager.data.audit.AuditEventEntity
 
+private const val AUDIT_EXPORT_FILE_NAME = "efm_audit_log.txt"
+
 @Composable
 fun AuditScreen(
     onOpenDrawer: () -> Unit,
     viewModel: AuditViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val entries by viewModel.entries.collectAsStateWithLifecycle()
     val hasEntries by viewModel.hasEntries.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val tamperedEntry by viewModel.tamperedEntry.collectAsStateWithLifecycle()
     var isSearchActive by remember { mutableStateOf(false) }
+    val exportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+            if (uri != null) viewModel.exportTo(uri, buildAuditExportText(context, entries))
+        }
 
     Scaffold(
         topBar = {
@@ -55,6 +66,7 @@ fun AuditScreen(
                             if (!isSearchActive) viewModel.setSearchQuery("")
                         },
                         onSearchQueryChange = viewModel::setSearchQuery,
+                        onExportRequested = { exportLauncher.launch(AUDIT_EXPORT_FILE_NAME) },
                     ),
             )
         },
@@ -117,3 +129,15 @@ private fun AuditEntryRow(entry: AuditEventEntity) {
 
 @Composable
 private fun failedLabel(): String = stringResource(R.string.audit_failed_label)
+
+private fun buildAuditExportText(
+    context: Context,
+    entries: List<AuditEventEntity>,
+): String {
+    val failedLabel = context.getString(R.string.audit_failed_label)
+    return entries.joinToString(separator = "\n") { entry ->
+        val action = context.getString(AuditAction.valueOf(entry.action).labelRes())
+        val status = if (entry.success) "" else " ($failedLabel)"
+        "${formatAuditTimestamp(entry.timestamp)} $action$status: ${entry.targetName}"
+    }
+}

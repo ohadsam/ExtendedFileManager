@@ -2,6 +2,7 @@ package com.efm.filemanager.ui.feature.audit
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -30,6 +31,7 @@ internal data class AuditTopBarActions(
     val onSelectFilter: (AuditFilter) -> Unit,
     val onToggleSearch: () -> Unit,
     val onSearchQueryChange: (String) -> Unit,
+    val onExportRequested: () -> Unit,
 )
 
 @Composable
@@ -81,5 +83,8 @@ private fun AuditTopBarEntryActions(
             onSelect = actions.onSelectFilter,
             onDismiss = { filterMenuExpanded = false },
         )
+    }
+    IconButton(onClick = actions.onExportRequested) {
+        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.audit_export_action))
     }
 }

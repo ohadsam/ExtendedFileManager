@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.16.3 (2026-10-02)
+
+- Phase 13 — Audit trail is now complete: a new Export icon writes the
+  currently filtered/searched audit entries out as plain text via the
+  system "Save As" picker, the same export mechanism the Logs screen
+  already uses. This closes out Phase 13.
+
 ## v0.16.2 (2026-10-02)
 
 - Phase 13 — The Audit log screen can now be searched by file name:

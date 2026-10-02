@@ -16,8 +16,8 @@ android {
         applicationId = "com.efm.filemanager"
         minSdk = 26
         targetSdk = 35
-        versionCode = 34
-        versionName = "0.16.2"
+        versionCode = 35
+        versionName = "0.16.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
