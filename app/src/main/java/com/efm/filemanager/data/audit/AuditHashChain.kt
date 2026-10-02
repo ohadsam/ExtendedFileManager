@@ -2,13 +2,6 @@ package com.efm.filemanager.data.audit
 
 import java.security.MessageDigest
 
-/**
- * Pure SHA-256 hash-chaining logic for the audit trail -- each entry's hash folds in the
- * previous entry's hash, so altering or deleting any past entry breaks every hash computed
- * after it, making tampering detectable without a separate signature scheme. No Android
- * dependency, so it's unit-tested directly, the same split `PathGuard`/`VaultPasswordHashing`
- * already established for this project's security-sensitive logic.
- */
 /** Every field that feeds a hash-chained entry's own hash, besides the chain link itself -- see [AuditHashChain]. */
 data class AuditEventContent(
     val timestamp: Long,
@@ -19,6 +12,13 @@ data class AuditEventContent(
     val success: Boolean,
 )
 
+/**
+ * Pure SHA-256 hash-chaining logic for the audit trail -- each entry's hash folds in the
+ * previous entry's hash, so altering or deleting any past entry breaks every hash computed
+ * after it, making tampering detectable without a separate signature scheme. No Android
+ * dependency, so it's unit-tested directly, the same split `PathGuard`/`VaultPasswordHashing`
+ * already established for this project's security-sensitive logic.
+ */
 object AuditHashChain {
     fun computeHash(
         previousHash: String?,
