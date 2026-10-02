@@ -8,8 +8,12 @@
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
   guarding the Vault itself -- alongside `room`, `media3`, `work`,
   `datastore-preferences`, `appcompat`, `hilt` (capped at `2.58`, the last
-  release before Hilt's Gradle plugin started requiring AGP 9),
-  `kotlinx.coroutines`, and `mockk`. The new `media3` needed `compileSdk`
+  release before Hilt's Gradle plugin started requiring AGP 9), and
+  `mockk`. `kotlinx.coroutines` turned out to have the same problem as
+  Hilt one layer down -- its newest release is compiled with Kotlin 2.2
+  metadata, which this project's Kotlin 2.0.21 compiler can't read -- so
+  it stayed on its prior version too, joining Kotlin's own follow-up
+  slice. The new `media3` needed `compileSdk`
   36, past what this project's `compileSdk = 35`/AGP 8.7.2 could reach, so
   both went up too -- AGP to `8.9.1` (the minimum that supports it,
   confirmed from CI's own error message) and `compileSdk` to `36` -- a
