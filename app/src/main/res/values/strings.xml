@@ -105,10 +105,16 @@
     <string name="logs_section">Logs</string>
     <string name="logs_subtitle">View the app\'s diagnostic log</string>
     <string name="logs_empty">No log entries yet</string>
+    <string name="logs_empty_filtered">No log entries match this filter</string>
     <string name="logs_clear_action">Clear logs</string>
     <string name="logs_clear_confirm_title">Clear all logs?</string>
     <string name="logs_clear_confirm_message">Permanently delete every log entry? This can\'t be undone.</string>
     <string name="logs_clear_confirm_button">Clear</string>
+    <string name="logs_filter_menu">Filter logs</string>
+    <string name="logs_filter_all">All</string>
+    <string name="logs_filter_info">Info and above</string>
+    <string name="logs_filter_warn">Warnings and above</string>
+    <string name="logs_filter_error">Errors only</string>
 
     <string name="help_section">User guide</string>
     <string name="help_user_guide">Learn what Extended File Manager can do</string>

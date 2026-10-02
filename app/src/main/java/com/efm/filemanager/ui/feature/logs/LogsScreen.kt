@@ -7,15 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,29 +31,25 @@ fun LogsScreen(
     viewModel: LogsViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.entries.collectAsStateWithLifecycle()
+    val hasEntries by viewModel.hasEntries.collectAsStateWithLifecycle()
+    val priorityFilter by viewModel.priorityFilter.collectAsStateWithLifecycle()
     var showClearConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
-                    }
-                },
-                title = { Text(stringResource(R.string.nav_logs)) },
-                actions = {
-                    if (entries.isNotEmpty()) {
-                        IconButton(onClick = { showClearConfirm = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.logs_clear_action))
-                        }
-                    }
-                },
+            LogsTopBar(
+                state = LogsTopBarState(hasEntries = hasEntries, priorityFilter = priorityFilter),
+                actions =
+                    LogsTopBarActions(
+                        onOpenDrawer = onOpenDrawer,
+                        onSelectFilter = viewModel::setPriorityFilter,
+                        onClearRequested = { showClearConfirm = true },
+                    ),
             )
         },
     ) { innerPadding ->
         if (entries.isEmpty()) {
-            LogsEmptyState(modifier = Modifier.padding(innerPadding))
+            LogsEmptyState(isFiltered = priorityFilter != LogPriorityFilter.ALL, modifier = Modifier.padding(innerPadding))
         } else {
             LazyColumn(modifier = Modifier.padding(innerPadding)) {
                 items(entries, key = { it.id }) { entry -> LogEntryRow(entry) }
@@ -79,9 +69,15 @@ fun LogsScreen(
 }
 
 @Composable
-private fun LogsEmptyState(modifier: Modifier = Modifier) {
+private fun LogsEmptyState(
+    isFiltered: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Text(stringResource(R.string.logs_empty), modifier = Modifier.padding(24.dp))
+        Text(
+            text = stringResource(if (isFiltered) R.string.logs_empty_filtered else R.string.logs_empty),
+            modifier = Modifier.padding(24.dp),
+        )
     }
 }
 

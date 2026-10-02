@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.15.2 (2026-10-02)
+
+- Phase 12 — Logs can now be filtered by priority (All / Info and above /
+  Warnings and above / Errors only) from a new filter icon in the Logs
+  screen's top bar. Export is the only piece of this phase still to come.
+
 ## v0.15.1 (2026-10-02)
 
 - Phase 12 — Logs also gained a weekly auto-purge (entries older than 7
