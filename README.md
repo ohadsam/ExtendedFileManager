@@ -37,10 +37,13 @@ Search, Preview), moving a file in, encrypted at rest, until you export it back 
 you choose) or remove it for good. In response to the 68 alerts that Dependabot flagged, most
 AndroidX/3rd-party dependencies in `gradle/libs.versions.toml` were audited and bumped to their
 current stable release (`security-crypto` chief among them, off a years-old alpha onto `1.1.0`);
-`core-ktx`, `lifecycle`, `navigation-compose`, and the Compose BOM stayed put, since their newest
-releases need a `compileSdk` this project's AGP 8.7.2 can't target -- grouped with Kotlin and AGP
-itself for a smaller follow-up slice, since a large jump on any of them can't be pre-verified
-without a local build. See `docs/PLAN.md` for the full phase list.
+the new `media3` needed `compileSdk` 36, so AGP and `compileSdk` took one small, bounded step too
+(AGP `8.7.2` to `8.9.1`, `compileSdk` `35` to `36`, both confirmed by CI's own error messages, not
+guessed). `core-ktx`, `lifecycle`, `navigation-compose`, and the Compose BOM hit the same wall one
+rung higher -- their newest releases want `compileSdk` 37, which needs AGP 9.1+ specifically -- so
+those four stayed put, grouped with Kotlin and the AGP 9 jump itself for a separate follow-up
+slice, since a jump that size can't be pre-verified without a local build. See `docs/PLAN.md` for
+the full phase list.
 
 ## Building
 
