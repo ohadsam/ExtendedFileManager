@@ -40,13 +40,6 @@ import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.components.InfoButton
 import com.efm.filemanager.ui.components.labelRes
 
-/** Bundled purely to keep [SettingsScreen]/[SettingsBody] under detekt's `LongParameterList` threshold. */
-data class SettingsNavActions(
-    val onOpenLogs: () -> Unit,
-    val onOpenAudit: () -> Unit,
-    val onOpenHelp: () -> Unit,
-)
-
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
