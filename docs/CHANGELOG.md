@@ -6,22 +6,20 @@
   flagged for this repo (no tool in this sandbox can list them directly, so
   this was a version audit instead): `androidx.security:security-crypto`
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
-  guarding the Vault itself -- alongside `room`, `media3`, `work`,
-  `datastore-preferences`, `appcompat`, and `mockk`. `hilt` stayed on its
-  original `2.52`: 2.59+ needs AGP 9 outright, and 2.57+ (so `2.58` too)
-  bundles a `kotlinx-metadata-jvm` upgrade that pulls `kotlin-stdlib` 2.2.x
-  into the compiler classpath -- unreadable by this project's Kotlin 2.0.21
-  -- so it joins Kotlin's own follow-up slice rather than landing
-  half-bumped. The new `media3` needed `compileSdk` 36, past what this
-  project's `compileSdk = 35`/AGP 8.7.2 could reach, so both went up too --
-  AGP to `8.9.1` (the minimum that supports it, confirmed from CI's own
-  error message) and `compileSdk` to `36` -- a small, bounded step inside
-  AGP's 8.x line, not the AGP 9 jump. `core-ktx`, `lifecycle`,
-  `navigation-compose`, and the Compose BOM hit the same wall one rung
-  higher still -- their newest releases want `compileSdk` 37, which needs
-  AGP 9.1+ specifically -- so those four stayed on their prior versions,
-  grouped with Kotlin and the AGP 9 jump itself for a separate follow-up
-  slice.
+  guarding the Vault itself -- alongside `room`, `work`,
+  `datastore-preferences`, `appcompat`, and `mockk`. Three more turned out
+  to each need a newer Kotlin than this project's 2.0.21 compiler can read
+  (their binaries carry 2.2.x metadata) and stayed one notch below their
+  very latest: `media3` at `1.10.1` rather than `1.11.1`, which upgraded
+  its internal Kotlin to 2.2.0; `hilt` stayed on its original `2.52`
+  outright, since 2.57+ bundles the same kind of Kotlin-2.2 upgrade in its
+  `kotlinx-metadata-jvm` dependency and 2.59+ needs AGP 9 besides;
+  `core-ktx`, `lifecycle`, `navigation-compose`, and the Compose BOM hit a
+  different wall at their latest -- wanting `compileSdk` 37, which needs
+  AGP 9.1+ -- so those stayed down too. All of it (Kotlin, Hilt 2.57+,
+  Media3 1.11+, the Compose-ecosystem four, and AGP 9 itself) is grouped
+  into one follow-up slice, since bumping any of them for real means
+  bumping Kotlin first.
 
 ## v0.14.5 (2026-10-02)
 

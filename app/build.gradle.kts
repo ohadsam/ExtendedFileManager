@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.efm.filemanager"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.efm.filemanager"
