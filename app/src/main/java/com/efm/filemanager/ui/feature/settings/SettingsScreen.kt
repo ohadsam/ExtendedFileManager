@@ -40,12 +40,17 @@ import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.components.InfoButton
 import com.efm.filemanager.ui.components.labelRes
 
+/** Bundled purely to keep [SettingsScreen]/[SettingsBody] under detekt's `LongParameterList` threshold. */
+data class SettingsNavActions(
+    val onOpenLogs: () -> Unit,
+    val onOpenAudit: () -> Unit,
+    val onOpenHelp: () -> Unit,
+)
+
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onOpenLogs: () -> Unit,
-    onOpenAudit: () -> Unit,
-    onOpenHelp: () -> Unit,
+    navActions: SettingsNavActions,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,9 +73,7 @@ fun SettingsScreen(
             modifier = Modifier.padding(innerPadding),
             uiState = uiState,
             viewModel = viewModel,
-            onOpenLogs = onOpenLogs,
-            onOpenAudit = onOpenAudit,
-            onOpenHelp = onOpenHelp,
+            navActions = navActions,
         )
     }
 }
@@ -80,9 +83,7 @@ private fun SettingsBody(
     modifier: Modifier,
     uiState: SettingsUiState,
     viewModel: SettingsViewModel,
-    onOpenLogs: () -> Unit,
-    onOpenAudit: () -> Unit,
-    onOpenHelp: () -> Unit,
+    navActions: SettingsNavActions,
 ) {
     val context = LocalContext.current
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
@@ -114,11 +115,11 @@ private fun SettingsBody(
             onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
         )
         HorizontalDivider()
-        LogsSection(onOpenLogs = onOpenLogs)
+        LogsSection(onOpenLogs = navActions.onOpenLogs)
         HorizontalDivider()
-        AuditSection(onOpenAudit = onOpenAudit)
+        AuditSection(onOpenAudit = navActions.onOpenAudit)
         HorizontalDivider()
-        HelpSection(onOpenHelp = onOpenHelp)
+        HelpSection(onOpenHelp = navActions.onOpenHelp)
     }
 }
 

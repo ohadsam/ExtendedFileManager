@@ -28,6 +28,7 @@ import com.efm.filemanager.ui.feature.help.HelpScreen
 import com.efm.filemanager.ui.feature.logs.LogsScreen
 import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
+import com.efm.filemanager.ui.feature.settings.SettingsNavActions
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
 import com.efm.filemanager.ui.feature.tags.ManageTagsScreen
 import com.efm.filemanager.ui.feature.vault.VaultScreen
@@ -126,9 +127,12 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Settings.route) {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
-            onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
-            onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
-            onOpenHelp = { navController.navigate(HELP_ROUTE) },
+            navActions =
+                SettingsNavActions(
+                    onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
+                    onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
+                    onOpenHelp = { navController.navigate(HELP_ROUTE) },
+                ),
         )
     }
 }
