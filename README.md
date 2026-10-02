@@ -34,7 +34,11 @@ security -- a one-time manual step, same kind of gap as Phase 10's Play Console 
 password-and-biometric-gated, Keystore-encrypted Vault (its own drawer entry) is also live --
 "Add to Vault" is reachable from every screen that shows files (Browse, Duplicates, Favorites,
 Search, Preview), moving a file in, encrypted at rest, until you export it back out (to any folder
-you choose) or remove it for good. See `docs/PLAN.md` for the full phase list.
+you choose) or remove it for good. In response to the 68 alerts that Dependabot flagged, every
+AndroidX/3rd-party dependency in `gradle/libs.versions.toml` was audited and bumped to its current
+stable release (`security-crypto` chief among them, off a years-old alpha onto `1.1.0`); Kotlin and
+AGP are left for a smaller follow-up since a large jump on either can't be pre-verified without a
+local build. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

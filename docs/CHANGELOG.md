@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.14.6 (2026-10-02)
+
+- Phase 11 (fourth slice) — responded to the 68 Dependabot alerts GitHub
+  flagged for this repo (no tool in this sandbox can list them directly, so
+  this was a version audit instead): `androidx.security:security-crypto`
+  moved off a years-old alpha onto the now-stable `1.1.0` -- the library
+  guarding the Vault itself -- alongside `core-ktx`, `lifecycle`, `room`,
+  `media3`, `work`, `navigation-compose`, `datastore-preferences`,
+  `appcompat`, `hilt`, `kotlinx.coroutines`, `mockk`, and the Compose BOM,
+  all bumped to their current stable releases. Kotlin and AGP are left for
+  a smaller follow-up slice, since a large jump on either can't be
+  pre-verified without a local build.
+
 ## v0.14.5 (2026-10-02)
 
 - "Add to Vault" has reached every screen that shows files: it's now
