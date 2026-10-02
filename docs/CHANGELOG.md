@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.15.3 (2026-10-02)
+
+- Phase 12 — Logs: the last piece, export-to-file, has landed. A new
+  Export icon in the Logs screen's top bar opens the system "Save As"
+  picker and writes the currently-filtered entries out as plain text.
+  This closes out Phase 12.
+
 ## v0.15.2 (2026-10-02)
 
 - Phase 12 — Logs can now be filtered by priority (All / Info and above /

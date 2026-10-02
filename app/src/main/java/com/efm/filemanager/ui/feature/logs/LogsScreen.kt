@@ -1,6 +1,8 @@
 package com.efm.filemanager.ui.feature.logs
 
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.local.LogEntryEntity
 
+private const val LOGS_EXPORT_FILE_NAME = "efm_logs.txt"
+
 @Composable
 fun LogsScreen(
     onOpenDrawer: () -> Unit,
@@ -34,6 +38,10 @@ fun LogsScreen(
     val hasEntries by viewModel.hasEntries.collectAsStateWithLifecycle()
     val priorityFilter by viewModel.priorityFilter.collectAsStateWithLifecycle()
     var showClearConfirm by remember { mutableStateOf(false) }
+    val exportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+            if (uri != null) viewModel.exportTo(uri)
+        }
 
     Scaffold(
         topBar = {
@@ -44,6 +52,7 @@ fun LogsScreen(
                         onOpenDrawer = onOpenDrawer,
                         onSelectFilter = viewModel::setPriorityFilter,
                         onClearRequested = { showClearConfirm = true },
+                        onExportRequested = { exportLauncher.launch(LOGS_EXPORT_FILE_NAME) },
                     ),
             )
         },

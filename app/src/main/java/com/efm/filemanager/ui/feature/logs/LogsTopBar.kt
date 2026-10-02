@@ -2,6 +2,7 @@ package com.efm.filemanager.ui.feature.logs
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
@@ -26,6 +27,7 @@ internal data class LogsTopBarActions(
     val onOpenDrawer: () -> Unit,
     val onSelectFilter: (LogPriorityFilter) -> Unit,
     val onClearRequested: () -> Unit,
+    val onExportRequested: () -> Unit,
 )
 
 @Composable
@@ -60,6 +62,9 @@ private fun LogsTopBarEntryActions(
             onSelect = actions.onSelectFilter,
             onDismiss = { filterMenuExpanded = false },
         )
+    }
+    IconButton(onClick = actions.onExportRequested) {
+        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.logs_export_action))
     }
     IconButton(onClick = actions.onClearRequested) {
         Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.logs_clear_action))

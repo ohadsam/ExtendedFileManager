@@ -107,6 +107,7 @@
     <string name="logs_empty">אין עדיין רשומות יומן</string>
     <string name="logs_empty_filtered">אין רשומות יומן התואמות לסינון זה</string>
     <string name="logs_clear_action">נקה יומנים</string>
+    <string name="logs_export_action">ייצוא</string>
     <string name="logs_clear_confirm_title">לנקות את כל היומנים?</string>
     <string name="logs_clear_confirm_message">למחוק לצמיתות כל רשומת יומן? לא ניתן לבטל פעולה זו.</string>
     <string name="logs_clear_confirm_button">נקה</string>

@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.logs
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.local.LogEntryEntity
@@ -45,4 +46,17 @@ class LogsViewModel
         fun clearAll() {
             viewModelScope.launch { logRepository.clearAll() }
         }
+
+        fun exportTo(uri: Uri) {
+            val text = buildExportText(entries.value)
+            viewModelScope.launch { logRepository.exportText(uri, text) }
+        }
+    }
+
+private fun buildExportText(entries: List<LogEntryEntity>): String =
+    entries.joinToString(separator = "\n") { entry ->
+        val header = "${formatLogTimestamp(entry.timestamp)} ${logPriorityLabel(entry.priority)}" +
+            (entry.tag?.let { " $it" } ?: "")
+        val stackTrace = entry.stackTrace?.let { "\n$it" } ?: ""
+        "$header: ${entry.message}$stackTrace"
     }
