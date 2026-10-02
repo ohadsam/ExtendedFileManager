@@ -22,9 +22,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,6 +52,7 @@ import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
+import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FileRow
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 
@@ -57,6 +63,7 @@ private class FavoritesScreenState {
     var pathStack by mutableStateOf(listOf<FavoriteCollection>())
     var dialog by mutableStateOf<FavoritesDialog?>(null)
     var detailsTarget by mutableStateOf<FileEntry?>(null)
+    var addToVaultTarget by mutableStateOf<FileEntry?>(null)
 }
 
 @Composable
@@ -72,6 +79,9 @@ fun FavoritesScreen(
     val childCollections = uiState.collections.filter { it.parentId == currentId }
     val childEntries = uiState.entries.filter { it.favoriteCollectionId == currentId }
     val actions = buildFavoritesActions(state, childEntries, viewModel, onOpenPreview)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    FavoritesSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState, onOpenDetails = { state.detailsTarget = it })
 
     Scaffold(
         topBar = {
@@ -83,6 +93,7 @@ fun FavoritesScreen(
                 onCreateCollection = { state.dialog = FavoritesDialog.CreateCollection(currentId) },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         FavoritesBody(
             modifier = Modifier.padding(innerPadding),
@@ -93,6 +104,30 @@ fun FavoritesScreen(
     }
 
     FavoritesDialogsSection(state = state, viewModel = viewModel, onOpenManageTags = onOpenManageTags)
+}
+
+@Composable
+private fun FavoritesSnackbarEffect(
+    viewModel: FavoritesViewModel,
+    snackbarHostState: SnackbarHostState,
+    onOpenDetails: (FileEntry) -> Unit,
+) {
+    val operationFailedMessage = stringResource(R.string.operation_failed)
+    val detailsLabel = stringResource(R.string.file_details_title)
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is FavoritesEvent.AddToVaultBlockedByLock -> {
+                    val message = context.getString(R.string.add_to_vault_blocked_by_lock, 1)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = detailsLabel)
+                    if (result == SnackbarResult.ActionPerformed) onOpenDetails(event.entry)
+                }
+                FavoritesEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+            }
+        }
+    }
 }
 
 private fun buildFavoritesActions(
@@ -114,6 +149,7 @@ private fun buildFavoritesActions(
         },
         onEntryLongClick = { entry -> viewModel.removeFavorite(entry) },
         onShowDetails = { entry -> state.detailsTarget = entry },
+        onAddToVault = { entry -> state.addToVaultTarget = entry },
     )
 
 @Composable
@@ -127,6 +163,30 @@ private fun FavoritesDialogsSection(
     state.detailsTarget?.let { target ->
         FileDetailsSheet(entry = target, onDismiss = { state.detailsTarget = null }, onOpenManageTags = onOpenManageTags)
     }
+
+    state.addToVaultTarget?.let { target ->
+        FavoritesAddToVaultConfirmDialog(
+            onConfirm = {
+                viewModel.addToVault(target)
+                state.addToVaultTarget = null
+            },
+            onDismiss = { state.addToVaultTarget = null },
+        )
+    }
+}
+
+@Composable
+private fun FavoritesAddToVaultConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ConfirmDangerousActionDialog(
+        title = stringResource(R.string.add_to_vault_confirm_title),
+        message = stringResource(R.string.add_to_vault_confirm_message, 1),
+        confirmLabel = stringResource(R.string.add_to_vault_confirm_button),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable
@@ -233,6 +293,13 @@ private fun FavoritesEntryRow(
                     onClick = {
                         menuExpanded = false
                         actions.onShowDetails(entry)
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_add_to_vault)) },
+                    onClick = {
+                        menuExpanded = false
+                        actions.onAddToVault(entry)
                     },
                 )
             }
