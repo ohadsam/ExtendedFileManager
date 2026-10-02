@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.14.4 (2026-10-02)
+
+- "Add to Vault" is now in Search too, from the selection bar's "⋮"
+  menu once you've selected one or more results -- same confirm
+  dialog, locked-file guard, and blocked-by-lock snackbar as Browse
+  and Duplicates. Preview is the only screen left to reach.
+
 ## v0.14.3 (2026-10-02)
 
 - "Add to Vault" is now in Favorites too, from each entry's "⋮" menu
