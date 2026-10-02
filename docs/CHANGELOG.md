@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.14.7 (2026-10-02)
+
+- Phase 11 (fifth slice, and the phase's last) — reviewed ProGuard rules
+  beyond the crash-readability baseline, the one item this phase still
+  had open. CI's `assembleRelease` -- the real R8/ProGuard shrink-and-
+  obfuscate pass that's run on every push since this phase's second slice
+  -- completes with zero missing-class warnings using only the existing
+  baseline rule, so per `proguard-rules.pro`'s own stated approach (rules
+  grown deliberately as real failures are hit, not speculatively) nothing
+  more was added. That closes Phase 11. The Kotlin/AGP modernization the
+  previous slice kept running into isn't part of this phase's scope and
+  stays tracked separately, to be picked up deliberately rather than
+  forced through blind CI iteration.
+
 ## v0.14.6 (2026-10-02)
 
 - Phase 11 (fourth slice) — responded to the 68 Dependabot alerts GitHub
