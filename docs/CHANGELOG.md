@@ -7,7 +7,10 @@
   this was a version audit instead): `androidx.security:security-crypto`
   moved off a years-old alpha onto the now-stable `1.1.0` -- the library
   guarding the Vault itself -- alongside `room`, `work`,
-  `datastore-preferences`, `appcompat`, and `mockk`. `media3` landed at
+  `datastore-preferences`, and `appcompat`. `mockk` turned out to have the
+  same Kotlin-metadata problem as the rest of this list one test-classpath
+  layer down (1.14.x is compiled against Kotlin 2.1/2.2), so it stayed on
+  its original `1.13.13` too. `media3` landed at
   `1.10.1` rather than its very latest `1.11.1`, for two independent
   reasons: even `1.10.1` already needs `compileSdk` 36 (past what this
   project's `compileSdk = 35`/AGP 8.7.2 could reach, so both went up too --
