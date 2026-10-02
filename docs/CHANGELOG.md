@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.14.2 (2026-10-02)
+
+- "Add to Vault" is no longer Browse-only: it's now in the Duplicates
+  screen's "⋮" selection menu too, with the same locked-file guard and
+  confirmation as everywhere else. (Internally, `VaultRepository.
+  addToVault` now resolves the file's parent folder itself instead of
+  requiring the caller to track a "current folder" -- groundwork for
+  reaching Search, Favorites, and Preview next.)
+
 ## v0.14.1 (2026-09-30)
 
 - Vault: you can now get a file back out. Select entries in the
