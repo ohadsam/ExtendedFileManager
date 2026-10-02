@@ -117,6 +117,23 @@
     <string name="logs_filter_warn">Warnings and above</string>
     <string name="logs_filter_error">Errors only</string>
 
+    <string name="nav_audit">Audit log</string>
+    <string name="audit_section">Audit log</string>
+    <string name="audit_subtitle">View every file operation this app has made</string>
+    <string name="audit_empty">No audit entries yet</string>
+    <string name="audit_failed_label">Failed</string>
+    <string name="audit_tamper_warning">Warning: the audit log\'s hash chain is broken -- an entry may have been altered or deleted.</string>
+    <string name="audit_action_create_folder">Created folder</string>
+    <string name="audit_action_create_file">Created file</string>
+    <string name="audit_action_rename">Renamed</string>
+    <string name="audit_action_delete">Deleted</string>
+    <string name="audit_action_restore">Restored</string>
+    <string name="audit_action_move">Moved</string>
+    <string name="audit_action_copy">Copied</string>
+    <string name="audit_action_add_to_vault">Added to Vault</string>
+    <string name="audit_action_export_from_vault">Exported from Vault</string>
+    <string name="audit_action_remove_from_vault">Removed from Vault</string>
+
     <string name="help_section">User guide</string>
     <string name="help_user_guide">Learn what Extended File Manager can do</string>
 

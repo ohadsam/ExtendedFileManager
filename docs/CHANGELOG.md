@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.16.0 (2026-10-02)
+
+- Phase 13 — Audit trail: a new Audit log screen (its own drawer entry,
+  also reachable from Settings) lists every file operation this app has
+  ever made, newest first, each with its action, target, and timestamp,
+  flagging any that failed. The audit log is now hash-chained under the
+  hood (landed just before this slice) -- if anything in that chain is
+  ever broken, the screen shows a warning banner. Filtering, search, and
+  export are still to come.
+
 ## v0.15.3 (2026-10-02)
 
 - Phase 12 — Logs: the last piece, export-to-file, has landed. A new

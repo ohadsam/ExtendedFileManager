@@ -44,6 +44,7 @@ import com.efm.filemanager.ui.components.labelRes
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onOpenLogs: () -> Unit,
+    onOpenAudit: () -> Unit,
     onOpenHelp: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -68,6 +69,7 @@ fun SettingsScreen(
             uiState = uiState,
             viewModel = viewModel,
             onOpenLogs = onOpenLogs,
+            onOpenAudit = onOpenAudit,
             onOpenHelp = onOpenHelp,
         )
     }
@@ -79,6 +81,7 @@ private fun SettingsBody(
     uiState: SettingsUiState,
     viewModel: SettingsViewModel,
     onOpenLogs: () -> Unit,
+    onOpenAudit: () -> Unit,
     onOpenHelp: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -112,6 +115,8 @@ private fun SettingsBody(
         )
         HorizontalDivider()
         LogsSection(onOpenLogs = onOpenLogs)
+        HorizontalDivider()
+        AuditSection(onOpenAudit = onOpenAudit)
         HorizontalDivider()
         HelpSection(onOpenHelp = onOpenHelp)
     }
@@ -313,6 +318,24 @@ private fun LogsSection(onOpenLogs: () -> Unit) {
         Text(stringResource(R.string.logs_section), style = MaterialTheme.typography.titleMedium)
         Text(
             text = stringResource(R.string.logs_subtitle),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun AuditSection(onOpenAudit: () -> Unit) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenAudit)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(stringResource(R.string.audit_section), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.audit_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

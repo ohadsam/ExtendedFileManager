@@ -50,7 +50,11 @@ drawer entry, also reachable from Settings) shows the app's diagnostic log, newe
 file operation -- entries older than 7 days are purged automatically in the background, a
 "Clear logs" action empties it on demand, a filter menu narrows it to just warnings or
 errors when that's all you need, and an Export action writes the currently-filtered log out as
-plain text via the system "Save As" picker. See `docs/PLAN.md` for the full phase list.
+plain text via the system "Save As" picker. Phase 13 (audit trail) is now in progress too: every
+file operation this app makes was already being recorded (since Phase 3); that record is now
+hash-chained for tamper-evidence, and a new Audit log screen (its own drawer entry, also reachable
+from Settings) lists every entry newest-first, warning if the chain is ever broken. See
+`docs/PLAN.md` for the full phase list.
 
 ## Building
 

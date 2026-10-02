@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.efm.filemanager.ui.feature.advisor.StorageAdvisorScreen
+import com.efm.filemanager.ui.feature.audit.AuditScreen
 import com.efm.filemanager.ui.feature.browse.BrowseNavActions
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
@@ -119,10 +120,14 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Logs.route) {
         LogsScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
     }
+    composable(EfmDestination.Audit.route) {
+        AuditScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
+    }
     composable(EfmDestination.Settings.route) {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
             onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
+            onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
             onOpenHelp = { navController.navigate(HELP_ROUTE) },
         )
     }

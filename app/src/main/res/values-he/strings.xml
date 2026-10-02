@@ -117,6 +117,23 @@
     <string name="logs_filter_warn">אזהרות ומעלה</string>
     <string name="logs_filter_error">שגיאות בלבד</string>
 
+    <string name="nav_audit">יומן ביקורת</string>
+    <string name="audit_section">יומן ביקורת</string>
+    <string name="audit_subtitle">הצגת כל פעולות הקבצים שהאפליקציה ביצעה</string>
+    <string name="audit_empty">אין עדיין רשומות ביקורת</string>
+    <string name="audit_failed_label">נכשל</string>
+    <string name="audit_tamper_warning">אזהרה: שרשרת הגיבוב של יומן הביקורת שבורה -- ייתכן שרשומה שונתה או נמחקה.</string>
+    <string name="audit_action_create_folder">יצירת תיקייה</string>
+    <string name="audit_action_create_file">יצירת קובץ</string>
+    <string name="audit_action_rename">שינוי שם</string>
+    <string name="audit_action_delete">מחיקה</string>
+    <string name="audit_action_restore">שחזור</string>
+    <string name="audit_action_move">העברה</string>
+    <string name="audit_action_copy">העתקה</string>
+    <string name="audit_action_add_to_vault">הוספה לכספת</string>
+    <string name="audit_action_export_from_vault">ייצוא מהכספת</string>
+    <string name="audit_action_remove_from_vault">הסרה מהכספת</string>
+
     <string name="help_section">מדריך למשתמש</string>
     <string name="help_user_guide">למד מה מנהל הקבצים המתקדם יכול לעשות</string>
 
