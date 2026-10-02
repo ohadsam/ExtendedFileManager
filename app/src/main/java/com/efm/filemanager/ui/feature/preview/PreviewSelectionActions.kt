@@ -6,5 +6,6 @@ internal data class PreviewSelectionActions(
     val onAddTag: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onToggleLock: () -> Unit,
+    val onAddToVault: () -> Unit,
     val onShowDetails: (() -> Unit)? = null,
 )

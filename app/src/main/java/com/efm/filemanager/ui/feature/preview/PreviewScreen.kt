@@ -11,11 +11,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,9 +43,10 @@ import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FavoriteCollection
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.FileTag
+import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
+import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
-import com.efm.filemanager.ui.components.MetadataQuickActionsMenu
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
@@ -63,6 +71,7 @@ private class PreviewUiFlags {
     var tagPickerVisible by mutableStateOf(false)
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
+    var addToVaultConfirmVisible by mutableStateOf(false)
 }
 
 private data class PreviewContentState(
@@ -70,6 +79,7 @@ private data class PreviewContentState(
     val pagerState: PagerState,
     val selectedUris: SnapshotStateList<Uri>,
     val flags: PreviewUiFlags,
+    val snackbarHostState: SnackbarHostState,
     val onNavigateBack: () -> Unit,
     val viewModel: PreviewViewModel,
 )
@@ -84,6 +94,9 @@ private fun PreviewContent(
     val pagerState = rememberPagerState(initialPage = session.startIndex) { session.entries.size }
     val selectedUris = remember { mutableStateListOf<Uri>() }
     val flags = remember { PreviewUiFlags() }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    PreviewSnackbarEffect(viewModel = viewModel, snackbarHostState = snackbarHostState)
 
     // "Select as you go": once a selection is active, swiping to a new page adds it too,
     // instead of only ever acting on whichever file happens to be on screen right now. Also
@@ -97,7 +110,7 @@ private fun PreviewContent(
         }
     }
 
-    PreviewScaffold(PreviewContentState(session, pagerState, selectedUris, flags, onNavigateBack, viewModel))
+    PreviewScaffold(PreviewContentState(session, pagerState, selectedUris, flags, snackbarHostState, onNavigateBack, viewModel))
 
     PreviewDialogsSection(
         flags = flags,
@@ -106,6 +119,31 @@ private fun PreviewContent(
         viewModel = viewModel,
         onOpenManageTags = onOpenManageTags,
     )
+}
+
+@Composable
+private fun PreviewSnackbarEffect(
+    viewModel: PreviewViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    val operationFailedMessage = stringResource(R.string.operation_failed)
+    val unlockLabel = stringResource(R.string.file_details_lock)
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is PreviewEvent.AddToVaultBlockedByLock -> {
+                    val message = context.getString(R.string.add_to_vault_blocked_by_lock, event.lockedEntries.size)
+                    val result = snackbarHostState.showSnackbar(message = message, actionLabel = unlockLabel)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
+                    }
+                }
+                PreviewEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+            }
+        }
+    }
 }
 
 @Composable
@@ -122,10 +160,12 @@ private fun PreviewScaffold(state: PreviewContentState) {
                         onAddTag = { state.flags.tagPickerVisible = true },
                         onShowDetails = { state.flags.detailsVisible = true },
                         onNeedsFavoriteCollection = { state.flags.collectionPickerVisible = true },
+                        onAddToVault = { state.flags.addToVaultConfirmVisible = true },
                     ),
                 viewModel = state.viewModel,
             )
         },
+        snackbarHost = { SnackbarHost(state.snackbarHostState) },
     ) { innerPadding ->
         HorizontalPager(
             state = state.pagerState,
@@ -178,6 +218,34 @@ private fun PreviewDialogsSection(
             onDismiss = { flags.collectionPickerVisible = false },
         )
     }
+
+    if (flags.addToVaultConfirmVisible) {
+        val entries = session.entries.filter { it.uri in selectedUris }
+        PreviewAddToVaultConfirmDialog(
+            entries = entries,
+            onConfirm = {
+                viewModel.addToVault(entries)
+                selectedUris.clear()
+                flags.addToVaultConfirmVisible = false
+            },
+            onDismiss = { flags.addToVaultConfirmVisible = false },
+        )
+    }
+}
+
+@Composable
+private fun PreviewAddToVaultConfirmDialog(
+    entries: List<FileEntry>,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ConfirmDangerousActionDialog(
+        title = stringResource(R.string.add_to_vault_confirm_title),
+        message = stringResource(R.string.add_to_vault_confirm_message, entries.size),
+        confirmLabel = stringResource(R.string.add_to_vault_confirm_button),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable
@@ -203,6 +271,7 @@ private data class PreviewTopBarCallbacks(
     val onAddTag: () -> Unit,
     val onShowDetails: () -> Unit,
     val onNeedsFavoriteCollection: () -> Unit,
+    val onAddToVault: () -> Unit,
 )
 
 @Composable
@@ -242,6 +311,7 @@ private fun PreviewTopBar(
                     val entries = session.entries.filter { it.uri in selectedUris }
                     scope.launch { viewModel.metadataActions.toggleLock(entries) }
                 },
+                onAddToVault = callbacks.onAddToVault,
                 onShowDetails = if (selectedUris.size == 1) callbacks.onShowDetails else null,
             )
         PreviewSelectionTopBar(
@@ -327,18 +397,62 @@ private fun PreviewSelectionTopBar(
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.selection_more_actions))
                 }
-                MetadataQuickActionsMenu(
+                PreviewOverflowMenu(
                     expanded = menuExpanded,
                     onDismiss = { menuExpanded = false },
-                    actions =
+                    quickActions =
                         MetadataQuickActions(
                             onAddTag = actions.onAddTag,
                             onToggleFavorite = actions.onToggleFavorite,
                             onToggleLock = actions.onToggleLock,
                             onShowDetails = actions.onShowDetails,
                         ),
+                    onAddToVault = actions.onAddToVault,
                 )
             }
         },
     )
+}
+
+@Composable
+private fun PreviewOverflowMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    quickActions: MetadataQuickActions,
+    onAddToVault: () -> Unit,
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        val onShowDetails = quickActions.onShowDetails
+        if (onShowDetails != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.file_details_title)) },
+                leadingIcon = { Icon(Icons.Filled.Info, contentDescription = null) },
+                onClick = {
+                    onDismiss()
+                    onShowDetails()
+                },
+            )
+        }
+        MetadataMenuItems(
+            onAddTag = {
+                onDismiss()
+                quickActions.onAddTag()
+            },
+            onToggleFavorite = {
+                onDismiss()
+                quickActions.onToggleFavorite()
+            },
+            onToggleLock = {
+                onDismiss()
+                quickActions.onToggleLock()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_add_to_vault)) },
+            onClick = {
+                onDismiss()
+                onAddToVault()
+            },
+        )
+    }
 }
