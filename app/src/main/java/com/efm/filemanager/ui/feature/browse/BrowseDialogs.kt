@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.browse
 
+import android.content.Intent
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -8,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
+import com.efm.filemanager.data.share.ShareIntentFactory
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.CreateEntryDialog
@@ -105,6 +107,7 @@ internal fun BrowseDialogs(
         BrowseDialog.FAVORITE_COLLECTION_PICKER ->
             FavoriteCollectionPickerCase(context = context, viewModel = viewModel, scope = scope, onFinished = onFinished)
         BrowseDialog.ADD_TO_VAULT -> AddToVaultCase(context = context, viewModel = viewModel, onFinished = onFinished)
+        BrowseDialog.SHARE -> ShareCase(entries = context.selectedEntries, onFinished = onFinished)
         null -> Unit
     }
 
@@ -184,6 +187,20 @@ private fun AddToVaultCase(
         },
         onDismiss = onFinished,
     )
+}
+
+/** Launches the system share sheet once, then immediately clears the selection -- there's no confirm step, unlike the dialogs above. */
+@Composable
+private fun ShareCase(
+    entries: List<FileEntry>,
+    onFinished: () -> Unit,
+) {
+    val androidContext = LocalContext.current
+    val chooserTitle = stringResource(R.string.share_chooser_title)
+    LaunchedEffect(entries) {
+        androidContext.startActivity(Intent.createChooser(ShareIntentFactory.createShareIntent(entries), chooserTitle))
+        onFinished()
+    }
 }
 
 @Composable

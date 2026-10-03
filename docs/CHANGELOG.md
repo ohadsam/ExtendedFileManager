@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.19.0 (2026-10-03)
+
+- Phase 16 (cloud upload & sharing) started with Share / Send: a new
+  "Share" item in Browse's selection menu opens the system share
+  sheet for one or more selected files (any installed app -- email,
+  messaging, Drive, Dropbox, etc. -- can receive it). Rolling this out
+  to Duplicates/Favorites/Search/Preview, a real Drive-upload
+  destination, and upload-status markers are still open.
+
 ## v0.18.0 (2026-10-03)
 
 - Phase 15 (versioning & updates) started with a "What's New" sheet:

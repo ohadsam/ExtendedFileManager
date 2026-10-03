@@ -62,7 +62,10 @@ with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tabl
 actual visual RTL/font-scale pass are still open. Phase 15 (versioning & updates) has also
 started: a "What's New" sheet now shows once after an upgrade (never on a fresh install),
 catching this release up on the Logs and Audit screens; the GitHub-Releases update checker is
-deferred to a later slice. See `docs/PLAN.md` for the full phase list.
+deferred to a later slice. Phase 16 (cloud upload & sharing) has started too: a new "Share"
+action in Browse's selection menu opens the system share sheet for selected files; rolling it out
+to every other screen, real Drive-folder upload, and upload-status markers are still open. See
+`docs/PLAN.md` for the full phase list.
 
 ## Building
 

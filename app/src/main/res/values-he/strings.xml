@@ -304,6 +304,8 @@
     <string name="vault_remove_confirm_message">למחוק לצמיתות %d פריט/ים מהכספת? לא ניתן לבטל פעולה זו.</string>
     <string name="vault_remove_confirm_button">הסר</string>
     <string name="action_add_to_vault">הוסף לכספת</string>
+    <string name="action_share">שתף</string>
+    <string name="share_chooser_title">שיתוף באמצעות</string>
     <string name="add_to_vault_confirm_title">להוסיף לכספת?</string>
     <string name="add_to_vault_confirm_message">להעביר %d פריט/ים לכספת המוצפנת? הם יוסרו מכאן עד שתפתח שוב את הכספת.</string>
     <string name="add_to_vault_confirm_button">הוסף לכספת</string>

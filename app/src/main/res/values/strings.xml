@@ -304,6 +304,8 @@
     <string name="vault_remove_confirm_message">Permanently delete %d item(s) from the vault? This can\'t be undone.</string>
     <string name="vault_remove_confirm_button">Remove</string>
     <string name="action_add_to_vault">Add to Vault</string>
+    <string name="action_share">Share</string>
+    <string name="share_chooser_title">Share via</string>
     <string name="add_to_vault_confirm_title">Add to Vault?</string>
     <string name="add_to_vault_confirm_message">Move %d item(s) into the encrypted vault? They\'ll be removed from here until you unlock the vault again.</string>
     <string name="add_to_vault_confirm_button">Add to Vault</string>

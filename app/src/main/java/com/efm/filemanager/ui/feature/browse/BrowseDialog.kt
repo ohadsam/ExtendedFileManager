@@ -8,4 +8,5 @@ internal enum class BrowseDialog {
     DETAILS,
     FAVORITE_COLLECTION_PICKER,
     ADD_TO_VAULT,
+    SHARE,
 }
