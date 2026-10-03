@@ -6,9 +6,11 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
@@ -32,19 +34,22 @@ import com.efm.filemanager.ui.feature.settings.SettingsNavActions
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
 import com.efm.filemanager.ui.feature.tags.ManageTagsScreen
 import com.efm.filemanager.ui.feature.vault.VaultScreen
+import com.efm.filemanager.ui.feature.whatsnew.WhatsNewDialog
+import com.efm.filemanager.ui.feature.whatsnew.WhatsNewViewModel
 import com.efm.filemanager.ui.nav.EfmDestination
 import com.efm.filemanager.ui.nav.EfmDrawerContent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun EfmApp() {
+fun EfmApp(whatsNewViewModel: WhatsNewViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val currentDestination =
         EfmDestination.entries.firstOrNull { it.route == currentRoute } ?: EfmDestination.Browse
+    val whatsNewEntries by whatsNewViewModel.entriesToShow.collectAsStateWithLifecycle()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -67,6 +72,10 @@ fun EfmApp() {
         NavHost(navController = navController, startDestination = EfmDestination.Browse.route) {
             efmDestinations(navController, scope, drawerState)
         }
+    }
+
+    if (whatsNewEntries.isNotEmpty()) {
+        WhatsNewDialog(entries = whatsNewEntries, onDismiss = whatsNewViewModel::dismiss)
     }
 }
 

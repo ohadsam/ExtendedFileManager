@@ -44,6 +44,10 @@ class PreferencesRepository
         val advisorUnusedMonths: Flow<Int> =
             context.dataStore.data.map { prefs -> prefs[ADVISOR_UNUSED_MONTHS_KEY] ?: DEFAULT_ADVISOR_UNUSED_MONTHS }
 
+        /** Null means "never recorded" (a fresh install), distinct from any real version code, all of which are >= 1. */
+        val lastSeenWhatsNewVersion: Flow<Int?> =
+            context.dataStore.data.map { prefs -> prefs[LAST_SEEN_WHATS_NEW_VERSION_KEY] }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -64,12 +68,17 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[ADVISOR_UNUSED_MONTHS_KEY] = months }
         }
 
+        suspend fun setLastSeenWhatsNewVersion(versionCode: Int) {
+            context.dataStore.edit { prefs -> prefs[LAST_SEEN_WHATS_NEW_VERSION_KEY] = versionCode }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
             val VIEW_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("view_mode")
             val ADVISOR_MIN_SIZE_MB_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_min_size_mb")
             val ADVISOR_UNUSED_MONTHS_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_unused_months")
+            val LAST_SEEN_WHATS_NEW_VERSION_KEY: Preferences.Key<Int> = intPreferencesKey("last_seen_whats_new_version")
         }
     }
 

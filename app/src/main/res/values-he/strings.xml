@@ -2,6 +2,11 @@
 <resources>
     <string name="app_name">מנהל קבצים מתקדם</string>
 
+    <string name="whats_new_title">מה חדש</string>
+    <string name="whats_new_got_it">הבנתי</string>
+    <string name="whats_new_v37_title">מסכי יומנים וביקורת</string>
+    <string name="whats_new_v37_body">מסך יומנים חדש שומר רשומה ניתנת לחיפוש, סינון וייצוא של פעולות האפליקציה, ומסך ביקורת חדש עוקב אחרי כל פעולת קובץ ביומן עמיד לשיבוש -- כדי שתמיד תדעו מה השתנה ומתי.</string>
+
     <string name="nav_drawer_open">פתח תפריט ניווט</string>
     <string name="nav_browse">עיון בקבצים</string>
     <string name="nav_duplicates">כפילויות</string>

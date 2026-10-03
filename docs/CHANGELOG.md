@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.18.0 (2026-10-03)
+
+- Phase 15 (versioning & updates) started with a "What's New" sheet:
+  shown once after an upgrade (never on a fresh install), summarizing
+  what changed since the version you last had open. This release's
+  entry catches you up on the Logs and Audit screens, since neither
+  had an in-app announcement until now. The GitHub-Releases update
+  checker is deferred to a later slice.
+
 ## v0.17.0 (2026-10-03)
 
 - Phase 14 (localization & responsiveness) started: a full code-level

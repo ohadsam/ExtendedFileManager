@@ -59,7 +59,10 @@ to write the currently filtered/searched entries out as plain text. Phase 14 (lo
 responsiveness) is now in progress: a code-level audit found the app's RTL handling already
 consistent across every screen (mirrored icons, start/end-only padding, locale-aware formatting),
 with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tablet layouts and an
-actual visual RTL/font-scale pass are still open. See `docs/PLAN.md` for the full phase list.
+actual visual RTL/font-scale pass are still open. Phase 15 (versioning & updates) has also
+started: a "What's New" sheet now shows once after an upgrade (never on a fresh install),
+catching this release up on the Logs and Audit screens; the GitHub-Releases update checker is
+deferred to a later slice. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

@@ -2,6 +2,11 @@
 <resources>
     <string name="app_name">Extended File Manager</string>
 
+    <string name="whats_new_title">What\'s new</string>
+    <string name="whats_new_got_it">Got it</string>
+    <string name="whats_new_v37_title">Logs &amp; Audit screens</string>
+    <string name="whats_new_v37_body">A new Logs screen keeps a searchable, filterable, exportable record of what the app does, and a new Audit screen tracks every file operation in a tamper-evident log -- so you always know what changed and when.</string>
+
     <string name="nav_drawer_open">Open navigation menu</string>
     <string name="nav_browse">Browse</string>
     <string name="nav_duplicates">Duplicates</string>
