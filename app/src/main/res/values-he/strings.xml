@@ -326,4 +326,8 @@
     <string name="vault_use_biometric">שימוש בפתיחה ביומטרית</string>
     <string name="vault_enable_biometric">הפעל פתיחה ביומטרית</string>
     <string name="vault_disable_biometric">בטל פתיחה ביומטרית</string>
+    <string name="insights_notification_channel_name">תובנות יומיות</string>
+    <string name="insights_notification_channel_description">סיכום ממצאי יועץ האחסון שכדאי לבדוק</string>
+    <string name="insights_notification_title">כדאי להסתכל</string>
+    <string name="insights_notification_body">%d פריט/ים נמצאו ביועץ האחסון</string>
 </resources>

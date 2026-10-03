@@ -13,6 +13,12 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Phase 17's daily insights summary notification. On API 33+ this is a dangerous
+         permission requiring a runtime request -- Settings' "Notify me" toggle (still open,
+         see docs/PLAN.md Phase 17) is where that request/rationale will live; until then
+         InsightsNotifier just checks it and silently skips posting if it isn't granted. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".EfmApplication"
         android:allowBackup="false"

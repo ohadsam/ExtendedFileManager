@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.20.1 (2026-10-03)
+
+- Phase 17 continues: a new daily background job now re-runs the
+  Storage Advisor scan once a day and, if anything's worth a look,
+  posts one summary notification ("Worth a look -- N item(s) found
+  by Storage Advisor") via its own notification channel -- tapping
+  it opens straight into the Storage Advisor screen. The real
+  runtime notification-permission request (with its in-app
+  rationale) is still a Settings toggle away from landing, so this
+  silently stays quiet on Android 13+ until that permission is
+  granted some other way. Duplicate-folding into the same screen,
+  the incremental changeVersion-based scan skip, and the Settings
+  section are still open.
+
 ## v0.20.0 (2026-10-03)
 
 - Phase 17 (daily insights & smart notifications) started: the

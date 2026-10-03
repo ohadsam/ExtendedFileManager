@@ -9,7 +9,10 @@ import com.efm.filemanager.domain.model.AppearanceMode
 import com.efm.filemanager.ui.theme.ExtendedFileManagerTheme
 
 @Composable
-fun EfmRoot(viewModel: AppThemeViewModel = hiltViewModel()) {
+fun EfmRoot(
+    initialDestinationRoute: String? = null,
+    viewModel: AppThemeViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val darkTheme =
         when (uiState.appearanceMode) {
@@ -18,6 +21,6 @@ fun EfmRoot(viewModel: AppThemeViewModel = hiltViewModel()) {
             AppearanceMode.SYSTEM -> isSystemInDarkTheme()
         }
     ExtendedFileManagerTheme(darkTheme = darkTheme, dynamicColor = uiState.dynamicColorEnabled) {
-        EfmApp()
+        EfmApp(initialDestinationRoute = initialDestinationRoute)
     }
 }

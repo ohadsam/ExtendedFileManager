@@ -326,4 +326,8 @@
     <string name="vault_use_biometric">Use biometric unlock</string>
     <string name="vault_enable_biometric">Enable biometric unlock</string>
     <string name="vault_disable_biometric">Disable biometric unlock</string>
+    <string name="insights_notification_channel_name">Daily insights</string>
+    <string name="insights_notification_channel_description">Summary of Storage Advisor findings worth a look</string>
+    <string name="insights_notification_title">Worth a look</string>
+    <string name="insights_notification_body">%d item(s) found by Storage Advisor</string>
 </resources>

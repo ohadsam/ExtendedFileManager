@@ -6,6 +6,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +43,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun EfmApp(whatsNewViewModel: WhatsNewViewModel = hiltViewModel()) {
+fun EfmApp(
+    initialDestinationRoute: String? = null,
+    whatsNewViewModel: WhatsNewViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -50,6 +54,12 @@ fun EfmApp(whatsNewViewModel: WhatsNewViewModel = hiltViewModel()) {
     val currentDestination =
         EfmDestination.entries.firstOrNull { it.route == currentRoute } ?: EfmDestination.Browse
     val whatsNewEntries by whatsNewViewModel.entriesToShow.collectAsStateWithLifecycle()
+
+    // Set only when launched from Phase 17's daily-insights notification -- a one-shot jump
+    // straight to that screen instead of landing on Browse like every other cold start.
+    LaunchedEffect(initialDestinationRoute) {
+        if (initialDestinationRoute != null) navController.navigate(initialDestinationRoute)
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.efm.filemanager.data.insights.EXTRA_OPEN_DESTINATION
 import com.efm.filemanager.ui.EfmRoot
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,8 +18,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Set by InsightsNotifier's PendingIntent (Phase 17) so tapping the daily summary
+        // notification lands straight on the Insights/Storage Advisor screen, not just Browse.
+        val initialDestinationRoute = intent?.getStringExtra(EXTRA_OPEN_DESTINATION)
         setContent {
-            EfmRoot()
+            EfmRoot(initialDestinationRoute = initialDestinationRoute)
         }
     }
 }

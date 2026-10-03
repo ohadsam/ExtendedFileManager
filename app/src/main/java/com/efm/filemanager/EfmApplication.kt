@@ -6,6 +6,8 @@ import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.efm.filemanager.data.insights.DAILY_INSIGHTS_WORK_NAME
+import com.efm.filemanager.data.insights.DailyInsightsWorker
 import com.efm.filemanager.data.logs.LOG_PURGE_WORK_NAME
 import com.efm.filemanager.data.logs.LogPurgeWorker
 import com.efm.filemanager.data.logs.RoomLogTree
@@ -26,9 +28,9 @@ import javax.inject.Inject
  * Also seeds Phase 9's out-of-the-box tags once, the one piece of startup work small and
  * idempotent enough not to need a WorkManager job of its own, plants Phase 12's [RoomLogTree]
  * so every `Timber` call anywhere in the app lands in the Room-backed log store from the very
- * first line of startup, and schedules that same phase's weekly [LogPurgeWorker] (its first
- * `PeriodicWorkRequest` -- every other background job in this app is a one-off the user
- * triggers, not something that needs scheduling at launch).
+ * first line of startup, and schedules that same phase's weekly [LogPurgeWorker] plus Phase
+ * 17's daily [DailyInsightsWorker] -- the only two background jobs in this app that run on a
+ * recurring schedule rather than only when the user explicitly triggers them.
  */
 @HiltAndroidApp
 class EfmApplication : Application(), Configuration.Provider {
@@ -52,6 +54,7 @@ class EfmApplication : Application(), Configuration.Provider {
         Timber.plant(roomLogTree)
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { tagRepository.ensureDefaultTagsSeeded() }
         scheduleLogPurge()
+        scheduleDailyInsights()
     }
 
     // KEEP, not REPLACE: re-enqueuing on every app launch should never reset an already-running
@@ -59,5 +62,11 @@ class EfmApplication : Application(), Configuration.Provider {
     private fun scheduleLogPurge() {
         val request = PeriodicWorkRequestBuilder<LogPurgeWorker>(7, TimeUnit.DAYS).build()
         workManager.enqueueUniquePeriodicWork(LOG_PURGE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+    }
+
+    // Same KEEP rationale as scheduleLogPurge(): this just makes sure the daily timer exists.
+    private fun scheduleDailyInsights() {
+        val request = PeriodicWorkRequestBuilder<DailyInsightsWorker>(1, TimeUnit.DAYS).build()
+        workManager.enqueueUniquePeriodicWork(DAILY_INSIGHTS_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
     }
 }

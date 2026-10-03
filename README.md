@@ -69,9 +69,11 @@ including a Google Drive folder -- in the background, with a status banner (queu
 failed, with Retry/Dismiss) above the file list. Rolling Share out to every other screen is still
 a follow-up. Phase 17 (daily insights & smart notifications) has also started: the Storage
 Advisor screen now flags files with an unrecognized or suspicious double extension (like
-"invoice.pdf.exe") as worth a look -- a hygiene nudge, not a security verdict. This phase's
-daily background job, notification, and duplicate-folding are still open. See `docs/PLAN.md`
-for the full phase list.
+"invoice.pdf.exe") as worth a look -- a hygiene nudge, not a security verdict -- and a new
+daily background job re-runs that scan once a day, posting one summary notification
+("Worth a look -- N item(s) found") that opens straight into the Storage Advisor screen when
+tapped. The real notification-permission request, duplicate-folding, and incremental-scan
+caching are still open. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 
