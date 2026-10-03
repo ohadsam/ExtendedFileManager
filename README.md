@@ -55,8 +55,11 @@ file operation this app makes was already being recorded (since Phase 3); that r
 hash-chained for tamper-evidence, and a new Audit log screen (its own drawer entry, also reachable
 from Settings) lists every entry newest-first, warning if the chain is ever broken, with a filter
 to show only failed operations, a search box to find entries by file name, and an Export action
-to write the currently filtered/searched entries out as plain text. See `docs/PLAN.md` for the
-full phase list.
+to write the currently filtered/searched entries out as plain text. Phase 14 (localization &
+responsiveness) is now in progress: a code-level audit found the app's RTL handling already
+consistent across every screen (mirrored icons, start/end-only padding, locale-aware formatting),
+with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tablet layouts and an
+actual visual RTL/font-scale pass are still open. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

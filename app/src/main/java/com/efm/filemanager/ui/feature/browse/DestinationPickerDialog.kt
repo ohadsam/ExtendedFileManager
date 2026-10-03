@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -85,14 +86,16 @@ private fun PickerBreadcrumbBar(
     breadcrumbs: List<BreadcrumbEntry>,
     onCrumbClick: (Int) -> Unit,
 ) {
-    Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
         breadcrumbs.forEachIndexed { index, crumb ->
             Text(
                 text = crumb.label,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.clickable { onCrumbClick(index) }.padding(end = 4.dp),
             )
-            if (index != breadcrumbs.lastIndex) Text("/", modifier = Modifier.padding(end = 4.dp))
+            if (index != breadcrumbs.lastIndex) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
+            }
         }
     }
 }

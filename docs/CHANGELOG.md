@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.17.0 (2026-10-03)
+
+- Phase 14 (localization & responsiveness) started: a full code-level
+  RTL/localization audit across every screen found the app already in
+  good shape (consistent AutoMirrored icons, start/end-only padding,
+  no absolute positioning, Locale.getDefault() everywhere, correct sp
+  font units), with one real fix -- the Vault export folder picker's
+  breadcrumb bar now uses the same mirrored chevron icon Browse's own
+  breadcrumb bar already uses, instead of a plain "/". Adaptive
+  (foldable/tablet) layouts and a real visual RTL/font-scale pass are
+  still open.
+
 ## v0.16.3 (2026-10-02)
 
 - Phase 13 — Audit trail is now complete: a new Export icon writes the
