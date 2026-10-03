@@ -76,10 +76,12 @@ internal fun unclearExtensionReason(name: String): RecommendationReason? {
     val segments = name.split('.')
     if (segments.size < 2) return null
     val finalExtension = segments.last().lowercase()
-    if (segments.size >= 3 && finalExtension in SUSPICIOUS_FINAL_EXTENSIONS) {
-        return RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION
+    val isSuspiciousDouble = segments.size >= 3 && finalExtension in SUSPICIOUS_FINAL_EXTENSIONS
+    return when {
+        isSuspiciousDouble -> RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION
+        finalExtension !in KNOWN_EXTENSIONS -> RecommendationReason.UNRECOGNIZED_EXTENSION
+        else -> null
     }
-    return RecommendationReason.UNRECOGNIZED_EXTENSION.takeIf { finalExtension !in KNOWN_EXTENSIONS }
 }
 
 /**
