@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.efm.filemanager.domain.model.AppearanceMode
@@ -48,6 +49,15 @@ class PreferencesRepository
         val lastSeenWhatsNewVersion: Flow<Int?> =
             context.dataStore.data.map { prefs -> prefs[LAST_SEEN_WHATS_NEW_VERSION_KEY] }
 
+        /**
+         * Phase 17's cheap "has the file index changed since I last looked" signal: bumped by
+         * [bumpChangeVersion] every time [com.efm.filemanager.data.documenttree.DocumentTreeRepository]
+         * re-caches a folder's contents, so a feature can compare a stored value against this one
+         * instead of re-scanning just to find out whether anything moved.
+         */
+        val changeVersion: Flow<Long> =
+            context.dataStore.data.map { prefs -> prefs[CHANGE_VERSION_KEY] ?: 0L }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -72,6 +82,10 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[LAST_SEEN_WHATS_NEW_VERSION_KEY] = versionCode }
         }
 
+        suspend fun bumpChangeVersion() {
+            context.dataStore.edit { prefs -> prefs[CHANGE_VERSION_KEY] = (prefs[CHANGE_VERSION_KEY] ?: 0L) + 1L }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
@@ -79,6 +93,7 @@ class PreferencesRepository
             val ADVISOR_MIN_SIZE_MB_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_min_size_mb")
             val ADVISOR_UNUSED_MONTHS_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_unused_months")
             val LAST_SEEN_WHATS_NEW_VERSION_KEY: Preferences.Key<Int> = intPreferencesKey("last_seen_whats_new_version")
+            val CHANGE_VERSION_KEY: Preferences.Key<Long> = longPreferencesKey("file_index_change_version")
         }
     }
 

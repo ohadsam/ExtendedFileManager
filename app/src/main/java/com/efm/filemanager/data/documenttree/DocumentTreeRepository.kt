@@ -9,6 +9,7 @@ import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.enrich
+import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.data.sourceapp.SourceAppResolver
 import com.efm.filemanager.domain.model.FileEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,6 +33,7 @@ class DocumentTreeRepository
         private val fileEntryDao: FileEntryDao,
         private val sourceAppResolver: SourceAppResolver,
         private val fileMetadataRepository: FileMetadataRepository,
+        private val preferencesRepository: PreferencesRepository,
     ) {
         fun observeChildren(parentUri: Uri): Flow<List<FileEntry>> =
             combine(fileEntryDao.observeChildren(parentUri.toString()), fileMetadataRepository.snapshot) { entries, snapshot ->
@@ -41,6 +43,7 @@ class DocumentTreeRepository
         suspend fun refresh(parentUri: Uri) {
             val entries = listChildrenFromSaf(parentUri)
             fileEntryDao.replaceChildren(parentUri.toString(), entries)
+            preferencesRepository.bumpChangeVersion()
         }
 
         /** Resolves a file/folder's parent from the cached index, if it's been listed before. */
