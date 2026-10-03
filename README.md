@@ -72,8 +72,10 @@ Advisor screen now flags files with an unrecognized or suspicious double extensi
 "invoice.pdf.exe") as worth a look -- a hygiene nudge, not a security verdict -- and a new
 daily background job re-runs that scan once a day, posting one summary notification
 ("Worth a look -- N item(s) found") that opens straight into the Storage Advisor screen when
-tapped. The real notification-permission request, duplicate-folding, and incremental-scan
-caching are still open. See `docs/PLAN.md` for the full phase list.
+tapped. A new Settings "Insights" section controls both pieces -- "Run daily insights" and
+"Notify me" (which triggers the real notification-permission request on Android 13+).
+Duplicate-folding and incremental-scan caching are still open. See `docs/PLAN.md` for the full
+phase list.
 
 ## Building
 

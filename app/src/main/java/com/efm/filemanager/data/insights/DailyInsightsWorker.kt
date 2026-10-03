@@ -6,8 +6,10 @@ import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
+import com.efm.filemanager.data.prefs.PreferencesRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 internal const val DAILY_INSIGHTS_WORK_NAME = "daily_insights"
@@ -20,6 +22,8 @@ internal const val DAILY_INSIGHTS_WORK_NAME = "daily_insights"
  * the expensive duplicate scan are still open (see docs/PLAN.md Phase 17) -- this worker only
  * recomputes Phase 10's already-cheap recommendation categories, the same ones the Advisor
  * screen already shows and already persists to Room via [StorageAdvisorRepository.scan].
+ * Settings' "Run daily insights" toggle skips the scan entirely; "Notify me" lets the scan
+ * keep running (so the screen stays fresh) while suppressing just the notification.
  */
 @HiltWorker
 class DailyInsightsWorker
@@ -29,12 +33,21 @@ class DailyInsightsWorker
         @Assisted params: WorkerParameters,
         private val storageAdvisorRepository: StorageAdvisorRepository,
         private val insightsNotifier: InsightsNotifier,
+        private val preferencesRepository: PreferencesRepository,
     ) : CoroutineWorker(context, params) {
         override suspend fun doWork(): Result {
+            if (!preferencesRepository.runDailyInsights.first()) {
+                Timber.i("DailyInsightsWorker: disabled via Settings, skipping")
+                return Result.success()
+            }
             Timber.i("DailyInsightsWorker: starting daily scan")
             val foundCount = storageAdvisorRepository.scan {}
             Timber.i("DailyInsightsWorker: scan found %d recommendation(s)", foundCount)
-            insightsNotifier.notifySummary(foundCount)
+            if (preferencesRepository.notifyMeEnabled.first()) {
+                insightsNotifier.notifySummary(foundCount)
+            } else {
+                Timber.i("DailyInsightsWorker: notify-me disabled via Settings, skipping notification")
+            }
             return Result.success()
         }
     }

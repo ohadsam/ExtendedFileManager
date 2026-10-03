@@ -1,10 +1,14 @@
 package com.efm.filemanager.ui.feature.settings
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
@@ -102,10 +107,16 @@ private fun SettingsBody(
         )
         HorizontalDivider()
         StorageAdvisorSettingsSection(
-            minSizeMb = uiState.advisorMinSizeMb,
-            unusedMonths = uiState.advisorUnusedMonths,
+            minSizeMb = uiState.advisorSettings.minSizeMb,
+            unusedMonths = uiState.advisorSettings.unusedMonths,
             onMinSizeChange = viewModel::setAdvisorMinSizeMb,
             onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
+        )
+        HorizontalDivider()
+        InsightsSettingsSectionHost(
+            insightsSettings = uiState.insightsSettings,
+            onRunDailyInsightsChange = viewModel::setRunDailyInsights,
+            onNotifyMeEnabledChange = viewModel::setNotifyMeEnabled,
         )
         HorizontalDivider()
         LogsSection(onOpenLogs = navActions.onOpenLogs)
@@ -276,6 +287,76 @@ private fun StorageAdvisorSettingsSection(
     }
 }
 
+// Hosts the permission launcher itself so SettingsBody doesn't have to -- keeps that
+// function's line count from creeping toward detekt's LongMethod threshold.
+@Composable
+private fun InsightsSettingsSectionHost(
+    insightsSettings: InsightsSettingsState,
+    onRunDailyInsightsChange: (Boolean) -> Unit,
+    onNotifyMeEnabledChange: (Boolean) -> Unit,
+) {
+    val context = LocalContext.current
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            onNotifyMeEnabledChange(granted)
+        }
+    InsightsSettingsSection(
+        runDailyInsights = insightsSettings.runDailyInsights,
+        notifyMeEnabled = insightsSettings.notifyMeEnabled,
+        onRunDailyInsightsChange = onRunDailyInsightsChange,
+        onNotifyMeChange = { enabled ->
+            if (needsNotificationPermission(context, enabled)) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                onNotifyMeEnabledChange(enabled)
+            }
+        },
+    )
+}
+
+@Composable
+private fun InsightsSettingsSection(
+    runDailyInsights: Boolean,
+    notifyMeEnabled: Boolean,
+    onRunDailyInsightsChange: (Boolean) -> Unit,
+    onNotifyMeChange: (Boolean) -> Unit,
+) {
+    Column {
+        SectionHeader(
+            title = stringResource(R.string.insights_settings_section),
+            infoDescription = stringResource(R.string.insights_settings_info_body),
+        )
+        SwitchRow(
+            label = stringResource(R.string.insights_settings_run_daily),
+            checked = runDailyInsights,
+            onCheckedChange = onRunDailyInsightsChange,
+        )
+        SwitchRow(
+            label = stringResource(R.string.insights_settings_notify_me),
+            checked = notifyMeEnabled,
+            onCheckedChange = onNotifyMeChange,
+        )
+    }
+}
+
+@Composable
+private fun SwitchRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        Text(label, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
 @Composable
 private fun PermissionsSection(
     grantedFolderCount: Int,
@@ -360,4 +441,13 @@ private fun openAppSystemSettings(context: Context) {
             data = Uri.fromParts("package", context.packageName, null)
         }
     context.startActivity(intent)
+}
+
+/** Turning "Notify me" on needs the real runtime permission on API 33+ -- below that, or when already granted, no request is needed. */
+private fun needsNotificationPermission(
+    context: Context,
+    enabled: Boolean,
+): Boolean {
+    if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
+    return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
 }

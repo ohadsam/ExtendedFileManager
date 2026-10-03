@@ -58,6 +58,14 @@ class PreferencesRepository
         val changeVersion: Flow<Long> =
             context.dataStore.data.map { prefs -> prefs[CHANGE_VERSION_KEY] ?: 0L }
 
+        /** Phase 17's "Run daily insights" Settings toggle -- off stops the daily insights worker from scanning at all. */
+        val runDailyInsights: Flow<Boolean> =
+            context.dataStore.data.map { prefs -> prefs[RUN_DAILY_INSIGHTS_KEY] ?: true }
+
+        /** Phase 17's "Notify me" Settings toggle -- off keeps the daily scan running but suppresses its summary notification. */
+        val notifyMeEnabled: Flow<Boolean> =
+            context.dataStore.data.map { prefs -> prefs[NOTIFY_ME_KEY] ?: true }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -86,6 +94,14 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[CHANGE_VERSION_KEY] = (prefs[CHANGE_VERSION_KEY] ?: 0L) + 1L }
         }
 
+        suspend fun setRunDailyInsights(enabled: Boolean) {
+            context.dataStore.edit { prefs -> prefs[RUN_DAILY_INSIGHTS_KEY] = enabled }
+        }
+
+        suspend fun setNotifyMeEnabled(enabled: Boolean) {
+            context.dataStore.edit { prefs -> prefs[NOTIFY_ME_KEY] = enabled }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
@@ -94,6 +110,8 @@ class PreferencesRepository
             val ADVISOR_UNUSED_MONTHS_KEY: Preferences.Key<Int> = intPreferencesKey("advisor_unused_months")
             val LAST_SEEN_WHATS_NEW_VERSION_KEY: Preferences.Key<Int> = intPreferencesKey("last_seen_whats_new_version")
             val CHANGE_VERSION_KEY: Preferences.Key<Long> = longPreferencesKey("file_index_change_version")
+            val RUN_DAILY_INSIGHTS_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("run_daily_insights")
+            val NOTIFY_ME_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("notify_me_enabled")
         }
     }
 

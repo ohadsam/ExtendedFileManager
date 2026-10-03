@@ -330,4 +330,8 @@
     <string name="insights_notification_channel_description">סיכום ממצאי יועץ האחסון שכדאי לבדוק</string>
     <string name="insights_notification_title">כדאי להסתכל</string>
     <string name="insights_notification_body">%d פריט/ים נמצאו ביועץ האחסון</string>
+    <string name="insights_settings_section">תובנות</string>
+    <string name="insights_settings_info_body">שולט בבדיקה היומית ברקע של יועץ האחסון ובהתראת הסיכום שלה.</string>
+    <string name="insights_settings_run_daily">הפעל תובנות יומיות</string>
+    <string name="insights_settings_notify_me">שלח לי התראה</string>
 </resources>

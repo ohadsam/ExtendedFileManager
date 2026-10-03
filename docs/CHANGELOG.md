@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.20.2 (2026-10-03)
+
+- Phase 17 continues: Settings gained a new "Insights" section with
+  two switches -- "Run daily insights" (stops the daily background
+  job entirely) and "Notify me" (keeps the job running so Storage
+  Advisor stays fresh, just suppresses its summary notification).
+  Turning "Notify me" on, on Android 13+, now triggers the real
+  POST_NOTIFICATIONS runtime-permission request. Duplicate-folding,
+  the incremental changeVersion-based scan skip, and the
+  Advisor-to-Insights rename are still open.
+
 ## v0.20.1 (2026-10-03)
 
 - Phase 17 continues: a new daily background job now re-runs the

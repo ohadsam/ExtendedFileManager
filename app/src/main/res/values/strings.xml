@@ -330,4 +330,8 @@
     <string name="insights_notification_channel_description">Summary of Storage Advisor findings worth a look</string>
     <string name="insights_notification_title">Worth a look</string>
     <string name="insights_notification_body">%d item(s) found by Storage Advisor</string>
+    <string name="insights_settings_section">Insights</string>
+    <string name="insights_settings_info_body">Controls Storage Advisor\'s daily background check and its summary notification.</string>
+    <string name="insights_settings_run_daily">Run daily insights</string>
+    <string name="insights_settings_notify_me">Notify me</string>
 </resources>

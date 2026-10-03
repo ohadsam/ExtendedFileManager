@@ -17,13 +17,23 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class StorageAdvisorSettingsState(
+    val minSizeMb: Int = 100,
+    val unusedMonths: Int = 6,
+)
+
+data class InsightsSettingsState(
+    val runDailyInsights: Boolean = true,
+    val notifyMeEnabled: Boolean = true,
+)
+
 data class SettingsUiState(
     val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
     val grantedFolderCount: Int = 0,
     val viewMode: ViewMode = ViewMode.LIST,
-    val advisorMinSizeMb: Int = 100,
-    val advisorUnusedMonths: Int = 6,
+    val advisorSettings: StorageAdvisorSettingsState = StorageAdvisorSettingsState(),
+    val insightsSettings: InsightsSettingsState = InsightsSettingsState(),
 )
 
 @HiltViewModel
@@ -35,21 +45,30 @@ class SettingsViewModel
     ) : ViewModel() {
         private val grantedFolderCount = MutableStateFlow(currentGrantedFolderCount())
 
-        private val advisorThresholds =
+        private val advisorSettings =
             combine(preferencesRepository.advisorMinSizeMb, preferencesRepository.advisorUnusedMonths) { minSizeMb, unusedMonths ->
-                minSizeMb to unusedMonths
+                StorageAdvisorSettingsState(minSizeMb, unusedMonths)
             }
 
-        val uiState: StateFlow<SettingsUiState> =
+        private val insightsSettings =
+            combine(preferencesRepository.runDailyInsights, preferencesRepository.notifyMeEnabled) { runEnabled, notifyEnabled ->
+                InsightsSettingsState(runEnabled, notifyEnabled)
+            }
+
+        private val baseUiState =
             combine(
                 preferencesRepository.appearanceMode,
                 preferencesRepository.dynamicColorEnabled,
                 grantedFolderCount,
                 preferencesRepository.viewMode,
-                advisorThresholds,
-            ) { appearanceMode, dynamicColorEnabled, folderCount, viewMode, (advisorMinSizeMb, advisorUnusedMonths) ->
-                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount, viewMode, advisorMinSizeMb, advisorUnusedMonths)
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
+                advisorSettings,
+            ) { appearanceMode, dynamicColorEnabled, folderCount, viewMode, advisor ->
+                SettingsUiState(appearanceMode, dynamicColorEnabled, folderCount, viewMode, advisor)
+            }
+
+        val uiState: StateFlow<SettingsUiState> =
+            combine(baseUiState, insightsSettings) { base, insights -> base.copy(insightsSettings = insights) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
 
         fun setAppearanceMode(mode: AppearanceMode) {
             viewModelScope.launch { preferencesRepository.setAppearanceMode(mode) }
@@ -69,6 +88,14 @@ class SettingsViewModel
 
         fun setAdvisorUnusedMonths(months: Int) {
             viewModelScope.launch { preferencesRepository.setAdvisorUnusedMonths(months) }
+        }
+
+        fun setRunDailyInsights(enabled: Boolean) {
+            viewModelScope.launch { preferencesRepository.setRunDailyInsights(enabled) }
+        }
+
+        fun setNotifyMeEnabled(enabled: Boolean) {
+            viewModelScope.launch { preferencesRepository.setNotifyMeEnabled(enabled) }
         }
 
         fun refreshPermissionsStatus() {
