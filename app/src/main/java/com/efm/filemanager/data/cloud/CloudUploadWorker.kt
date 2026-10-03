@@ -33,13 +33,9 @@ class CloudUploadWorker
     ) : CoroutineWorker(context, params) {
         override suspend fun doWork(): Result {
             val id = inputData.getLong(KEY_UPLOAD_ID, -1L)
-            if (id < 0) {
-                Timber.e("CloudUploadWorker: missing or invalid upload id in input data, aborting")
-                return Result.failure()
-            }
-            val entity = cloudUploadDao.getById(id)
+            val entity = if (id >= 0) cloudUploadDao.getById(id) else null
             if (entity == null) {
-                Timber.e("CloudUploadWorker: no upload row found for id=%d, aborting", id)
+                Timber.e("CloudUploadWorker: missing/invalid upload id=%d or no matching row, aborting", id)
                 return Result.failure()
             }
             Timber.i("CloudUploadWorker: starting id=%d name='%s' destination=%s", id, entity.sourceName, entity.destinationParentUri)
