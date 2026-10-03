@@ -62,6 +62,10 @@ internal fun buildSelectionActions(
             viewModel.picker.openCopyPicker(selectedEntries)
             selectedUris.clear()
         },
+        onUpload = {
+            viewModel.picker.openUploadPicker(selectedEntries)
+            selectedUris.clear()
+        },
         onDelete = { onDialogRequested(BrowseDialog.DELETE) },
         onShowDetails = { onDialogRequested(BrowseDialog.DETAILS) },
         onAddTag = { onDialogRequested(BrowseDialog.TAG_PICKER) },
@@ -218,36 +222,51 @@ private fun SelectionMoreMenu(
                 state.actions.onToggleLock()
             },
         )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.action_move)) },
-            onClick = {
-                onDismiss()
-                state.actions.onMove()
-            },
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.action_copy)) },
-            onClick = {
-                onDismiss()
-                state.actions.onCopy()
-            },
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.action_add_to_vault)) },
-            onClick = {
-                onDismiss()
-                state.actions.onAddToVault()
-            },
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.action_share)) },
-            onClick = {
-                onDismiss()
-                state.actions.onShare()
-            },
-        )
+        TransferMenuItems(state = state, onDismiss = onDismiss)
         ArchiveMenuItems(state = state, onDismiss = onDismiss)
     }
+}
+
+@Composable
+private fun TransferMenuItems(
+    state: SelectionBarState,
+    onDismiss: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_move)) },
+        onClick = {
+            onDismiss()
+            state.actions.onMove()
+        },
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_copy)) },
+        onClick = {
+            onDismiss()
+            state.actions.onCopy()
+        },
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_upload_to)) },
+        onClick = {
+            onDismiss()
+            state.actions.onUpload()
+        },
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_add_to_vault)) },
+        onClick = {
+            onDismiss()
+            state.actions.onAddToVault()
+        },
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_share)) },
+        onClick = {
+            onDismiss()
+            state.actions.onShare()
+        },
+    )
 }
 
 @Composable

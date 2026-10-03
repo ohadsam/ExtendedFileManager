@@ -12,4 +12,5 @@ internal data class SelectionBarActions(
     val onToggleLock: () -> Unit,
     val onAddToVault: () -> Unit,
     val onShare: () -> Unit,
+    val onUpload: () -> Unit,
 )

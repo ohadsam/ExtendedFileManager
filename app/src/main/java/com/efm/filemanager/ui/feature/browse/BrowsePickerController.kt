@@ -1,6 +1,7 @@
 package com.efm.filemanager.ui.feature.browse
 
 import android.net.Uri
+import com.efm.filemanager.data.cloud.CloudUploadRepository
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
 import com.efm.filemanager.domain.model.FileEntry
@@ -11,19 +12,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
- * Owns the move/copy destination-picker's state and navigation -- split out of BrowseViewModel
- * (a cohesive sub-feature, not a threshold dodge) once adding view-mode support there pushed
- * that class past detekt's function-count ceiling.
+ * Owns the move/copy/upload destination-picker's state and navigation -- split out of
+ * BrowseViewModel (a cohesive sub-feature, not a threshold dodge) once adding view-mode support
+ * there pushed that class past detekt's function-count ceiling. [callbacks] bundles what used to
+ * be three separate lambda parameters, freeing a constructor slot for [cloudUploadRepository]
+ * without tripping `LongParameterList` again.
  */
 class BrowsePickerController(
     private val scope: CoroutineScope,
     private val repository: DocumentTreeRepository,
     private val fileOperationsRepository: FileOperationsRepository,
-    private val currentSourceParentUri: () -> Uri?,
-    private val currentRootCrumb: () -> BreadcrumbEntry?,
-    private val onOperationFailed: suspend () -> Unit,
+    private val cloudUploadRepository: CloudUploadRepository,
+    private val callbacks: BrowsePickerCallbacks,
 ) {
     private val _pickerState = MutableStateFlow(PickerUiState())
     val pickerState: StateFlow<PickerUiState> = _pickerState.asStateFlow()
@@ -34,6 +37,8 @@ class BrowsePickerController(
     fun openMovePicker(entries: List<FileEntry>) = open(PickerPurpose.MOVE, entries)
 
     fun openCopyPicker(entries: List<FileEntry>) = open(PickerPurpose.COPY, entries)
+
+    fun openUploadPicker(entries: List<FileEntry>) = open(PickerPurpose.UPLOAD, entries)
 
     fun navigateInto(entry: FileEntry) {
         if (!entry.isDirectory) return
@@ -58,21 +63,42 @@ class BrowsePickerController(
     fun confirm() {
         val targetUri = _pickerState.value.breadcrumbs.lastOrNull()?.uri
         val purpose = _pickerState.value.purpose
-        val sourceParentUri = currentSourceParentUri()
-        if (targetUri == null || purpose == null || sourceParentUri == null) return
+        if (targetUri == null || purpose == null) return
         val entries = pendingEntries
         dismiss()
+        if (purpose == PickerPurpose.UPLOAD) {
+            confirmUpload(entries, targetUri)
+        } else {
+            confirmMoveOrCopy(purpose, entries, targetUri)
+        }
+    }
+
+    private fun confirmUpload(
+        entries: List<FileEntry>,
+        targetUri: Uri,
+    ) {
+        Timber.i("BrowsePickerController: confirming upload of %d file(s) to %s", entries.size, targetUri)
+        scope.launch { cloudUploadRepository.enqueueUploads(entries, targetUri) }
+    }
+
+    private fun confirmMoveOrCopy(
+        purpose: PickerPurpose,
+        entries: List<FileEntry>,
+        targetUri: Uri,
+    ) {
+        val sourceParentUri = callbacks.currentSourceParentUri() ?: return
         scope.launch {
             val failures =
                 entries.count { entry ->
                     val result =
-                        when (purpose) {
-                            PickerPurpose.MOVE -> fileOperationsRepository.move(entry, sourceParentUri, targetUri)
-                            PickerPurpose.COPY -> fileOperationsRepository.copy(entry, targetUri)
+                        if (purpose == PickerPurpose.MOVE) {
+                            fileOperationsRepository.move(entry, sourceParentUri, targetUri)
+                        } else {
+                            fileOperationsRepository.copy(entry, targetUri)
                         }
                     result.isFailure
                 }
-            if (failures > 0) onOperationFailed()
+            if (failures > 0) callbacks.onOperationFailed()
         }
     }
 
@@ -80,7 +106,7 @@ class BrowsePickerController(
         purpose: PickerPurpose,
         entries: List<FileEntry>,
     ) {
-        val startCrumb = currentRootCrumb() ?: return
+        val startCrumb = callbacks.currentRootCrumb() ?: return
         pendingEntries = entries
         _pickerState.value = PickerUiState(visible = true, purpose = purpose, breadcrumbs = listOf(startCrumb))
         observeFolder(startCrumb.uri)

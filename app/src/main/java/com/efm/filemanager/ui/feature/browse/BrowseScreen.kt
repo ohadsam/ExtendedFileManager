@@ -105,6 +105,7 @@ private fun BrowseScaffold(
     val uiState = inputs.uiState
     val navActions = inputs.navActions
     val viewModel = inputs.viewModel
+    val activeUploads by viewModel.activeUploads.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             BrowseTopBar(
@@ -127,13 +128,18 @@ private fun BrowseScaffold(
             )
         },
     ) { innerPadding ->
-        BrowseBody(
-            uiState = uiState,
-            selectedUris = inputs.selectedUris,
-            modifier = Modifier.padding(innerPadding),
-            onGrantClick = onGrantClick,
-            onEntryClick = { entry -> onFileEntryTapped(entry, inputs.selectedUris, viewModel, navActions.onOpenPreview) },
-        )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            if (activeUploads.isNotEmpty()) {
+                UploadStatusBanner(uploads = activeUploads, onRetry = viewModel::retryUpload, onDismiss = viewModel::dismissUpload)
+            }
+            BrowseBody(
+                uiState = uiState,
+                selectedUris = inputs.selectedUris,
+                modifier = Modifier.weight(1f),
+                onGrantClick = onGrantClick,
+                onEntryClick = { entry -> onFileEntryTapped(entry, inputs.selectedUris, viewModel, navActions.onOpenPreview) },
+            )
+        }
     }
 }
 

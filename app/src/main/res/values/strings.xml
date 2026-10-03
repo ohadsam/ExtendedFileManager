@@ -175,6 +175,7 @@
 
     <string name="picker_title_move">Move to…</string>
     <string name="picker_title_copy">Copy to…</string>
+    <string name="picker_title_upload">Upload to…</string>
     <string name="picker_choose_folder">Choose this folder</string>
 
     <string name="selection_more_actions">More actions</string>
@@ -306,6 +307,14 @@
     <string name="action_add_to_vault">Add to Vault</string>
     <string name="action_share">Share</string>
     <string name="share_chooser_title">Share via</string>
+    <string name="action_upload_to">Upload to…</string>
+    <string name="uploads_section_title">Uploads</string>
+    <string name="upload_status_queued">Queued</string>
+    <string name="upload_status_uploading">Uploading…</string>
+    <string name="upload_status_done">Done</string>
+    <string name="upload_status_failed">Failed</string>
+    <string name="upload_retry_action">Retry</string>
+    <string name="upload_dismiss_action">Dismiss</string>
     <string name="add_to_vault_confirm_title">Add to Vault?</string>
     <string name="add_to_vault_confirm_message">Move %d item(s) into the encrypted vault? They\'ll be removed from here until you unlock the vault again.</string>
     <string name="add_to_vault_confirm_button">Add to Vault</string>

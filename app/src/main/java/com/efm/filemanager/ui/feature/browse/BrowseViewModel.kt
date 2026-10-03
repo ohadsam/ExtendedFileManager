@@ -3,10 +3,12 @@ package com.efm.filemanager.ui.feature.browse
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.efm.filemanager.data.cloud.uploadsToDisplay
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.documenttree.FileOperationsRepository
 import com.efm.filemanager.data.documenttree.LockedFileException
+import com.efm.filemanager.data.local.CloudUploadEntity
 import com.efm.filemanager.data.metadata.ScreenMetadataSupport
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.data.prefs.PreferencesRepository
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,6 +52,7 @@ data class BrowseUiState(
 enum class PickerPurpose {
     MOVE,
     COPY,
+    UPLOAD,
 }
 
 data class PickerUiState(
@@ -103,10 +107,20 @@ class BrowseViewModel
                 scope = viewModelScope,
                 repository = repository,
                 fileOperationsRepository = fileOperationsRepository,
-                currentSourceParentUri = ::currentParentUri,
-                currentRootCrumb = { _uiState.value.breadcrumbs.firstOrNull() },
-                onOperationFailed = { _events.emit(BrowseEvent.OperationFailed) },
+                cloudUploadRepository = delegateSupport.cloudUploadRepository,
+                callbacks =
+                    BrowsePickerCallbacks(
+                        currentSourceParentUri = ::currentParentUri,
+                        currentRootCrumb = { _uiState.value.breadcrumbs.firstOrNull() },
+                        onOperationFailed = { _events.emit(BrowseEvent.OperationFailed) },
+                    ),
             )
+
+        val activeUploads: StateFlow<List<CloudUploadEntity>> =
+            delegateSupport.cloudUploadRepository
+                .observeAll()
+                .map { uploadsToDisplay(it) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
         private var observeJob: Job? = null
 
@@ -210,6 +224,14 @@ class BrowseViewModel
             viewModelScope.launch {
                 trashedFileIds.forEach { id -> fileOperationsRepository.restore(id) }
             }
+        }
+
+        fun retryUpload(id: Long) {
+            viewModelScope.launch { delegateSupport.cloudUploadRepository.retry(id) }
+        }
+
+        fun dismissUpload(id: Long) {
+            viewModelScope.launch { delegateSupport.cloudUploadRepository.dismiss(id) }
         }
 
         private fun runAgainstCurrentFolder(operation: suspend (Uri) -> Result<Unit>) {

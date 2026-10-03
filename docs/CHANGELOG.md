@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.19.1 (2026-10-03)
+
+- Phase 16 is now complete: Browse's selection menu gained an
+  "Upload to…" action that reuses the same destination picker as
+  Move/Copy -- pick any folder, including a Google Drive folder
+  already granted access to, and the selected files upload in the
+  background (surviving the app leaving the foreground) with their
+  own status banner above the file list (queued/uploading/failed,
+  with Retry and Dismiss on a failure -- nothing fails silently).
+  Heavily logged under the hood for diagnosing anything that comes up
+  during manual testing. Rolling Share out to every other screen is
+  still a follow-up.
+
 ## v0.19.0 (2026-10-03)
 
 - Phase 16 (cloud upload & sharing) started with Share / Send: a new

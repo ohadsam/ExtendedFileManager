@@ -175,6 +175,7 @@
 
     <string name="picker_title_move">העבר אל…</string>
     <string name="picker_title_copy">העתק אל…</string>
+    <string name="picker_title_upload">העלה אל…</string>
     <string name="picker_choose_folder">בחר תיקייה זו</string>
 
     <string name="selection_more_actions">פעולות נוספות</string>
@@ -306,6 +307,14 @@
     <string name="action_add_to_vault">הוסף לכספת</string>
     <string name="action_share">שתף</string>
     <string name="share_chooser_title">שיתוף באמצעות</string>
+    <string name="action_upload_to">העלה אל…</string>
+    <string name="uploads_section_title">העלאות</string>
+    <string name="upload_status_queued">בתור</string>
+    <string name="upload_status_uploading">מעלה…</string>
+    <string name="upload_status_done">הסתיים</string>
+    <string name="upload_status_failed">נכשל</string>
+    <string name="upload_retry_action">ניסיון חוזר</string>
+    <string name="upload_dismiss_action">התעלם</string>
     <string name="add_to_vault_confirm_title">להוסיף לכספת?</string>
     <string name="add_to_vault_confirm_message">להעביר %d פריט/ים לכספת המוצפנת? הם יוסרו מכאן עד שתפתח שוב את הכספת.</string>
     <string name="add_to_vault_confirm_button">הוסף לכספת</string>

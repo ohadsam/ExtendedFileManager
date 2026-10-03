@@ -111,25 +111,37 @@ internal fun BrowseDialogs(
         null -> Unit
     }
 
-    if (context.pickerState.visible) {
-        val titleRes = if (context.pickerState.purpose == PickerPurpose.COPY) R.string.picker_title_copy else R.string.picker_title_move
-        DestinationPickerDialog(
-            title = stringResource(titleRes),
-            content =
-                DestinationPickerContent(
-                    breadcrumbs = context.pickerState.breadcrumbs,
-                    folders = context.pickerState.folders,
-                    isLoading = context.pickerState.isLoading,
-                ),
-            actions =
-                DestinationPickerActions(
-                    onNavigateInto = viewModel.picker::navigateInto,
-                    onNavigateToBreadcrumb = viewModel.picker::navigateToBreadcrumb,
-                    onConfirm = viewModel.picker::confirm,
-                    onDismiss = viewModel.picker::dismiss,
-                ),
-        )
-    }
+    DestinationPickerCase(context = context, viewModel = viewModel)
+}
+
+@Composable
+private fun DestinationPickerCase(
+    context: DialogsContext,
+    viewModel: BrowseViewModel,
+) {
+    if (!context.pickerState.visible) return
+    val titleRes =
+        when (context.pickerState.purpose) {
+            PickerPurpose.COPY -> R.string.picker_title_copy
+            PickerPurpose.UPLOAD -> R.string.picker_title_upload
+            PickerPurpose.MOVE, null -> R.string.picker_title_move
+        }
+    DestinationPickerDialog(
+        title = stringResource(titleRes),
+        content =
+            DestinationPickerContent(
+                breadcrumbs = context.pickerState.breadcrumbs,
+                folders = context.pickerState.folders,
+                isLoading = context.pickerState.isLoading,
+            ),
+        actions =
+            DestinationPickerActions(
+                onNavigateInto = viewModel.picker::navigateInto,
+                onNavigateToBreadcrumb = viewModel.picker::navigateToBreadcrumb,
+                onConfirm = viewModel.picker::confirm,
+                onDismiss = viewModel.picker::dismiss,
+            ),
+    )
 }
 
 @Composable
