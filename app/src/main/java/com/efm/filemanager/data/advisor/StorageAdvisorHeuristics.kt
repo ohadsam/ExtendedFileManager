@@ -8,6 +8,31 @@ private val TEMP_FILE_EXTENSIONS = setOf("tmp", "temp", "log", "bak", "cache", "
 /** Android's own trash-rename prefix for a file pending permanent deletion. */
 private const val TRASHED_PREFIX = ".trashed-"
 
+/**
+ * Deliberately broad so ordinary files are never flagged -- this is a hygiene nudge ("worth a
+ * look"), never a security verdict, so a false positive here is a real annoyance, not a minor one.
+ */
+private val KNOWN_EXTENSIONS =
+    setOf(
+        // images
+        "jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "svg", "ico", "tiff", "tif", "raw",
+        // video
+        "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "3gp", "mpeg", "mpg",
+        // audio
+        "mp3", "wav", "flac", "aac", "ogg", "m4a", "wma", "opus", "mid", "midi",
+        // documents
+        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "odt", "ods", "odp", "rtf", "csv", "md", "epub", "mobi",
+        // archives and packages
+        "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "apk",
+        // code, markup, and config
+        "json", "xml", "yaml", "yml", "html", "htm", "css", "js", "ts", "kt", "java", "py", "c", "cpp", "h", "sh", "ini", "cfg", "conf",
+        // fonts and logs
+        "ttf", "otf", "woff", "woff2", "log",
+    )
+
+/** A final extension this common after a preceding one is specifically worth calling out, not just "unrecognized." */
+private val SUSPICIOUS_FINAL_EXTENSIONS = setOf("exe", "bat", "cmd", "scr", "msi", "com", "vbs", "ps1", "apk")
+
 internal const val MILLIS_PER_MONTH = 1000L * 60 * 60 * 24 * 30
 internal const val BYTES_PER_MB = 1024L * 1024
 
@@ -37,6 +62,24 @@ internal fun matchesTemporaryPattern(name: String): String? {
     if (name.startsWith(TRASHED_PREFIX)) return "$TRASHED_PREFIX*"
     val extension = name.substringAfterLast('.', missingDelimiterValue = "").lowercase()
     return ".$extension".takeIf { extension in TEMP_FILE_EXTENSIONS }
+}
+
+/**
+ * Phase 17's "worth a look" hygiene nudge, never a security verdict: a name with no extension at
+ * all (common and normal for many files) isn't flagged, only one whose real, final extension is
+ * neither a recognized type nor explained by [matchesTemporaryPattern] -- callers should check
+ * that first, since a `.tmp`/`.bak`/etc. file is already explained, not "unclear." A final
+ * extension from [SUSPICIOUS_FINAL_EXTENSIONS] preceded by at least one other segment (e.g.
+ * "invoice.pdf.exe") is called out specifically, rather than lumped in with plain "unrecognized."
+ */
+internal fun unclearExtensionReason(name: String): RecommendationReason? {
+    val segments = name.split('.')
+    if (segments.size < 2) return null
+    val finalExtension = segments.last().lowercase()
+    if (segments.size >= 3 && finalExtension in SUSPICIOUS_FINAL_EXTENSIONS) {
+        return RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION
+    }
+    return RecommendationReason.UNRECOGNIZED_EXTENSION.takeIf { finalExtension !in KNOWN_EXTENSIONS }
 }
 
 /**

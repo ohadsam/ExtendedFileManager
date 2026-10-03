@@ -270,6 +270,7 @@
     <string name="storage_advisor_category_large_unused">Large &amp; unused</string>
     <string name="storage_advisor_category_junk">Junk</string>
     <string name="storage_advisor_category_temporary">Temporary files</string>
+    <string name="storage_advisor_category_unclear_extension">Unclear file extension</string>
     <string name="storage_advisor_reason_not_opened_via_app">Not opened in this app in a while</string>
     <string name="storage_advisor_reason_not_modified_recently">Not modified in a while</string>
     <string name="storage_advisor_reason_orphaned_app_folder">Leftover folder from an uninstalled app</string>
@@ -277,6 +278,8 @@
     <string name="storage_advisor_reason_app_cache">Temporary data Extended File Manager keeps for its own use -- safe to clear</string>
     <string name="storage_advisor_app_cache_name">App cache</string>
     <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
+    <string name="storage_advisor_reason_unrecognized_extension">Unusual file extension (%1$s) -- worth a look</string>
+    <string name="storage_advisor_reason_suspicious_double_extension">Suspicious double extension (%1$s) -- worth checking before opening</string>
     <string name="storage_advisor_dismiss">Dismiss</string>
     <string name="storage_advisor_stage_for_later">Stage for later</string>
     <string name="storage_advisor_unstage">Unstage</string>

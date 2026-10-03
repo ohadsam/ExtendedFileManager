@@ -159,10 +159,21 @@ class StorageAdvisorRepository
             scanContext: AdvisorScanContext,
             accumulator: AdvisorScanAccumulator,
         ) {
-            matchesTemporaryPattern(file.name)?.let { pattern ->
+            val temporaryPattern = matchesTemporaryPattern(file.name)
+            if (temporaryPattern != null) {
                 val recommendation =
-                    file.toRecommendationEntity(StorageRecommendationCategory.TEMPORARY, RecommendationReason.TEMP_FILE_PATTERN, pattern)
+                    file.toRecommendationEntity(
+                        StorageRecommendationCategory.TEMPORARY,
+                        RecommendationReason.TEMP_FILE_PATTERN,
+                        temporaryPattern,
+                    )
                 accumulator.results += recommendation
+            } else {
+                unclearExtensionReason(file.name)?.let { reason ->
+                    val extensionDetail = ".${file.name.substringAfterLast('.', missingDelimiterValue = "")}"
+                    val category = StorageRecommendationCategory.UNCLEAR_EXTENSION
+                    accumulator.results += file.toRecommendationEntity(category, reason, extensionDetail)
+                }
             }
             val lastOpenedAt = scanContext.lastOpenedAtByUri[file.uri]
             largeUnusedReason(file.size, file.lastModified, lastOpenedAt, scanContext.now, scanContext.thresholds)?.let { reason ->

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.20.0 (2026-10-03)
+
+- Phase 17 (daily insights & smart notifications) started: the
+  Storage Advisor screen gained a new "Unclear file extension"
+  category, flagging files with an unrecognized extension or a
+  suspicious double extension (like "invoice.pdf.exe") as worth a
+  look -- a hygiene nudge, never a security verdict. The daily
+  background job, notification, and the rest of this phase's
+  infrastructure are still to come.
+
 ## v0.19.1 (2026-10-03)
 
 - Phase 16 is now complete: Browse's selection menu gained an

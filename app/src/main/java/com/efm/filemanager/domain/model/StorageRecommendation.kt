@@ -1,7 +1,7 @@
 package com.efm.filemanager.domain.model
 
-/** Phase 10's three recommendation categories -- see docs/PLAN.md Phase 10. */
-enum class StorageRecommendationCategory { LARGE_UNUSED, JUNK, TEMPORARY }
+/** Phase 10's three recommendation categories, plus Phase 17's lightweight "unclear extension" hygiene nudge. */
+enum class StorageRecommendationCategory { LARGE_UNUSED, JUNK, TEMPORARY, UNCLEAR_EXTENSION }
 
 /**
  * Why a file was recommended, kept distinct from the category since a category can have more
@@ -14,6 +14,8 @@ enum class RecommendationReason {
     EMPTY_FOLDER,
     APP_CACHE,
     TEMP_FILE_PATTERN,
+    UNRECOGNIZED_EXTENSION,
+    SUSPICIOUS_DOUBLE_EXTENSION,
 }
 
 /** One flagged file/folder, always explaining itself via [reason] rather than a bare "junk" label. */

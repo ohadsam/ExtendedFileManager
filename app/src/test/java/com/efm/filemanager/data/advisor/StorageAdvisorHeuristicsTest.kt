@@ -94,4 +94,37 @@ class StorageAdvisorHeuristicsTest {
             largeUnusedReason(sizeBytes = 1_000, lastModified = 0, lastOpenedAt = 0, now = THRESHOLD + 1, thresholds = thresholds)
         assertEquals(RecommendationReason.NOT_OPENED_VIA_APP, reason)
     }
+
+    @Test
+    fun `a common media or document extension is never flagged`() {
+        assertNull(unclearExtensionReason("photo.jpg"))
+        assertNull(unclearExtensionReason("REPORT.PDF"))
+        assertNull(unclearExtensionReason("archive.tar.gz"))
+    }
+
+    @Test
+    fun `a name with no extension at all is not flagged -- that's normal, not unclear`() {
+        assertNull(unclearExtensionReason("README"))
+    }
+
+    @Test
+    fun `an unrecognized extension is flagged`() {
+        assertEquals(RecommendationReason.UNRECOGNIZED_EXTENSION, unclearExtensionReason("mystery.xyz123"))
+    }
+
+    @Test
+    fun `a suspicious double extension is called out specifically, not just as unrecognized`() {
+        assertEquals(RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION, unclearExtensionReason("invoice.pdf.exe"))
+    }
+
+    @Test
+    fun `a bare suspicious extension with no preceding segment is just unrecognized, not a double-extension match`() {
+        assertEquals(RecommendationReason.UNRECOGNIZED_EXTENSION, unclearExtensionReason("installer.exe"))
+    }
+
+    @Test
+    fun `a bare apk is fine, but one disguised behind another extension is suspicious`() {
+        assertNull(unclearExtensionReason("app.apk"))
+        assertEquals(RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION, unclearExtensionReason("photo.jpg.apk"))
+    }
 }

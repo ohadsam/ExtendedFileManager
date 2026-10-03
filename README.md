@@ -67,7 +67,11 @@ action in Browse's selection menu opens the system share sheet for selected file
 "Upload to…" action reuses the same destination picker as Move/Copy to upload to any folder --
 including a Google Drive folder -- in the background, with a status banner (queued/uploading/
 failed, with Retry/Dismiss) above the file list. Rolling Share out to every other screen is still
-a follow-up. See `docs/PLAN.md` for the full phase list.
+a follow-up. Phase 17 (daily insights & smart notifications) has also started: the Storage
+Advisor screen now flags files with an unrecognized or suspicious double extension (like
+"invoice.pdf.exe") as worth a look -- a hygiene nudge, not a security verdict. This phase's
+daily background job, notification, and duplicate-folding are still open. See `docs/PLAN.md`
+for the full phase list.
 
 ## Building
 
