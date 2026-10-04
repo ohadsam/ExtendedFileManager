@@ -25,7 +25,7 @@ internal fun StorageAdvisorTopBar(
                 Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_drawer_open))
             }
         },
-        title = { Text(stringResource(R.string.nav_storage_advisor)) },
+        title = { Text(stringResource(R.string.nav_insights)) },
         actions = {
             if (runState == AdvisorScanRunState.RUNNING) {
                 IconButton(onClick = onCancel) {

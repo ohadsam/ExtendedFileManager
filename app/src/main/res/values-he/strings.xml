@@ -262,7 +262,7 @@
     <string name="favorite_collection_picker_title">הוספה למועדפים</string>
     <string name="favorite_collection_picker_uncategorized">ללא קטגוריה</string>
 
-    <string name="nav_storage_advisor">יועץ אחסון</string>
+    <string name="nav_insights">תובנות</string>
     <string name="storage_advisor_scan">סרוק לאיתור המלצות</string>
     <string name="storage_advisor_cancel_scan">בטל סריקה</string>
     <string name="storage_advisor_scanning">סורק… %d קבצים נבדקו</string>
@@ -271,6 +271,7 @@
     <string name="storage_advisor_category_junk">זבל</string>
     <string name="storage_advisor_category_temporary">קבצים זמניים</string>
     <string name="storage_advisor_category_unclear_extension">סיומת קובץ לא ברורה</string>
+    <string name="storage_advisor_category_duplicate">כפילויות</string>
     <string name="storage_advisor_reason_not_opened_via_app">לא נפתח באפליקציה זמן מה</string>
     <string name="storage_advisor_reason_not_modified_recently">לא השתנה זמן מה</string>
     <string name="storage_advisor_reason_orphaned_app_folder">תיקייה שנותרה מאפליקציה שהוסרה</string>
@@ -280,13 +281,14 @@
     <string name="storage_advisor_reason_temp_file_pattern">קובץ זמני (%1$s)</string>
     <string name="storage_advisor_reason_unrecognized_extension">סיומת קובץ לא שגרתית (%1$s) -- שווה לבדוק</string>
     <string name="storage_advisor_reason_suspicious_double_extension">סיומת כפולה חשודה (%1$s) -- שווה לבדוק לפני פתיחה</string>
+    <string name="storage_advisor_reason_duplicate_content">זהה בתוכנו ל-%1$s קבצים נוספים</string>
     <string name="storage_advisor_dismiss">התעלם</string>
     <string name="storage_advisor_stage_for_later">סמן להחלטה מאוחר יותר</string>
     <string name="storage_advisor_unstage">בטל סימון</string>
     <string name="storage_advisor_tab_recommendations">המלצות</string>
     <string name="storage_advisor_tab_staged">מסומנים (%d)</string>
     <string name="storage_advisor_staged_empty">אין עדיין פריטים מסומנים. בחר המלצות ולחץ \"סמן להחלטה מאוחר יותר\" כדי להחליט עליהן בפעם אחרת.</string>
-    <string name="storage_advisor_settings_section">יועץ אחסון</string>
+    <string name="storage_advisor_settings_section">ספי סריקה</string>
     <string name="storage_advisor_settings_min_size">גודל קובץ מינימלי</string>
     <string name="storage_advisor_settings_unused_duration">להחשיב כלא בשימוש אחרי</string>
     <string name="storage_advisor_size_mb">%d מגה-בייט</string>
@@ -327,11 +329,11 @@
     <string name="vault_enable_biometric">הפעל פתיחה ביומטרית</string>
     <string name="vault_disable_biometric">בטל פתיחה ביומטרית</string>
     <string name="insights_notification_channel_name">תובנות יומיות</string>
-    <string name="insights_notification_channel_description">סיכום ממצאי יועץ האחסון שכדאי לבדוק</string>
+    <string name="insights_notification_channel_description">סיכום ממצאי מסך התובנות שכדאי לבדוק</string>
     <string name="insights_notification_title">כדאי להסתכל</string>
-    <string name="insights_notification_body">%d פריט/ים נמצאו ביועץ האחסון</string>
+    <string name="insights_notification_body">%d פריט/ים נמצאו במסך התובנות</string>
     <string name="insights_settings_section">תובנות</string>
-    <string name="insights_settings_info_body">שולט בבדיקה היומית ברקע של יועץ האחסון ובהתראת הסיכום שלה.</string>
+    <string name="insights_settings_info_body">שולט בבדיקה היומית ברקע של מסך התובנות ובהתראת הסיכום שלה.</string>
     <string name="insights_settings_run_daily">הפעל תובנות יומיות</string>
     <string name="insights_settings_notify_me">שלח לי התראה</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
+import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -16,14 +17,17 @@ internal const val DAILY_INSIGHTS_WORK_NAME = "daily_insights"
 
 /**
  * Phase 17's proactive habit: once a day, re-run Phase 10's storage-advisor scan in the
- * background and -- if it found anything worth a look -- hand the count to [InsightsNotifier]
- * for one summary notification, rather than leaving the Advisor screen as something the user
- * has to remember to open. Duplicate-folding and the changeVersion-based incremental skip for
- * the expensive duplicate scan are still open (see docs/PLAN.md Phase 17) -- this worker only
- * recomputes Phase 10's already-cheap recommendation categories, the same ones the Advisor
- * screen already shows and already persists to Room via [StorageAdvisorRepository.scan].
- * Settings' "Run daily insights" toggle skips the scan entirely; "Notify me" lets the scan
- * keep running (so the screen stays fresh) while suppressing just the notification.
+ * background and -- if it (plus whatever Phase 6's duplicate scan already has cached) found
+ * anything worth a look -- hand the combined count to [InsightsNotifier] for one summary
+ * notification, rather than leaving the Insights screen as something the user has to remember
+ * to open. This worker only recomputes Phase 10's already-cheap recommendation categories, the
+ * same ones the Insights screen already shows and already persists to Room via
+ * [StorageAdvisorRepository.scan] -- it reads the duplicate count from whatever
+ * [DuplicateScanRepository] last cached rather than re-running that expensive scan itself; the
+ * changeVersion-based incremental skip for triggering a fresh duplicate scan here is still open
+ * (see docs/PLAN.md Phase 17). Settings' "Run daily insights" toggle skips this worker's own
+ * scan entirely; "Notify me" lets it keep running (so the screen stays fresh) while suppressing
+ * just the notification.
  */
 @HiltWorker
 class DailyInsightsWorker
@@ -32,6 +36,7 @@ class DailyInsightsWorker
         @Assisted context: Context,
         @Assisted params: WorkerParameters,
         private val storageAdvisorRepository: StorageAdvisorRepository,
+        private val duplicateScanRepository: DuplicateScanRepository,
         private val insightsNotifier: InsightsNotifier,
         private val preferencesRepository: PreferencesRepository,
     ) : CoroutineWorker(context, params) {
@@ -41,8 +46,15 @@ class DailyInsightsWorker
                 return Result.success()
             }
             Timber.i("DailyInsightsWorker: starting daily scan")
-            val foundCount = storageAdvisorRepository.scan {}
-            Timber.i("DailyInsightsWorker: scan found %d recommendation(s)", foundCount)
+            val advisorCount = storageAdvisorRepository.scan {}
+            val duplicateCount = duplicateScanRepository.observeGroups().first().sumOf { it.files.size }
+            val foundCount = advisorCount + duplicateCount
+            Timber.i(
+                "DailyInsightsWorker: found %d total (%d advisor + %d cached duplicate)",
+                foundCount,
+                advisorCount,
+                duplicateCount,
+            )
             if (preferencesRepository.notifyMeEnabled.first()) {
                 insightsNotifier.notifySummary(foundCount)
             } else {

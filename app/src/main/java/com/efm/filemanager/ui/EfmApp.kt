@@ -128,7 +128,7 @@ private fun NavGraphBuilder.efmDrawerDestinations(
             onOpenManageTags = { navController.navigate(MANAGE_TAGS_ROUTE) },
         )
     }
-    composable(EfmDestination.Advisor.route) {
+    composable(EfmDestination.Insights.route) {
         StorageAdvisorScreen(
             onOpenDrawer = { scope.launch { drawerState.open() } },
             onOpenPreview = { navController.navigate(PREVIEW_ROUTE) },

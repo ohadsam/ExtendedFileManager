@@ -72,9 +72,9 @@ class InsightsNotifier
             val intent =
                 Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    // Must match EfmDestination.Advisor.route (ui/nav/EfmDestination.kt) -- kept as
+                    // Must match EfmDestination.Insights.route (ui/nav/EfmDestination.kt) -- kept as
                     // a literal here since this data-layer class has no business importing ui.nav.
-                    putExtra(EXTRA_OPEN_DESTINATION, "storage_advisor")
+                    putExtra(EXTRA_OPEN_DESTINATION, "insights")
                 }
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         }

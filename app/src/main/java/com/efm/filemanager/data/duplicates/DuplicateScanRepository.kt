@@ -64,6 +64,11 @@ class DuplicateScanRepository
             }
         }
 
+        /** Forgets this file's duplicate-group membership without touching the real file -- Phase 17's Insights "Dismiss" action. */
+        suspend fun dismiss(entry: FileEntry) {
+            duplicateFileDao.deleteByUri(entry.uri.toString())
+        }
+
         private suspend fun collectAllFiles(): List<FileEntryEntity> {
             val out = mutableListOf<FileEntryEntity>()
             documentTreeAccessManager.grantedTreeUris().forEach { root -> collectFiles(root, out) }

@@ -13,6 +13,7 @@ internal fun StorageRecommendationCategory.labelRes(): Int =
         StorageRecommendationCategory.JUNK -> R.string.storage_advisor_category_junk
         StorageRecommendationCategory.TEMPORARY -> R.string.storage_advisor_category_temporary
         StorageRecommendationCategory.UNCLEAR_EXTENSION -> R.string.storage_advisor_category_unclear_extension
+        StorageRecommendationCategory.DUPLICATE -> R.string.storage_advisor_category_duplicate
     }
 
 internal fun RecommendationReason.labelRes(): Int =
@@ -25,13 +26,15 @@ internal fun RecommendationReason.labelRes(): Int =
         RecommendationReason.TEMP_FILE_PATTERN -> R.string.storage_advisor_reason_temp_file_pattern
         RecommendationReason.UNRECOGNIZED_EXTENSION -> R.string.storage_advisor_reason_unrecognized_extension
         RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION -> R.string.storage_advisor_reason_suspicious_double_extension
+        RecommendationReason.DUPLICATE_CONTENT -> R.string.storage_advisor_reason_duplicate_content
     }
 
 /**
  * [RecommendationReason.TEMP_FILE_PATTERN]/[RecommendationReason.UNRECOGNIZED_EXTENSION]/
- * [RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION] carry their matched pattern/extension as
- * [StorageRecommendation.detail] (hence the plain null check -- every other reason's [detail] is
- * always null); the rest need no args.
+ * [RecommendationReason.SUSPICIOUS_DOUBLE_EXTENSION]/[RecommendationReason.DUPLICATE_CONTENT]
+ * carry their matched pattern/extension/other-copy-count as [StorageRecommendation.detail]
+ * (hence the plain null check -- every other reason's [detail] is always null); the rest need
+ * no args.
  */
 @Composable
 internal fun StorageRecommendation.reasonText(): String =

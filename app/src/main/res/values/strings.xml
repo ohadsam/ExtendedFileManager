@@ -262,7 +262,7 @@
     <string name="favorite_collection_picker_title">Add to favorites</string>
     <string name="favorite_collection_picker_uncategorized">No collection</string>
 
-    <string name="nav_storage_advisor">Storage Advisor</string>
+    <string name="nav_insights">Insights</string>
     <string name="storage_advisor_scan">Scan for recommendations</string>
     <string name="storage_advisor_cancel_scan">Cancel scan</string>
     <string name="storage_advisor_scanning">Scanning… %d files checked</string>
@@ -271,6 +271,7 @@
     <string name="storage_advisor_category_junk">Junk</string>
     <string name="storage_advisor_category_temporary">Temporary files</string>
     <string name="storage_advisor_category_unclear_extension">Unclear file extension</string>
+    <string name="storage_advisor_category_duplicate">Duplicates</string>
     <string name="storage_advisor_reason_not_opened_via_app">Not opened in this app in a while</string>
     <string name="storage_advisor_reason_not_modified_recently">Not modified in a while</string>
     <string name="storage_advisor_reason_orphaned_app_folder">Leftover folder from an uninstalled app</string>
@@ -280,13 +281,14 @@
     <string name="storage_advisor_reason_temp_file_pattern">Temporary file (%1$s)</string>
     <string name="storage_advisor_reason_unrecognized_extension">Unusual file extension (%1$s) -- worth a look</string>
     <string name="storage_advisor_reason_suspicious_double_extension">Suspicious double extension (%1$s) -- worth checking before opening</string>
+    <string name="storage_advisor_reason_duplicate_content">Same content as %1$s other file(s)</string>
     <string name="storage_advisor_dismiss">Dismiss</string>
     <string name="storage_advisor_stage_for_later">Stage for later</string>
     <string name="storage_advisor_unstage">Unstage</string>
     <string name="storage_advisor_tab_recommendations">Recommendations</string>
     <string name="storage_advisor_tab_staged">Staged (%d)</string>
     <string name="storage_advisor_staged_empty">Nothing staged. Select recommendations and choose \"Stage for later\" to decide on them another time.</string>
-    <string name="storage_advisor_settings_section">Storage Advisor</string>
+    <string name="storage_advisor_settings_section">Scan thresholds</string>
     <string name="storage_advisor_settings_min_size">Minimum file size</string>
     <string name="storage_advisor_settings_unused_duration">Consider unused after</string>
     <string name="storage_advisor_size_mb">%d MB</string>
@@ -327,11 +329,11 @@
     <string name="vault_enable_biometric">Enable biometric unlock</string>
     <string name="vault_disable_biometric">Disable biometric unlock</string>
     <string name="insights_notification_channel_name">Daily insights</string>
-    <string name="insights_notification_channel_description">Summary of Storage Advisor findings worth a look</string>
+    <string name="insights_notification_channel_description">Summary of Insights findings worth a look</string>
     <string name="insights_notification_title">Worth a look</string>
-    <string name="insights_notification_body">%d item(s) found by Storage Advisor</string>
+    <string name="insights_notification_body">%d item(s) found by Insights</string>
     <string name="insights_settings_section">Insights</string>
-    <string name="insights_settings_info_body">Controls Storage Advisor\'s daily background check and its summary notification.</string>
+    <string name="insights_settings_info_body">Controls the Insights screen\'s daily background check and its summary notification.</string>
     <string name="insights_settings_run_daily">Run daily insights</string>
     <string name="insights_settings_notify_me">Notify me</string>
 </resources>

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.20.3 (2026-10-04)
+
+- Phase 17 continues: "Storage Advisor" is now "Insights" everywhere
+  it showed to the user -- nav drawer entry, screen title, and the
+  daily notification's wording -- and Phase 6's duplicate-scan
+  results now show up as a new "Duplicates" category right in that
+  same screen, alongside Large/Junk/Temporary/Unclear-extension, with
+  the same multi-select delete/dismiss actions. The daily summary
+  notification's count now includes already-cached duplicates too,
+  so it's genuinely "one notification, not two separate systems."
+  Still open: having the daily job trigger a fresh (changeVersion-
+  throttled) duplicate scan itself, rather than only reading whatever
+  Phase 6's own scan last cached.
+
 ## v0.20.2 (2026-10-03)
 
 - Phase 17 continues: Settings gained a new "Insights" section with

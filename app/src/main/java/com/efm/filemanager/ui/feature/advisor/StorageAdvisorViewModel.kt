@@ -11,10 +11,13 @@ import com.efm.filemanager.data.advisor.AdvisorScanProgress
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
 import com.efm.filemanager.data.advisor.StorageAdvisorScanWorker
 import com.efm.filemanager.data.advisor.toAdvisorScanProgress
+import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.SelectionMetadataActions
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageRecommendation
+import com.efm.filemanager.domain.model.StorageRecommendationCategory
+import com.efm.filemanager.domain.model.toDuplicateRecommendations
 import com.efm.filemanager.ui.feature.preview.PreviewSessionHolder
 import com.efm.filemanager.ui.feature.preview.buildPreviewSession
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +37,7 @@ class StorageAdvisorViewModel
     constructor(
         private val workManager: WorkManager,
         private val storageAdvisorRepository: StorageAdvisorRepository,
+        private val duplicateScanRepository: DuplicateScanRepository,
         private val previewSessionHolder: PreviewSessionHolder,
         private val fileMetadataRepository: FileMetadataRepository,
         val metadataActions: SelectionMetadataActions,
@@ -42,9 +46,11 @@ class StorageAdvisorViewModel
             combine(
                 workManager.getWorkInfosForUniqueWorkFlow(ADVISOR_SCAN_WORK_NAME).map { infos -> infos.toRunState() },
                 storageAdvisorRepository.observeRecommendations(),
+                duplicateScanRepository.observeGroups(),
                 fileMetadataRepository.snapshot,
-            ) { (runState, progress), recommendations, _ ->
-                StorageAdvisorUiState(runState, progress, recommendations, fileMetadataRepository.resolveStagedEntries())
+            ) { (runState, progress), recommendations, duplicateGroups, _ ->
+                val merged = recommendations + duplicateGroups.toDuplicateRecommendations()
+                StorageAdvisorUiState(runState, progress, merged, fileMetadataRepository.resolveStagedEntries())
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), StorageAdvisorUiState())
 
         fun startScan() {
@@ -59,13 +65,25 @@ class StorageAdvisorViewModel
         /** Dedupes by uri first -- deleting a file removes every category row for it in one go. */
         fun deleteRecommendations(items: List<StorageRecommendation>) {
             viewModelScope.launch {
-                items.distinctBy { it.entry.uri }.forEach { storageAdvisorRepository.deleteRecommendation(it) }
+                items.distinctBy { it.entry.uri }.forEach { recommendation ->
+                    if (recommendation.category == StorageRecommendationCategory.DUPLICATE) {
+                        duplicateScanRepository.deleteFile(recommendation.entry)
+                    } else {
+                        storageAdvisorRepository.deleteRecommendation(recommendation)
+                    }
+                }
             }
         }
 
         fun dismiss(items: List<StorageRecommendation>) {
             viewModelScope.launch {
-                items.forEach { storageAdvisorRepository.dismiss(it) }
+                items.forEach { recommendation ->
+                    if (recommendation.category == StorageRecommendationCategory.DUPLICATE) {
+                        duplicateScanRepository.dismiss(recommendation.entry)
+                    } else {
+                        storageAdvisorRepository.dismiss(recommendation)
+                    }
+                }
             }
         }
 

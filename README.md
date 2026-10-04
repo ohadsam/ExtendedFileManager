@@ -67,15 +67,18 @@ action in Browse's selection menu opens the system share sheet for selected file
 "Upload to…" action reuses the same destination picker as Move/Copy to upload to any folder --
 including a Google Drive folder -- in the background, with a status banner (queued/uploading/
 failed, with Retry/Dismiss) above the file list. Rolling Share out to every other screen is still
-a follow-up. Phase 17 (daily insights & smart notifications) has also started: the Storage
-Advisor screen now flags files with an unrecognized or suspicious double extension (like
-"invoice.pdf.exe") as worth a look -- a hygiene nudge, not a security verdict -- and a new
-daily background job re-runs that scan once a day, posting one summary notification
-("Worth a look -- N item(s) found") that opens straight into the Storage Advisor screen when
-tapped. A new Settings "Insights" section controls both pieces -- "Run daily insights" and
-"Notify me" (which triggers the real notification-permission request on Android 13+).
-Duplicate-folding and incremental-scan caching are still open. See `docs/PLAN.md` for the full
-phase list.
+a follow-up. Phase 17 (daily insights & smart notifications) is now done: what used to be the
+"Storage Advisor" screen is "Insights" everywhere it shows to the user, and now also flags files
+with an unrecognized or suspicious double extension (like "invoice.pdf.exe") as worth a look --
+a hygiene nudge, not a security verdict -- alongside a new "Duplicates" category folding in
+Phase 6's duplicate-scan results, all with the same multi-select delete/dismiss actions. A daily
+background job re-runs the cheap part of that scan once a day, adds in whatever duplicates are
+already cached, and posts one summary notification ("Worth a look -- N item(s) found") that
+opens straight into the Insights screen when tapped. A Settings "Insights" section controls both
+pieces -- "Run daily insights" and "Notify me" (which triggers the real notification-permission
+request on Android 13+). Having that daily job also trigger its own fresh, incrementally-throttled
+duplicate rescan (rather than only reading whatever Phase 6's own scan last cached) is the one
+piece left for later. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

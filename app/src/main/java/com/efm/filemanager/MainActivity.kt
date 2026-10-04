@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Set by InsightsNotifier's PendingIntent (Phase 17) so tapping the daily summary
-        // notification lands straight on the Insights/Storage Advisor screen, not just Browse.
+        // notification lands straight on the Insights screen, not just Browse.
         val initialDestinationRoute = intent?.getStringExtra(EXTRA_OPEN_DESTINATION)
         setContent {
             EfmRoot(initialDestinationRoute = initialDestinationRoute)
