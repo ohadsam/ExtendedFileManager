@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.21.5 (2026-10-04)
+
+- Phase 14's adaptive-layout leftover lands: at tablet/unfolded-foldable
+  width (Material's own 840dp "Expanded" breakpoint, read straight off
+  `LocalConfiguration` with no new Gradle dependency), the nav drawer is
+  now always visible (`PermanentNavigationDrawer`) instead of needing a
+  hamburger tap; phone widths keep today's `ModalNavigationDrawer`
+  unchanged. The switch is isolated entirely to `EfmApp.kt` -- every
+  screen's own drawer-open callback keeps working as a harmless no-op in
+  the new layout, so no screen needed to change. Phase 14's remaining
+  item (an actual RTL/font-scale/tablet-layout visual pass) and Phase
+  15's remaining item (the GitHub-Releases update checker) both still
+  need a real device or a real published release, neither of which this
+  sandbox has.
+
 ## v0.21.4 (2026-10-04)
 
 - Phase 18 continues: the storage-used widget now shows a trend

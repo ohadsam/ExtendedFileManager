@@ -58,8 +58,10 @@ to show only failed operations, a search box to find entries by file name, and a
 to write the currently filtered/searched entries out as plain text. Phase 14 (localization &
 responsiveness) is now in progress: a code-level audit found the app's RTL handling already
 consistent across every screen (mirrored icons, start/end-only padding, locale-aware formatting),
-with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tablet layouts and an
-actual visual RTL/font-scale pass are still open. Phase 15 (versioning & updates) has also
+with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tablet layouts have
+since landed too (a tablet/unfolded-foldable-width screen now gets an always-visible nav drawer
+instead of a hamburger, at Material's own 840dp breakpoint) -- an actual visual RTL/font-scale/
+tablet-layout pass is still open, needing a real device this sandbox doesn't have. Phase 15 (versioning & updates) has also
 started: a "What's New" sheet now shows once after an upgrade (never on a fresh install),
 catching this release up on the Logs and Audit screens; the GitHub-Releases update checker is
 deferred to a later slice. Phase 16 (cloud upload & sharing) is done too: a new "Share"

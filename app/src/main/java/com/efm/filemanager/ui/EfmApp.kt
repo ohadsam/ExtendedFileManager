@@ -4,12 +4,15 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -69,21 +72,43 @@ fun EfmApp(
         if (initialDestinationRoute != null) navController.navigate(initialDestinationRoute)
     }
 
+    val onDrawerDestinationClick: (EfmDestination) -> Unit = { destination ->
+        scope.launch { drawerState.close() }
+        navController.navigate(destination.route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    // Phase 14's adaptive layout: a tablet/unfolded-foldable-width screen gets the drawer
+    // permanently visible (no hamburger needed), same as every other Material 3 app at this
+    // width class; a phone-width screen keeps today's modal drawer unchanged.
+    if (isExpandedWidthScreen()) {
+        EfmExpandedLayout(navController, scope, drawerState, currentDestination, onDrawerDestinationClick)
+    } else {
+        EfmCompactLayout(navController, scope, drawerState, currentDestination, onDrawerDestinationClick)
+    }
+
+    if (whatsNewEntries.isNotEmpty()) {
+        WhatsNewDialog(entries = whatsNewEntries, onDismiss = whatsNewViewModel::dismiss)
+    }
+}
+
+/** The default, phone-width layout -- unchanged from before Phase 14's adaptive-layout work. */
+@Composable
+private fun EfmCompactLayout(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    currentDestination: EfmDestination,
+    onDestinationClick: (EfmDestination) -> Unit,
+) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                EfmDrawerContent(
-                    currentDestination = currentDestination,
-                    onDestinationClick = { destination ->
-                        scope.launch { drawerState.close() }
-                        navController.navigate(destination.route) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
+                EfmDrawerContent(currentDestination = currentDestination, onDestinationClick = onDestinationClick)
             }
         },
     ) {
@@ -91,11 +116,42 @@ fun EfmApp(
             efmDestinations(navController, scope, drawerState)
         }
     }
+}
 
-    if (whatsNewEntries.isNotEmpty()) {
-        WhatsNewDialog(entries = whatsNewEntries, onDismiss = whatsNewViewModel::dismiss)
+/**
+ * Tablet/unfolded-foldable width: the same drawer content, always visible, no open/close gesture
+ * needed. Every screen's own `onOpenDrawer` callback still fires harmlessly into [drawerState]
+ * (nothing renders a [ModalNavigationDrawer] here to observe it) rather than needing every
+ * screen's top bar to know which layout it's in.
+ */
+@Composable
+private fun EfmExpandedLayout(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    currentDestination: EfmDestination,
+    onDestinationClick: (EfmDestination) -> Unit,
+) {
+    PermanentNavigationDrawer(
+        drawerContent = {
+            PermanentDrawerSheet {
+                EfmDrawerContent(currentDestination = currentDestination, onDestinationClick = onDestinationClick)
+            }
+        },
+    ) {
+        NavHost(navController = navController, startDestination = EfmDestination.Browse.route) {
+            efmDestinations(navController, scope, drawerState)
+        }
     }
 }
+
+/** Material's own "Expanded" width-class breakpoint (tablets, unfolded foldables). */
+internal const val EXPANDED_WIDTH_BREAKPOINT_DP = 840
+
+internal fun isExpandedWidth(screenWidthDp: Int): Boolean = screenWidthDp >= EXPANDED_WIDTH_BREAKPOINT_DP
+
+@Composable
+private fun isExpandedWidthScreen(): Boolean = isExpandedWidth(LocalConfiguration.current.screenWidthDp)
 
 private fun NavGraphBuilder.efmDestinations(
     navController: NavHostController,
