@@ -1,6 +1,7 @@
 package com.efm.filemanager.ui.nav
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
@@ -22,6 +23,7 @@ enum class EfmDestination(
     Duplicates("duplicates", R.string.nav_duplicates, Icons.Filled.FileCopy),
     Favorites("favorites", R.string.nav_favorites, Icons.Filled.Star),
     Insights("insights", R.string.nav_insights, Icons.Filled.Insights),
+    Statistics("statistics", R.string.nav_statistics, Icons.Filled.BarChart),
     Vault("vault", R.string.nav_vault, Icons.Filled.Security),
     Logs("logs", R.string.nav_logs, Icons.Filled.ReceiptLong),
     Audit("audit", R.string.nav_audit, Icons.Filled.History),

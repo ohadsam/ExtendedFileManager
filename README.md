@@ -78,7 +78,13 @@ opens straight into the Insights screen when tapped. A Settings "Insights" secti
 pieces -- "Run daily insights" and "Notify me" (which triggers the real notification-permission
 request on Android 13+). Having that daily job also trigger its own fresh, incrementally-throttled
 duplicate rescan (rather than only reading whatever Phase 6's own scan last cached) is the one
-piece left for later. See `docs/PLAN.md` for the full phase list.
+piece left for later. Phase 18 (statistics dashboard) has now started too: a new "Statistics"
+screen (own nav-drawer entry) shows six basic widgets -- storage used, a by-file-type size
+breakdown, largest files, duplicate-group count + reclaimable space, how many files Insights has
+flagged, and a total operations-recorded count -- all reusing data that already exists elsewhere
+in the app wherever possible. Charts, tap-to-drill-down into the owning screen, and the
+incremental caching/trend-history pieces are still open. See `docs/PLAN.md` for the full phase
+list.
 
 ## Building
 

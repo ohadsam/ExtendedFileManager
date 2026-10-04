@@ -336,4 +336,18 @@
     <string name="insights_settings_info_body">שולט בבדיקה היומית ברקע של מסך התובנות ובהתראת הסיכום שלה.</string>
     <string name="insights_settings_run_daily">הפעל תובנות יומיות</string>
     <string name="insights_settings_notify_me">שלח לי התראה</string>
+    <string name="nav_statistics">סטטיסטיקה</string>
+    <string name="statistics_refresh">רענן</string>
+    <string name="statistics_storage_used_title">אחסון בשימוש</string>
+    <string name="statistics_file_count">%d קבצים בתיקיות המורשות שלך</string>
+    <string name="statistics_by_type_title">לפי סוג קובץ</string>
+    <string name="statistics_largest_files_title">הקבצים הגדולים ביותר</string>
+    <string name="statistics_empty">אין עדיין מידע מספיק</string>
+    <string name="statistics_duplicates_title">כפילויות</string>
+    <string name="statistics_duplicate_groups">קבוצות כפילויות</string>
+    <string name="statistics_reclaimable_space">שטח שניתן לפנות</string>
+    <string name="statistics_advisor_title">תובנות</string>
+    <string name="statistics_advisor_flagged_count">%d קבצים סומנו</string>
+    <string name="statistics_operations_title">פעולות</string>
+    <string name="statistics_operations_count">%d פעולות נרשמו</string>
 </resources>

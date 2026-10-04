@@ -336,4 +336,18 @@
     <string name="insights_settings_info_body">Controls the Insights screen\'s daily background check and its summary notification.</string>
     <string name="insights_settings_run_daily">Run daily insights</string>
     <string name="insights_settings_notify_me">Notify me</string>
+    <string name="nav_statistics">Statistics</string>
+    <string name="statistics_refresh">Refresh</string>
+    <string name="statistics_storage_used_title">Storage used</string>
+    <string name="statistics_file_count">%d file(s) across your granted folders</string>
+    <string name="statistics_by_type_title">By file type</string>
+    <string name="statistics_largest_files_title">Largest files</string>
+    <string name="statistics_empty">Not enough data yet</string>
+    <string name="statistics_duplicates_title">Duplicates</string>
+    <string name="statistics_duplicate_groups">Duplicate groups</string>
+    <string name="statistics_reclaimable_space">Reclaimable space</string>
+    <string name="statistics_advisor_title">Insights</string>
+    <string name="statistics_advisor_flagged_count">%d file(s) flagged</string>
+    <string name="statistics_operations_title">Operations</string>
+    <string name="statistics_operations_count">%d operation(s) recorded</string>
 </resources>

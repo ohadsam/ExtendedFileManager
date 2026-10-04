@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.21.0 (2026-10-04)
+
+- Phase 18 (statistics dashboard) has started: a new "Statistics"
+  screen (own nav-drawer entry) shows a few basic widgets --
+  storage used across your granted folders, a by-file-type size
+  breakdown, the largest files, duplicate-group count + reclaimable
+  space, how many files Insights has flagged, and a total
+  operations-recorded count -- all reusing data that already exists
+  elsewhere in the app, plus one new lightweight (no hashing) scan
+  for the storage-used/by-type/largest-files numbers, since nothing
+  else already tracks those. Charts, tap-to-drill-down into the
+  owning screen, and the incremental `stats_cache`/snapshot-history
+  pieces are still open.
+
 ## v0.20.3 (2026-10-04)
 
 - Phase 17 continues: "Storage Advisor" is now "Insights" everywhere
