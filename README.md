@@ -82,13 +82,14 @@ piece left for later. Phase 18 (statistics dashboard) has now started too: a new
 screen (own nav-drawer entry) shows six basic widgets -- storage used, a by-file-type size
 breakdown, largest files, duplicate-group count + reclaimable space, how many files Insights has
 flagged, and a total operations-recorded count -- all reusing data that already exists elsewhere
-in the app wherever possible. The Duplicates/Insights/Operations widgets now tap through straight
-into their owning screen; the by-type and largest-files widgets don't yet, since that needs a
-global filtered file view this app doesn't have. The by-type widget now has its first chart too --
-a horizontal stacked bar (not a donut, since a donut's every-slice-at-once display can't
-guarantee all seven category colors stay distinguishable from each other, checked with the
-`dataviz` skill's own color validator) with a legend swatch per category. A sparkline for trends
-and the incremental caching pieces are still open. See `docs/PLAN.md` for the full phase list.
+in the app wherever possible. Every widget now taps through somewhere: Duplicates/Insights/
+Operations jump straight to their owning screen, and the by-type and largest-files widgets open a
+new global, size-sorted file list (optionally filtered to one file type) that didn't exist in this
+app before. The by-type widget also has its first chart -- a horizontal stacked bar (not a donut,
+since a donut's every-slice-at-once display can't guarantee all seven category colors stay
+distinguishable from each other, checked with the `dataviz` skill's own color validator) with a
+legend swatch per category. A sparkline for trends and the incremental caching pieces are still
+open. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

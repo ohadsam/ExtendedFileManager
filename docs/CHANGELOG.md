@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.21.3 (2026-10-04)
+
+- Phase 18 continues: the by-type and largest-files widgets now
+  drill down too, closing the "no dead-end numbers" goal for every
+  widget. A new global file list (tap a type-breakdown row or
+  segment for that category sorted by size, or the largest-files
+  card for every file sorted by size) reuses the same lightweight
+  full-tree walk the Statistics screen's own widgets already use --
+  no new scanning, no new screen architecture, just a filtered,
+  sorted view over data this phase already computes. Tapping a file
+  opens Preview, same as everywhere else in the app.
+
 ## v0.21.2 (2026-10-04)
 
 - Phase 18 continues: the by-file-type widget now shows a horizontal

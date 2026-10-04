@@ -99,8 +99,10 @@ private fun StatisticsBody(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { StorageUsedCard(uiState.storageStats) }
-        item { FileTypeBreakdownCard(uiState.storageStats.sizeByCategory) }
-        item { LargestFilesCard(uiState.storageStats.largestFiles) }
+        item { FileTypeBreakdownCard(uiState.storageStats.sizeByCategory, onCategoryClick = navActions.onOpenGlobalFiles) }
+        item {
+            LargestFilesCard(uiState.storageStats.largestFiles, onClick = { navActions.onOpenGlobalFiles(null) })
+        }
         item {
             DuplicatesStatCard(uiState.duplicateGroupCount, uiState.reclaimableBytes, onClick = navActions.onOpenDuplicates)
         }
@@ -146,16 +148,24 @@ private fun StorageUsedCard(stats: StorageStats) {
 }
 
 @Composable
-private fun FileTypeBreakdownCard(sizeByCategory: Map<FileCategory, Long>) {
+private fun FileTypeBreakdownCard(
+    sizeByCategory: Map<FileCategory, Long>,
+    onCategoryClick: (FileCategory) -> Unit,
+) {
     StatCard(title = stringResource(R.string.statistics_by_type_title)) {
         if (sizeByCategory.isEmpty()) {
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
             val sorted = sizeByCategory.entries.sortedByDescending { it.value }
-            StackedShareBar(sorted)
+            StackedShareBar(sorted, onCategoryClick = onCategoryClick)
             Spacer(modifier = Modifier.height(8.dp))
             sorted.forEach { (category, size) ->
-                StatRow(label = stringResource(category.labelRes()), value = formatFileSize(size), swatchColor = category.chartColor())
+                StatRow(
+                    label = stringResource(category.labelRes()),
+                    value = formatFileSize(size),
+                    swatchColor = category.chartColor(),
+                    onClick = { onCategoryClick(category) },
+                )
             }
         }
     }
@@ -166,10 +176,14 @@ private fun FileTypeBreakdownCard(sizeByCategory: Map<FileCategory, Long>) {
  * needs only the adjacent-pairs color gate a stacked bar's touching segments require, not the
  * stricter all-pairs gate every slice of a simultaneously-visible pie/donut would need (see
  * [chartColor]'s doc for the validated numbers). A 2dp gap separates segments, matching the
- * dataviz skill's "2px surface gap between stacked fills" mark spec.
+ * dataviz skill's "2px surface gap between stacked fills" mark spec. Each segment is tappable,
+ * same drill-down as its matching legend row below.
  */
 @Composable
-private fun StackedShareBar(sortedEntries: List<Map.Entry<FileCategory, Long>>) {
+private fun StackedShareBar(
+    sortedEntries: List<Map.Entry<FileCategory, Long>>,
+    onCategoryClick: (FileCategory) -> Unit,
+) {
     val total = sortedEntries.sumOf { it.value }
     Row(
         modifier =
@@ -182,15 +196,25 @@ private fun StackedShareBar(sortedEntries: List<Map.Entry<FileCategory, Long>>) 
         sortedEntries.forEach { (category, size) ->
             val share = if (total > 0) size.toFloat() / total.toFloat() else 0f
             if (share > 0f) {
-                Box(modifier = Modifier.weight(share).fillMaxHeight().background(category.chartColor()))
+                Box(
+                    modifier =
+                        Modifier
+                            .weight(share)
+                            .fillMaxHeight()
+                            .background(category.chartColor())
+                            .clickable { onCategoryClick(category) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun LargestFilesCard(largestFiles: List<FileEntry>) {
-    StatCard(title = stringResource(R.string.statistics_largest_files_title)) {
+private fun LargestFilesCard(
+    largestFiles: List<FileEntry>,
+    onClick: () -> Unit,
+) {
+    StatCard(title = stringResource(R.string.statistics_largest_files_title), onClick = onClick) {
         if (largestFiles.isEmpty()) {
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
@@ -236,9 +260,11 @@ private fun StatRow(
     label: String,
     value: String,
     swatchColor: Color? = null,
+    onClick: (() -> Unit)? = null,
 ) {
+    val rowModifier = if (onClick != null) Modifier.fillMaxWidth().clickable(onClick = onClick) else Modifier.fillMaxWidth()
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = rowModifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -5,7 +5,10 @@ import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.toDomain
+import com.efm.filemanager.domain.model.FileCategory
+import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
+import com.efm.filemanager.domain.model.category
 import com.efm.filemanager.domain.model.toStorageStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,6 +31,19 @@ class StatisticsRepository
         suspend fun computeStorageStats(): StorageStats =
             withContext(Dispatchers.IO) {
                 collectAllFiles().map { it.toDomain() }.toStorageStats()
+            }
+
+        /**
+         * Phase 18's drill-down from the by-type/largest-files widgets -- every file across
+         * every granted tree, optionally narrowed to one [FileCategory], sorted largest-first
+         * (the one sort these widgets' own cards already imply). [category] null means "every
+         * file," used by the largest-files widget's own drill-down.
+         */
+        suspend fun filesByCategory(category: FileCategory?): List<FileEntry> =
+            withContext(Dispatchers.IO) {
+                val allFiles = collectAllFiles().map { it.toDomain() }
+                val filtered = if (category == null) allFiles else allFiles.filter { it.category() == category }
+                filtered.sortedByDescending { it.size }
             }
 
         private suspend fun collectAllFiles(): List<FileEntryEntity> {
