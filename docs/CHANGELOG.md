@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.21.2 (2026-10-04)
+
+- Phase 18 continues: the by-file-type widget now shows a horizontal
+  stacked bar above its legend, one fixed color per category (the
+  same color always means "Images," never reassigned by rank), with
+  a color swatch next to each legend row tying bar segments to their
+  labels. Deliberately a stacked bar, not a donut: a donut shows
+  every slice at once and needs every pair of colors to stay
+  distinguishable, which a 7-category palette can't guarantee,
+  whereas a stacked bar only needs touching segments to be
+  distinguishable -- validated with the dataviz skill's palette
+  checker before shipping either way.
+
 ## v0.21.1 (2026-10-04)
 
 - Phase 18 continues: three of Statistics' six widgets are now

@@ -1,15 +1,23 @@
 package com.efm.filemanager.ui.feature.statistics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
@@ -26,6 +34,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -141,8 +151,38 @@ private fun FileTypeBreakdownCard(sizeByCategory: Map<FileCategory, Long>) {
         if (sizeByCategory.isEmpty()) {
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
-            sizeByCategory.entries.sortedByDescending { it.value }.forEach { (category, size) ->
-                StatRow(label = stringResource(category.labelRes()), value = formatFileSize(size))
+            val sorted = sizeByCategory.entries.sortedByDescending { it.value }
+            StackedShareBar(sorted)
+            Spacer(modifier = Modifier.height(8.dp))
+            sorted.forEach { (category, size) ->
+                StatRow(label = stringResource(category.labelRes()), value = formatFileSize(size), swatchColor = category.chartColor())
+            }
+        }
+    }
+}
+
+/**
+ * A horizontal stacked bar, not a donut -- a part-to-whole breakdown with up to seven slices
+ * needs only the adjacent-pairs color gate a stacked bar's touching segments require, not the
+ * stricter all-pairs gate every slice of a simultaneously-visible pie/donut would need (see
+ * [chartColor]'s doc for the validated numbers). A 2dp gap separates segments, matching the
+ * dataviz skill's "2px surface gap between stacked fills" mark spec.
+ */
+@Composable
+private fun StackedShareBar(sortedEntries: List<Map.Entry<FileCategory, Long>>) {
+    val total = sortedEntries.sumOf { it.value }
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .clip(RoundedCornerShape(4.dp)),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        sortedEntries.forEach { (category, size) ->
+            val share = if (total > 0) size.toFloat() / total.toFloat() else 0f
+            if (share > 0f) {
+                Box(modifier = Modifier.weight(share).fillMaxHeight().background(category.chartColor()))
             }
         }
     }
@@ -195,9 +235,20 @@ private fun OperationsStatCard(
 private fun StatRow(
     label: String,
     value: String,
+    swatchColor: Color? = null,
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 8.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (swatchColor != null) {
+                Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(swatchColor))
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 8.dp))
+        }
         Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
