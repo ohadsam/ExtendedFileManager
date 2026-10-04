@@ -174,8 +174,7 @@ private fun statisticsNavActions(navController: NavHostController): StatisticsNa
         onOpenGlobalFiles = { category -> navController.navigate(globalFilesRoute(category)) },
     )
 
-private fun globalFilesRoute(category: FileCategory?): String =
-    "$GLOBAL_FILES_ROUTE/${category?.name ?: GLOBAL_FILES_ALL_CATEGORIES}"
+private fun globalFilesRoute(category: FileCategory?): String = "$GLOBAL_FILES_ROUTE/${category?.name ?: GLOBAL_FILES_ALL_CATEGORIES}"
 
 private fun settingsNavActions(navController: NavHostController): SettingsNavActions =
     SettingsNavActions(
