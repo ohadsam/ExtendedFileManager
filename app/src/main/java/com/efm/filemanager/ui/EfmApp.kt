@@ -139,12 +139,7 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Statistics.route) {
         StatisticsScreen(
             onOpenDrawer = { scope.launch { drawerState.open() } },
-            navActions =
-                StatisticsNavActions(
-                    onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
-                    onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
-                    onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
-                ),
+            navActions = statisticsNavActions(navController),
         )
     }
     composable(EfmDestination.Vault.route) {
@@ -159,15 +154,25 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Settings.route) {
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
-            navActions =
-                SettingsNavActions(
-                    onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
-                    onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
-                    onOpenHelp = { navController.navigate(HELP_ROUTE) },
-                ),
+            navActions = settingsNavActions(navController),
         )
     }
 }
+
+// Both extracted so efmDrawerDestinations() stays under detekt's LongMethod threshold.
+private fun statisticsNavActions(navController: NavHostController): StatisticsNavActions =
+    StatisticsNavActions(
+        onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
+        onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
+        onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
+    )
+
+private fun settingsNavActions(navController: NavHostController): SettingsNavActions =
+    SettingsNavActions(
+        onOpenLogs = { navController.navigate(EfmDestination.Logs.route) },
+        onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
+        onOpenHelp = { navController.navigate(HELP_ROUTE) },
+    )
 
 private fun NavGraphBuilder.efmModalDestinations(navController: NavHostController) {
     composable(HELP_ROUTE) {
