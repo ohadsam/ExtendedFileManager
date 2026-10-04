@@ -33,6 +33,7 @@ import com.efm.filemanager.ui.feature.preview.PreviewScreen
 import com.efm.filemanager.ui.feature.search.SearchScreen
 import com.efm.filemanager.ui.feature.settings.SettingsNavActions
 import com.efm.filemanager.ui.feature.settings.SettingsScreen
+import com.efm.filemanager.ui.feature.statistics.StatisticsNavActions
 import com.efm.filemanager.ui.feature.statistics.StatisticsScreen
 import com.efm.filemanager.ui.feature.tags.ManageTagsScreen
 import com.efm.filemanager.ui.feature.vault.VaultScreen
@@ -136,7 +137,15 @@ private fun NavGraphBuilder.efmDrawerDestinations(
         )
     }
     composable(EfmDestination.Statistics.route) {
-        StatisticsScreen(onOpenDrawer = { scope.launch { drawerState.open() } })
+        StatisticsScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            navActions =
+                StatisticsNavActions(
+                    onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
+                    onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
+                    onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
+                ),
+        )
     }
     composable(EfmDestination.Vault.route) {
         VaultScreen(onOpenDrawer = { scope.launch { drawerState.open() } })

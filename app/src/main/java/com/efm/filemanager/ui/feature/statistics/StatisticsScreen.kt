@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.statistics
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,13 +41,14 @@ import com.efm.filemanager.ui.feature.browse.formatFileSize
 @Composable
 fun StatisticsScreen(
     onOpenDrawer: () -> Unit,
+    navActions: StatisticsNavActions,
     viewModel: StatisticsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = { StatisticsTopBar(onOpenDrawer = onOpenDrawer, onRefresh = viewModel::refresh) },
     ) { innerPadding ->
-        StatisticsBody(modifier = Modifier.padding(innerPadding), uiState = uiState)
+        StatisticsBody(modifier = Modifier.padding(innerPadding), uiState = uiState, navActions = navActions)
     }
 }
 
@@ -72,6 +76,7 @@ private fun StatisticsTopBar(
 private fun StatisticsBody(
     modifier: Modifier,
     uiState: StatisticsUiState,
+    navActions: StatisticsNavActions,
 ) {
     if (uiState.isLoading && uiState.storageStats.totalFileCount == 0) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -87,20 +92,33 @@ private fun StatisticsBody(
         item { StorageUsedCard(uiState.storageStats) }
         item { FileTypeBreakdownCard(uiState.storageStats.sizeByCategory) }
         item { LargestFilesCard(uiState.storageStats.largestFiles) }
-        item { DuplicatesStatCard(uiState.duplicateGroupCount, uiState.reclaimableBytes) }
-        item { AdvisorStatCard(uiState.advisorFlaggedCount) }
-        item { OperationsStatCard(uiState.totalOperationsCount) }
+        item {
+            DuplicatesStatCard(uiState.duplicateGroupCount, uiState.reclaimableBytes, onClick = navActions.onOpenDuplicates)
+        }
+        item { AdvisorStatCard(uiState.advisorFlaggedCount, onClick = navActions.onOpenInsights) }
+        item { OperationsStatCard(uiState.totalOperationsCount, onClick = navActions.onOpenAudit) }
     }
 }
 
 @Composable
 private fun StatCard(
     title: String,
+    onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    val cardModifier = if (onClick != null) Modifier.fillMaxWidth().clickable(onClick = onClick) else Modifier.fillMaxWidth()
+    ElevatedCard(modifier = cardModifier) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                if (onClick != null) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             content()
         }
     }
@@ -146,23 +164,30 @@ private fun LargestFilesCard(largestFiles: List<FileEntry>) {
 private fun DuplicatesStatCard(
     groupCount: Int,
     reclaimableBytes: Long,
+    onClick: () -> Unit,
 ) {
-    StatCard(title = stringResource(R.string.statistics_duplicates_title)) {
+    StatCard(title = stringResource(R.string.statistics_duplicates_title), onClick = onClick) {
         StatRow(label = stringResource(R.string.statistics_duplicate_groups), value = groupCount.toString())
         StatRow(label = stringResource(R.string.statistics_reclaimable_space), value = formatFileSize(reclaimableBytes))
     }
 }
 
 @Composable
-private fun AdvisorStatCard(flaggedCount: Int) {
-    StatCard(title = stringResource(R.string.statistics_advisor_title)) {
+private fun AdvisorStatCard(
+    flaggedCount: Int,
+    onClick: () -> Unit,
+) {
+    StatCard(title = stringResource(R.string.statistics_advisor_title), onClick = onClick) {
         Text(stringResource(R.string.statistics_advisor_flagged_count, flaggedCount), style = MaterialTheme.typography.headlineSmall)
     }
 }
 
 @Composable
-private fun OperationsStatCard(totalCount: Int) {
-    StatCard(title = stringResource(R.string.statistics_operations_title)) {
+private fun OperationsStatCard(
+    totalCount: Int,
+    onClick: () -> Unit,
+) {
+    StatCard(title = stringResource(R.string.statistics_operations_title), onClick = onClick) {
         Text(stringResource(R.string.statistics_operations_count, totalCount), style = MaterialTheme.typography.headlineSmall)
     }
 }

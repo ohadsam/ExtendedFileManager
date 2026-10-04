@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.21.1 (2026-10-04)
+
+- Phase 18 continues: three of Statistics' six widgets are now
+  tappable -- Duplicates, Insights, and Operations each drill down
+  straight into the screen that owns that data (Duplicates/Insights/
+  Audit), matching the spec's "no dead-end numbers" goal for the
+  widgets that already had a single owning screen to jump to. The
+  by-file-type and largest-files widgets still don't drill down --
+  doing so needs a global, filtered+sorted file view that doesn't
+  exist anywhere in the app yet (Search requires a text query to
+  show anything; Browse is scoped to one folder at a time), so that's
+  left for a dedicated slice rather than bolted on here.
+
 ## v0.21.0 (2026-10-04)
 
 - Phase 18 (statistics dashboard) has started: a new "Statistics"
