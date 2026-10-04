@@ -19,12 +19,14 @@ import javax.inject.Inject
 private const val STOP_TIMEOUT_MS = 5_000L
 
 /**
- * Phase 18's first slice: a few widgets backed by data that already exists elsewhere in the
- * app (Phase 6's duplicate cache, Phase 10/17's recommendation cache, Phase 13's audit trail),
- * plus one new lightweight computation ([StatisticsRepository.computeStorageStats]) for the one
- * thing nothing else already tracks -- total size/largest-files/type-breakdown across every
- * granted tree. Charts, drill-down into the owning screen, and a `stats_cache`/`changeVersion`
- * incremental-recompute table are deliberately left for a later slice (see docs/PLAN.md Phase 18).
+ * Phase 18's dashboard: a few widgets backed by data that already exists elsewhere in the app
+ * (Phase 6's duplicate cache, Phase 10/17's recommendation cache, Phase 13's audit trail), plus
+ * one new lightweight computation ([StatisticsRepository.computeStorageStats]) for the one thing
+ * nothing else already tracks -- total size/largest-files/type-breakdown across every granted
+ * tree. That same computation also appends today's entry to the storage-trend history
+ * ([StatisticsRepository.observeDailyTotalBytes]) every time it runs. A `stats_cache`/
+ * `changeVersion` incremental-recompute table (to skip the walk entirely when nothing's changed)
+ * is deliberately left for a later slice (see docs/PLAN.md Phase 18).
  */
 @HiltViewModel
 class StatisticsViewModel
@@ -38,7 +40,7 @@ class StatisticsViewModel
         private val storageStats = MutableStateFlow(StorageStats())
         private val isLoading = MutableStateFlow(true)
 
-        val uiState: StateFlow<StatisticsUiState> =
+        private val baseUiState =
             combine(
                 isLoading,
                 storageStats,
@@ -49,12 +51,19 @@ class StatisticsViewModel
                 StatisticsUiState(
                     isLoading = loading,
                     storageStats = stats,
-                    duplicateGroupCount = duplicateGroups.size,
-                    reclaimableBytes = duplicateGroups.sumOf { it.fileSize * (it.files.size - 1) },
+                    duplicatesSummary =
+                        DuplicatesSummary(
+                            groupCount = duplicateGroups.size,
+                            reclaimableBytes = duplicateGroups.sumOf { it.fileSize * (it.files.size - 1) },
+                        ),
                     advisorFlaggedCount = recommendations.distinctBy { it.entry.uri }.size,
                     totalOperationsCount = auditEvents.size,
                 )
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), StatisticsUiState())
+            }
+
+        val uiState: StateFlow<StatisticsUiState> =
+            combine(baseUiState, statisticsRepository.observeDailyTotalBytes()) { base, trend -> base.copy(storageTrend = trend) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), StatisticsUiState())
 
         init {
             refresh()

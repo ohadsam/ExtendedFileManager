@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.statistics
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -98,13 +103,13 @@ private fun StatisticsBody(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { StorageUsedCard(uiState.storageStats) }
+        item { StorageUsedCard(uiState.storageStats, uiState.storageTrend) }
         item { FileTypeBreakdownCard(uiState.storageStats.sizeByCategory, onCategoryClick = navActions.onOpenGlobalFiles) }
         item {
             LargestFilesCard(uiState.storageStats.largestFiles, onClick = { navActions.onOpenGlobalFiles(null) })
         }
         item {
-            DuplicatesStatCard(uiState.duplicateGroupCount, uiState.reclaimableBytes, onClick = navActions.onOpenDuplicates)
+            DuplicatesStatCard(uiState.duplicatesSummary, onClick = navActions.onOpenDuplicates)
         }
         item { AdvisorStatCard(uiState.advisorFlaggedCount, onClick = navActions.onOpenInsights) }
         item { OperationsStatCard(uiState.totalOperationsCount, onClick = navActions.onOpenAudit) }
@@ -136,7 +141,10 @@ private fun StatCard(
 }
 
 @Composable
-private fun StorageUsedCard(stats: StorageStats) {
+private fun StorageUsedCard(
+    stats: StorageStats,
+    trend: List<Long>,
+) {
     StatCard(title = stringResource(R.string.statistics_storage_used_title)) {
         Text(formatFileSize(stats.totalSize), style = MaterialTheme.typography.headlineSmall)
         Text(
@@ -144,8 +152,43 @@ private fun StorageUsedCard(stats: StorageStats) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (trend.size >= 2) {
+            Spacer(modifier = Modifier.height(8.dp))
+            StorageTrendSparkline(trend)
+        }
     }
 }
+
+/**
+ * A minimal sparkline -- a thin single-hue line, no axes/gridlines/labels -- the form this
+ * phase's own spec calls for pairing a trend with a stat tile, per the dataviz skill's own
+ * "single current value + maybe a trend -> stat tile with sparkline" guidance. Needs at least
+ * two points; the caller already guards that, since this history is forward-built from whenever
+ * Phase 18 landed and may still be "not enough data yet."
+ */
+@Composable
+private fun StorageTrendSparkline(dailyTotals: List<Long>) {
+    val lineColor = MaterialTheme.colorScheme.primary
+    Canvas(modifier = Modifier.fillMaxWidth().height(SPARKLINE_HEIGHT)) {
+        val maxValue = dailyTotals.max().toFloat()
+        val minValue = dailyTotals.min().toFloat()
+        val range = (maxValue - minValue).coerceAtLeast(1f)
+        val stepX = size.width / (dailyTotals.size - 1)
+        val path =
+            Path().apply {
+                dailyTotals.forEachIndexed { index, value ->
+                    val x = index * stepX
+                    val y = size.height - ((value.toFloat() - minValue) / range) * size.height
+                    if (index == 0) moveTo(x, y) else lineTo(x, y)
+                }
+            }
+        val stroke = Stroke(width = SPARKLINE_STROKE_WIDTH.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        drawPath(path, color = lineColor, style = stroke)
+    }
+}
+
+private val SPARKLINE_HEIGHT = 32.dp
+private val SPARKLINE_STROKE_WIDTH = 2.dp
 
 @Composable
 private fun FileTypeBreakdownCard(
@@ -225,13 +268,12 @@ private fun LargestFilesCard(
 
 @Composable
 private fun DuplicatesStatCard(
-    groupCount: Int,
-    reclaimableBytes: Long,
+    summary: DuplicatesSummary,
     onClick: () -> Unit,
 ) {
     StatCard(title = stringResource(R.string.statistics_duplicates_title), onClick = onClick) {
-        StatRow(label = stringResource(R.string.statistics_duplicate_groups), value = groupCount.toString())
-        StatRow(label = stringResource(R.string.statistics_reclaimable_space), value = formatFileSize(reclaimableBytes))
+        StatRow(label = stringResource(R.string.statistics_duplicate_groups), value = summary.groupCount.toString())
+        StatRow(label = stringResource(R.string.statistics_reclaimable_space), value = formatFileSize(summary.reclaimableBytes))
     }
 }
 

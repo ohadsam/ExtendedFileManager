@@ -4,6 +4,8 @@ import android.net.Uri
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.local.FileEntryEntity
+import com.efm.filemanager.data.local.StorageSnapshotDao
+import com.efm.filemanager.data.local.StorageSnapshotEntity
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
@@ -11,7 +13,10 @@ import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.domain.model.category
 import com.efm.filemanager.domain.model.toStorageStats
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -27,11 +32,29 @@ class StatisticsRepository
     constructor(
         private val documentTreeAccessManager: DocumentTreeAccessManager,
         private val documentTreeRepository: DocumentTreeRepository,
+        private val storageSnapshotDao: StorageSnapshotDao,
     ) {
         suspend fun computeStorageStats(): StorageStats =
             withContext(Dispatchers.IO) {
-                collectAllFiles().map { it.toDomain() }.toStorageStats()
+                val stats = collectAllFiles().map { it.toDomain() }.toStorageStats()
+                recordDailySnapshot(stats)
+                stats
             }
+
+        /**
+         * Phase 18's trend sparkline -- one point per day this ever ran, forward-built from
+         * whenever this phase lands rather than backfilled (Android has no retroactive history
+         * of past storage state to query). Fewer than two points means "not enough data yet,"
+         * same honesty Phase 10 already applies to its own proxy signals.
+         */
+        fun observeDailyTotalBytes(): Flow<List<Long>> =
+            storageSnapshotDao.observeDailyTotals().map { totals -> totals.map { it.totalBytes } }
+
+        private suspend fun recordDailySnapshot(stats: StorageStats) {
+            val day = System.currentTimeMillis() / TimeUnit.DAYS.toMillis(1)
+            val entries = stats.sizeByCategory.map { (category, bytes) -> StorageSnapshotEntity(day, category.name, bytes) }
+            storageSnapshotDao.replaceDay(day, entries)
+        }
 
         /**
          * Phase 18's drill-down from the by-type/largest-files widgets -- every file across

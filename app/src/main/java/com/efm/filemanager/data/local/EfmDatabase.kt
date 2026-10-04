@@ -23,8 +23,9 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         VaultEntryEntity::class,
         LogEntryEntity::class,
         CloudUploadEntity::class,
+        StorageSnapshotEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
@@ -55,4 +56,6 @@ abstract class EfmDatabase : RoomDatabase() {
     abstract fun logEntryDao(): LogEntryDao
 
     abstract fun cloudUploadDao(): CloudUploadDao
+
+    abstract fun storageSnapshotDao(): StorageSnapshotDao
 }

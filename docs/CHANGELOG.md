@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.21.4 (2026-10-04)
+
+- Phase 18 continues: the storage-used widget now shows a trend
+  sparkline once there's at least two days of history. A new
+  `storage_snapshots` Room table gets one row appended every time
+  the widget's own underlying scan runs (manual refresh or opening
+  the screen), forward-built from today rather than backfilled,
+  since Android has no retroactive history of past storage state to
+  query. Automatically recording a snapshot once a day even if the
+  user never opens Statistics (piggybacking on Phase 17's daily job)
+  is still open.
+
 ## v0.21.3 (2026-10-04)
 
 - Phase 18 continues: the by-type and largest-files widgets now

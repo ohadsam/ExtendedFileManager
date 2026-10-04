@@ -88,8 +88,11 @@ new global, size-sorted file list (optionally filtered to one file type) that di
 app before. The by-type widget also has its first chart -- a horizontal stacked bar (not a donut,
 since a donut's every-slice-at-once display can't guarantee all seven category colors stay
 distinguishable from each other, checked with the `dataviz` skill's own color validator) with a
-legend swatch per category. A sparkline for trends and the incremental caching pieces are still
-open. See `docs/PLAN.md` for the full phase list.
+legend swatch per category, and the storage-used widget now grows a trend sparkline once it has
+at least two days of history behind it -- a new table quietly records one snapshot every time
+that widget's own scan runs, building the trend forward from today rather than pretending to
+know the past. The incremental caching pieces are still open. See `docs/PLAN.md` for the full
+phase list.
 
 ## Building
 
