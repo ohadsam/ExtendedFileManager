@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -51,9 +53,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.dashboard.DashboardWidgetConfig
 import com.efm.filemanager.data.metadata.MoveDirection
+import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
+import com.efm.filemanager.domain.model.toggled
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 import com.efm.filemanager.ui.feature.statistics.DuplicatesSummary
 
@@ -80,6 +84,7 @@ fun DashboardScreen(
                 configs = uiState.widgetConfigs,
                 onToggle = viewModel::setWidgetEnabled,
                 onMove = viewModel::moveWidget,
+                onToggleSize = viewModel::setWidgetSize,
             )
         } else {
             DashboardBody(modifier = Modifier.padding(innerPadding), uiState = uiState, navActions = navActions)
@@ -153,10 +158,14 @@ private fun DashboardWidgetRow(
     navActions: DashboardNavActions,
 ) {
     when (config.type) {
-        DashboardWidgetType.STORAGE_SUMMARY -> StorageSummaryCard(uiState.storageStats, onClick = navActions.onOpenStatistics)
-        DashboardWidgetType.DUPLICATES -> DuplicatesCard(uiState.duplicatesSummary, onClick = navActions.onOpenDuplicates)
+        DashboardWidgetType.STORAGE_SUMMARY ->
+            StorageSummaryCard(uiState.storageStats, config.size, onClick = navActions.onOpenStatistics)
+        DashboardWidgetType.DUPLICATES ->
+            DuplicatesCard(uiState.duplicatesSummary, config.size, onClick = navActions.onOpenDuplicates)
+        // No size-dependent content yet -- there's nothing more for this card to show or trim.
         DashboardWidgetType.INSIGHTS -> InsightsCard(uiState.advisorFlaggedCount, onClick = navActions.onOpenInsights)
-        DashboardWidgetType.FAVORITES -> FavoritesCard(uiState.favoriteEntries, onClick = navActions.onOpenFavorites)
+        DashboardWidgetType.FAVORITES ->
+            FavoritesCard(uiState.favoriteEntries, config.size, onClick = navActions.onOpenFavorites)
     }
 }
 
@@ -184,21 +193,25 @@ private fun DashboardCard(
 @Composable
 private fun StorageSummaryCard(
     stats: StorageStats,
+    size: DashboardWidgetSize,
     onClick: () -> Unit,
 ) {
     DashboardCard(title = stringResource(R.string.statistics_storage_used_title), onClick = onClick) {
         Text(formatFileSize(stats.totalSize), style = MaterialTheme.typography.headlineSmall)
-        Text(
-            stringResource(R.string.statistics_file_count, stats.totalFileCount),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (size == DashboardWidgetSize.DETAILED) {
+            Text(
+                stringResource(R.string.statistics_file_count, stats.totalFileCount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
 @Composable
 private fun DuplicatesCard(
     summary: DuplicatesSummary,
+    size: DashboardWidgetSize,
     onClick: () -> Unit,
 ) {
     DashboardCard(title = stringResource(R.string.statistics_duplicates_title), onClick = onClick) {
@@ -206,6 +219,13 @@ private fun DuplicatesCard(
             stringResource(R.string.dashboard_duplicate_groups_count, summary.groupCount),
             style = MaterialTheme.typography.bodyMedium,
         )
+        if (size == DashboardWidgetSize.DETAILED) {
+            Text(
+                stringResource(R.string.dashboard_reclaimable_detail, formatFileSize(summary.reclaimableBytes)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -222,13 +242,15 @@ private fun InsightsCard(
 @Composable
 private fun FavoritesCard(
     entries: List<FileEntry>,
+    size: DashboardWidgetSize,
     onClick: () -> Unit,
 ) {
     DashboardCard(title = stringResource(R.string.dashboard_favorites_title), onClick = onClick) {
-        if (entries.isEmpty()) {
-            Text(stringResource(R.string.dashboard_favorites_empty), style = MaterialTheme.typography.bodySmall)
-        } else {
-            entries.forEach { entry -> Text(entry.name, style = MaterialTheme.typography.bodyMedium) }
+        when {
+            entries.isEmpty() -> Text(stringResource(R.string.dashboard_favorites_empty), style = MaterialTheme.typography.bodySmall)
+            size == DashboardWidgetSize.COMPACT ->
+                Text(stringResource(R.string.dashboard_favorites_count, entries.size), style = MaterialTheme.typography.bodyMedium)
+            else -> entries.forEach { entry -> Text(entry.name, style = MaterialTheme.typography.bodyMedium) }
         }
     }
 }
@@ -269,6 +291,12 @@ private data class RowDragVisuals(
     val isDragging: Boolean,
 )
 
+/** Also bundled for the same reason -- a row's two non-drag actions, visibility and size. */
+private data class WidgetEditCallbacks(
+    val onToggleEnabled: (Boolean) -> Unit,
+    val onToggleSize: () -> Unit,
+)
+
 /**
  * The edit-mode view: a compact, fixed-height row per widget (so the drag-crossed-row threshold
  * below is meaningful), covering every catalog entry -- disabled ones included, dimmed -- since
@@ -280,6 +308,7 @@ private fun DashboardEditList(
     configs: List<DashboardWidgetConfig>,
     onToggle: (DashboardWidgetType, Boolean) -> Unit,
     onMove: (DashboardWidgetType, MoveDirection) -> Unit,
+    onToggleSize: (DashboardWidgetType, DashboardWidgetSize) -> Unit,
 ) {
     val dragState = remember { WidgetDragState() }
     val rowHeightPx = with(LocalDensity.current) { WIDGET_ROW_HEIGHT.toPx() }
@@ -289,7 +318,11 @@ private fun DashboardEditList(
             WidgetEditRow(
                 config = config,
                 dragVisuals = RowDragVisuals(offsetY = if (isDragging) dragState.offsetY else 0f, isDragging = isDragging),
-                onToggle = { enabled -> onToggle(config.type, enabled) },
+                callbacks =
+                    WidgetEditCallbacks(
+                        onToggleEnabled = { enabled -> onToggle(config.type, enabled) },
+                        onToggleSize = { onToggleSize(config.type, config.size.toggled()) },
+                    ),
                 onDrag = { delta ->
                     dragState.draggingType = config.type
                     dragState.offsetY += delta
@@ -308,7 +341,7 @@ private fun DashboardEditList(
 private fun WidgetEditRow(
     config: DashboardWidgetConfig,
     dragVisuals: RowDragVisuals,
-    onToggle: (Boolean) -> Unit,
+    callbacks: WidgetEditCallbacks,
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
 ) {
@@ -328,7 +361,20 @@ private fun WidgetEditRow(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f).alpha(if (config.isEnabled) 1f else 0.5f),
         )
-        Switch(checked = config.isEnabled, onCheckedChange = onToggle)
+        IconButton(onClick = callbacks.onToggleSize) {
+            Icon(
+                if (config.size == DashboardWidgetSize.DETAILED) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,
+                contentDescription =
+                    stringResource(
+                        if (config.size == DashboardWidgetSize.DETAILED) {
+                            R.string.dashboard_size_make_compact
+                        } else {
+                            R.string.dashboard_size_make_detailed
+                        },
+                    ),
+            )
+        }
+        Switch(checked = config.isEnabled, onCheckedChange = callbacks.onToggleEnabled)
     }
 }
 

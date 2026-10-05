@@ -3,24 +3,26 @@ package com.efm.filemanager.data.dashboard
 import com.efm.filemanager.data.local.DashboardWidgetDao
 import com.efm.filemanager.data.local.DashboardWidgetEntity
 import com.efm.filemanager.data.metadata.MoveDirection
+import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-/** One [DashboardWidgetType]'s current visibility -- the whole of what Phase 19's first customization slice persists. */
+/** One [DashboardWidgetType]'s current visibility, position (via list order), and size. */
 data class DashboardWidgetConfig(
     val type: DashboardWidgetType,
     val isEnabled: Boolean,
+    val size: DashboardWidgetSize,
 )
 
 /**
- * Phase 19's widget-visibility and -order persistence. [ensureSeeded] inserts every catalog
- * entry as enabled, at its catalog declaration index, on first run (or whenever a later phase
- * adds a new [DashboardWidgetType] entry) -- [DashboardWidgetDao.insertIfAbsent] is an
- * `IGNORE`-conflict insert, so a widget that already has a row never has its enabled/disabled
- * state or position overwritten.
+ * Phase 19's widget-visibility/-order/-size persistence. [ensureSeeded] inserts every catalog
+ * entry as enabled and [DashboardWidgetSize.DETAILED], at its catalog declaration index, on
+ * first run (or whenever a later phase adds a new [DashboardWidgetType] entry) --
+ * [DashboardWidgetDao.insertIfAbsent] is an `IGNORE`-conflict insert, so a widget that already
+ * has a row never has its enabled/disabled state, position, or size overwritten.
  */
 class DashboardLayoutRepository
     @Inject
@@ -33,7 +35,7 @@ class DashboardLayoutRepository
         suspend fun ensureSeeded() {
             val seeds =
                 DashboardWidgetType.entries.mapIndexed { index, type ->
-                    DashboardWidgetEntity(type = type.name, isEnabled = true, sortOrder = index)
+                    DashboardWidgetEntity(type = type.name, isEnabled = true, sortOrder = index, size = DashboardWidgetSize.DETAILED.name)
                 }
             dashboardWidgetDao.insertIfAbsent(seeds)
         }
@@ -42,6 +44,11 @@ class DashboardLayoutRepository
             type: DashboardWidgetType,
             isEnabled: Boolean,
         ) = dashboardWidgetDao.setEnabled(type.name, isEnabled)
+
+        suspend fun setSize(
+            type: DashboardWidgetType,
+            size: DashboardWidgetSize,
+        ) = dashboardWidgetDao.setSize(type.name, size.name)
 
         /**
          * Mirrors [com.efm.filemanager.data.metadata.FavoriteRepository.moveCollection]'s own
@@ -63,5 +70,9 @@ class DashboardLayoutRepository
         }
     }
 
+/** An unrecognized or missing [DashboardWidgetEntity.size] value falls back to DETAILED -- never a silent crash over a cosmetic setting. */
 internal fun DashboardWidgetEntity.toConfig(): DashboardWidgetConfig? =
-    runCatching { DashboardWidgetType.valueOf(type) }.getOrNull()?.let { DashboardWidgetConfig(it, isEnabled) }
+    runCatching { DashboardWidgetType.valueOf(type) }.getOrNull()?.let { type ->
+        val resolvedSize = runCatching { DashboardWidgetSize.valueOf(size) }.getOrDefault(DashboardWidgetSize.DETAILED)
+        DashboardWidgetConfig(type, isEnabled, resolvedSize)
+    }

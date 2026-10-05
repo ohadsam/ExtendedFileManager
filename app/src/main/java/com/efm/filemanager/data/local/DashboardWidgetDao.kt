@@ -22,6 +22,12 @@ interface DashboardWidgetDao {
         isEnabled: Boolean,
     )
 
+    @Query("UPDATE dashboard_widgets SET size = :size WHERE type = :type")
+    suspend fun setSize(
+        type: String,
+        size: String,
+    )
+
     /** Used only to swap two widgets' [DashboardWidgetEntity.sortOrder] when reordering. */
     @Update
     suspend fun updateWidget(widget: DashboardWidgetEntity)

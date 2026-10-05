@@ -360,4 +360,8 @@
     <string name="dashboard_edit_start">ערוך לוח בקרה</string>
     <string name="dashboard_edit_done">סיום עריכה</string>
     <string name="dashboard_all_hidden">כל הרכיבים מוסתרים -- הקש על עריכה כדי להחזיר אחד</string>
+    <string name="dashboard_reclaimable_detail">%s ניתנים לפינוי</string>
+    <string name="dashboard_favorites_count">%d מועדפים</string>
+    <string name="dashboard_size_make_compact">הפוך לקומפקטי</string>
+    <string name="dashboard_size_make_detailed">הפוך למפורט</string>
 </resources>

@@ -360,4 +360,8 @@
     <string name="dashboard_edit_start">Edit dashboard</string>
     <string name="dashboard_edit_done">Done editing</string>
     <string name="dashboard_all_hidden">Every widget is hidden -- tap Edit to bring one back</string>
+    <string name="dashboard_reclaimable_detail">%s reclaimable</string>
+    <string name="dashboard_favorites_count">%d favorite(s)</string>
+    <string name="dashboard_size_make_compact">Make compact</string>
+    <string name="dashboard_size_make_detailed">Make detailed</string>
 </resources>

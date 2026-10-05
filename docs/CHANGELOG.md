@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.22.3 (2026-10-05)
+
+- Phase 19 slice 4: per-widget sizing. A new size toggle in the edit
+  mode's row (next to the drag handle and the visibility switch) lets
+  each widget switch between its full content and a trimmed-down
+  COMPACT form -- storage used drops its file-count line, duplicates
+  drops its reclaimable-space line (newly shown at all, in detailed
+  size), and favorites collapses its name list down to just a count.
+  Insights has nothing left to trim, so its size toggle is a no-op by
+  design. Persisted in `dashboard_widgets` (a new `size` column),
+  seeded DETAILED so nothing changes until the user actually resizes
+  something. This was the last per-widget customization planned for
+  Phase 19 -- only templates and saved layouts remain, see
+  docs/PLAN.md.
+
 ## v0.22.2 (2026-10-05)
 
 - Phase 19 slice 3: Dashboard widgets can now be reordered, via a
