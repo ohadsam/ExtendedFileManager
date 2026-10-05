@@ -100,10 +100,11 @@ user never opens Statistics. The one widget without a tap-through yet is most-po
 Browse's nav route has no folder-targeting argument today, so that's an explicit follow-up rather
 than something this phase could reuse Search's own drill-down trick for. Phase 19 (customizable
 home dashboard) has now started too: a new "Dashboard" screen (own nav-drawer entry) shows four
-fixed cards -- storage used, duplicates, insights, and a favorites quick-access list -- every one
-reusing an already-live data source, no new scanning. There's no widget catalog, customization,
+cards -- storage used, duplicates, insights, and a favorites quick-access list -- every one
+reusing an already-live data source, no new scanning. A pencil icon now lets you hide any of
+those cards (persisted, so a hidden one stays hidden), but there's still no reordering, resizing,
 templates, or saved layouts yet, and Browse stays the app's start destination for now -- this is
-the first of several slices this phase needs. See `docs/PLAN.md` for the full phase list.
+the second of several slices this phase needs. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

@@ -357,4 +357,7 @@
     <string name="dashboard_duplicate_groups_count">%d קבוצות כפילויות</string>
     <string name="dashboard_favorites_title">מועדפים</string>
     <string name="dashboard_favorites_empty">אין עדיין מועדפים</string>
+    <string name="dashboard_edit_start">ערוך לוח בקרה</string>
+    <string name="dashboard_edit_done">סיום עריכה</string>
+    <string name="dashboard_all_hidden">כל הרכיבים מוסתרים -- הקש על עריכה כדי להחזיר אחד</string>
 </resources>

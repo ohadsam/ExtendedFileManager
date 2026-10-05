@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.22.1 (2026-10-05)
+
+- Phase 19 slice 2: the Dashboard screen's first real customization
+  primitive -- a pencil-icon edit mode where each widget's chevron
+  becomes a visibility switch, so you can hide the cards you don't
+  want. Persisted in a new `dashboard_widgets` Room table (one row per
+  `DashboardWidgetType`, seeded enabled on first run and never
+  overwritten once a row exists), so a hidden widget stays hidden
+  across app restarts. Still no reordering, resizing, templates, or
+  saved layouts -- see docs/PLAN.md for what's still open.
+
 ## v0.22.0 (2026-10-05)
 
 - Phase 19 starts: a new "Dashboard" screen (own nav-drawer entry,

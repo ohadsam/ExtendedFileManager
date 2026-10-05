@@ -3,9 +3,12 @@ package com.efm.filemanager.ui.feature.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
+import com.efm.filemanager.data.dashboard.DashboardLayoutRepository
+import com.efm.filemanager.data.dashboard.DashboardWidgetConfig
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.statistics.StatisticsRepository
+import com.efm.filemanager.domain.model.DashboardWidgetType
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.ui.feature.statistics.DuplicatesSummary
@@ -22,10 +25,10 @@ private const val STOP_TIMEOUT_MS = 5_000L
 private const val MAX_FAVORITES_SHOWN = 5
 
 /**
- * Phase 19 slice 1: a fixed, read-only widget set -- no catalog, no drag-and-drop, no saved
- * layouts, and Browse (not this screen) stays the app's start destination -- all deliberately
- * deferred to later slices (see docs/PLAN.md Phase 19). Every widget reuses an already-live
- * source exactly like Phase 18's own dashboard does: zero new scanning.
+ * Phase 19 slice 1 shipped a fixed, read-only widget set; slice 2 (this one) adds the first real
+ * customization primitive -- show/hide a widget, via an edit-mode toggle and a per-widget
+ * [DashboardLayoutRepository]-backed switch. Reordering, resizing, templates, and saved layouts
+ * are still open (see docs/PLAN.md Phase 19).
  */
 @HiltViewModel
 class DashboardViewModel
@@ -35,12 +38,14 @@ class DashboardViewModel
         private val duplicateScanRepository: DuplicateScanRepository,
         private val storageAdvisorRepository: StorageAdvisorRepository,
         private val fileMetadataRepository: FileMetadataRepository,
+        private val dashboardLayoutRepository: DashboardLayoutRepository,
     ) : ViewModel() {
         private val isLoading = MutableStateFlow(true)
         private val storageStats = MutableStateFlow(StorageStats())
         private val favoriteEntries = MutableStateFlow(emptyList<FileEntry>())
+        private val isEditMode = MutableStateFlow(false)
 
-        val uiState: StateFlow<DashboardUiState> =
+        private val baseUiState =
             combine(
                 isLoading,
                 storageStats,
@@ -59,9 +64,15 @@ class DashboardViewModel
                     advisorFlaggedCount = recommendations.distinctBy { it.entry.uri }.size,
                     favoriteEntries = favorites,
                 )
+            }
+
+        val uiState: StateFlow<DashboardUiState> =
+            combine(baseUiState, isEditMode, dashboardLayoutRepository.observeWidgets()) { base, editMode, configs ->
+                base.copy(isEditMode = editMode, widgetConfigs = configs.inCatalogOrder())
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DashboardUiState())
 
         init {
+            viewModelScope.launch { dashboardLayoutRepository.ensureSeeded() }
             refresh()
         }
 
@@ -73,4 +84,19 @@ class DashboardViewModel
                 isLoading.value = false
             }
         }
+
+        fun toggleEditMode() {
+            isEditMode.value = !isEditMode.value
+        }
+
+        fun setWidgetEnabled(
+            type: DashboardWidgetType,
+            isEnabled: Boolean,
+        ) {
+            viewModelScope.launch { dashboardLayoutRepository.setEnabled(type, isEnabled) }
+        }
     }
+
+/** DB row order isn't meaningful here -- the catalog's own declaration order is the display order. */
+internal fun List<DashboardWidgetConfig>.inCatalogOrder(): List<DashboardWidgetConfig> =
+    DashboardWidgetType.entries.mapNotNull { type -> firstOrNull { it.type == type } }

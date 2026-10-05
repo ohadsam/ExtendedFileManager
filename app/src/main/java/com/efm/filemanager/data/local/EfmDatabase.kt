@@ -28,8 +28,9 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         StatsCacheLargestFileEntity::class,
         StatsCacheRecentFileEntity::class,
         StatsCacheFolderEntity::class,
+        DashboardWidgetEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
@@ -66,4 +67,6 @@ abstract class EfmDatabase : RoomDatabase() {
     abstract fun statsCacheDao(): StatsCacheDao
 
     abstract fun statsCacheFolderDao(): StatsCacheFolderDao
+
+    abstract fun dashboardWidgetDao(): DashboardWidgetDao
 }

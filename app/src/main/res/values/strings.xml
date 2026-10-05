@@ -357,4 +357,7 @@
     <string name="dashboard_duplicate_groups_count">%d duplicate group(s)</string>
     <string name="dashboard_favorites_title">Favorites</string>
     <string name="dashboard_favorites_empty">No favorites yet</string>
+    <string name="dashboard_edit_start">Edit dashboard</string>
+    <string name="dashboard_edit_done">Done editing</string>
+    <string name="dashboard_all_hidden">Every widget is hidden -- tap Edit to bring one back</string>
 </resources>
