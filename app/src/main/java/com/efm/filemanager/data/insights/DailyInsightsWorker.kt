@@ -5,8 +5,6 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
-import com.efm.filemanager.data.advisor.StorageAdvisorRepository
-import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -22,12 +20,13 @@ internal const val DAILY_INSIGHTS_WORK_NAME = "daily_insights"
  * notification, rather than leaving the Insights screen as something the user has to remember
  * to open. This worker only recomputes Phase 10's already-cheap recommendation categories, the
  * same ones the Insights screen already shows and already persists to Room via
- * [StorageAdvisorRepository.scan] -- it reads the duplicate count from whatever
- * [DuplicateScanRepository] last cached rather than re-running that expensive scan itself; the
- * changeVersion-based incremental skip for triggering a fresh duplicate scan here is still open
- * (see docs/PLAN.md Phase 17). Settings' "Run daily insights" toggle skips this worker's own
- * scan entirely; "Notify me" lets it keep running (so the screen stays fresh) while suppressing
- * just the notification.
+ * [com.efm.filemanager.data.advisor.StorageAdvisorRepository.scan] -- it reads the duplicate
+ * count from whatever [com.efm.filemanager.data.duplicates.DuplicateScanRepository] last cached
+ * rather than re-running that expensive scan itself; the changeVersion-based incremental skip for
+ * triggering a fresh duplicate scan here is still open (see docs/PLAN.md Phase 17). Settings'
+ * "Run daily insights" toggle skips the insights scan/notification specifically; Phase 18's daily
+ * storage-stats snapshot (below) piggybacks on this same cadence regardless of that toggle, since
+ * it's a separate dashboard feature, not part of Insights.
  */
 @HiltWorker
 class DailyInsightsWorker
@@ -35,19 +34,36 @@ class DailyInsightsWorker
     constructor(
         @Assisted context: Context,
         @Assisted params: WorkerParameters,
-        private val storageAdvisorRepository: StorageAdvisorRepository,
-        private val duplicateScanRepository: DuplicateScanRepository,
+        private val repositories: DailyInsightsRepositories,
         private val insightsNotifier: InsightsNotifier,
         private val preferencesRepository: PreferencesRepository,
     ) : CoroutineWorker(context, params) {
         override suspend fun doWork(): Result {
+            recordDailyStatsSnapshot()
             if (!preferencesRepository.runDailyInsights.first()) {
                 Timber.i("DailyInsightsWorker: disabled via Settings, skipping")
                 return Result.success()
             }
+            runInsightsScan()
+            return Result.success()
+        }
+
+        /**
+         * Phase 18's trend sparkline needs one data point per day even if the user never opens
+         * Statistics -- [com.efm.filemanager.data.statistics.StatisticsRepository.computeStorageStats]
+         * already records today's snapshot as a side effect, and (since Phase 18's own
+         * incremental cache landed) skips its full-tree walk entirely when nothing's changed
+         * since the last time anything computed it.
+         */
+        private suspend fun recordDailyStatsSnapshot() {
+            Timber.i("DailyInsightsWorker: recording today's storage-stats snapshot")
+            repositories.statisticsRepository.computeStorageStats()
+        }
+
+        private suspend fun runInsightsScan() {
             Timber.i("DailyInsightsWorker: starting daily scan")
-            val advisorCount = storageAdvisorRepository.scan {}
-            val duplicateCount = duplicateScanRepository.observeGroups().first().sumOf { it.files.size }
+            val advisorCount = repositories.storageAdvisorRepository.scan {}
+            val duplicateCount = repositories.duplicateScanRepository.observeGroups().first().sumOf { it.files.size }
             val foundCount = advisorCount + duplicateCount
             Timber.i(
                 "DailyInsightsWorker: found %d total (%d advisor + %d cached duplicate)",
@@ -60,6 +76,5 @@ class DailyInsightsWorker
             } else {
                 Timber.i("DailyInsightsWorker: notify-me disabled via Settings, skipping notification")
             }
-            return Result.success()
         }
     }

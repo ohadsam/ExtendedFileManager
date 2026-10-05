@@ -95,8 +95,9 @@ at least two days of history behind it -- a new table quietly records one snapsh
 that widget's own scan runs, building the trend forward from today rather than pretending to
 know the past. The dashboard's own full-tree walk is now also skipped entirely when nothing's
 changed since the last time it ran, reusing Phase 17's existing "has the file index changed"
-signal rather than re-walking just to get the same numbers back. See `docs/PLAN.md` for the full
-phase list.
+signal rather than re-walking just to get the same numbers back, and that same daily snapshot now
+records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
+user never opens Statistics. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

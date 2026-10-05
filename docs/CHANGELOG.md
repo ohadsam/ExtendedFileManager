@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.21.7 (2026-10-05)
+
+- Phase 18's trend sparkline now keeps growing even on a day the user
+  never opens Statistics: `DailyInsightsWorker` (Phase 17's existing
+  once-a-day job) now also calls `StatisticsRepository
+  .computeStorageStats()` on every run, regardless of the "Run daily
+  insights" toggle, since the storage-trend snapshot is a separate
+  dashboard feature, not part of Insights. This piggybacks on v0.21.6's
+  incremental cache, so a day with nothing changed is still cheap.
+  Only the most/least-recently-modified and most-populated-folder
+  widgets remain open for Phase 18.
+
 ## v0.21.6 (2026-10-05)
 
 - Phase 18's last plumbing leftover lands: the Statistics dashboard's
