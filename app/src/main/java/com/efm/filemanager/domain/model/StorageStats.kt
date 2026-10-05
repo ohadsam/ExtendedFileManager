@@ -12,6 +12,7 @@ data class StorageStats(
     val totalFileCount: Int = 0,
     val sizeByCategory: Map<FileCategory, Long> = emptyMap(),
     val largestFiles: List<FileEntry> = emptyList(),
+    val recentlyModifiedFiles: List<FileEntry> = emptyList(),
 )
 
 /**
@@ -19,6 +20,8 @@ data class StorageStats(
  * produces this list lives in `StatisticsRepository`, kept separate so this accumulation logic
  * (the part actually worth unit-testing) doesn't need a device/Robolectric to verify. Folders
  * are expected to already be filtered out by the caller, same as every other scan in this app.
+ * [largestCount] caps both [largestFiles] and [recentlyModifiedFiles] -- there's no reason for
+ * these two "top N" widgets to show a different N.
  */
 fun List<FileEntry>.toStorageStats(largestCount: Int = DEFAULT_LARGEST_FILES_COUNT): StorageStats =
     StorageStats(
@@ -26,4 +29,5 @@ fun List<FileEntry>.toStorageStats(largestCount: Int = DEFAULT_LARGEST_FILES_COU
         totalFileCount = size,
         sizeByCategory = groupBy { it.category() }.mapValues { (_, files) -> files.sumOf { it.size } },
         largestFiles = sortedByDescending { it.size }.take(largestCount),
+        recentlyModifiedFiles = sortedByDescending { it.lastModified }.take(largestCount),
     )

@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.ui.components.FileRow
 import com.efm.filemanager.ui.components.query.labelRes
 
@@ -34,7 +35,7 @@ fun GlobalFileListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
-        topBar = { GlobalFileListTopBar(category = uiState.category, onNavigateBack = onNavigateBack) },
+        topBar = { GlobalFileListTopBar(category = uiState.category, sort = uiState.sort, onNavigateBack = onNavigateBack) },
     ) { innerPadding ->
         GlobalFileListBody(
             modifier = Modifier.padding(innerPadding),
@@ -50,6 +51,7 @@ fun GlobalFileListScreen(
 @Composable
 private fun GlobalFileListTopBar(
     category: FileCategory?,
+    sort: GlobalFilesSort,
     onNavigateBack: () -> Unit,
 ) {
     TopAppBar(
@@ -58,17 +60,21 @@ private fun GlobalFileListTopBar(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
             }
         },
-        title = {
-            val title =
-                if (category != null) {
-                    stringResource(category.labelRes())
-                } else {
-                    stringResource(R.string.statistics_largest_files_title)
-                }
-            Text(title)
-        },
+        title = { Text(globalFileListTitle(category, sort)) },
     )
 }
+
+/** [category] always wins when set; an uncategorized list falls back to whichever widget's sort it drilled down from. */
+@Composable
+private fun globalFileListTitle(
+    category: FileCategory?,
+    sort: GlobalFilesSort,
+): String =
+    when {
+        category != null -> stringResource(category.labelRes())
+        sort == GlobalFilesSort.RECENT -> stringResource(R.string.statistics_recently_modified_title)
+        else -> stringResource(R.string.statistics_largest_files_title)
+    }
 
 @Composable
 private fun GlobalFileListBody(

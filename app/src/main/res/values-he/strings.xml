@@ -342,6 +342,7 @@
     <string name="statistics_file_count">%d קבצים בתיקיות המורשות שלך</string>
     <string name="statistics_by_type_title">לפי סוג קובץ</string>
     <string name="statistics_largest_files_title">הקבצים הגדולים ביותר</string>
+    <string name="statistics_recently_modified_title">עודכנו לאחרונה</string>
     <string name="statistics_empty">אין עדיין מידע מספיק</string>
     <string name="statistics_duplicates_title">כפילויות</string>
     <string name="statistics_duplicate_groups">קבוצות כפילויות</string>

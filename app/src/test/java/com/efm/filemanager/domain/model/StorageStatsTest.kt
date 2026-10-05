@@ -14,6 +14,7 @@ class StorageStatsTest {
         assertEquals(0, stats.totalFileCount)
         assertEquals(emptyMap<FileCategory, Long>(), stats.sizeByCategory)
         assertEquals(emptyList<FileEntry>(), stats.largestFiles)
+        assertEquals(emptyList<FileEntry>(), stats.recentlyModifiedFiles)
     }
 
     @Test
@@ -50,17 +51,28 @@ class StorageStatsTest {
         assertEquals(listOf("big.txt", "medium.txt"), stats.largestFiles.map { it.name })
     }
 
+    @Test
+    fun `recently modified files are sorted newest-first and capped at the requested count`() {
+        val files =
+            listOf(entry("old.txt", lastModified = 100L), entry("new.txt", lastModified = 300L), entry("mid.txt", lastModified = 200L))
+
+        val stats = files.toStorageStats(largestCount = 2)
+
+        assertEquals(listOf("new.txt", "mid.txt"), stats.recentlyModifiedFiles.map { it.name })
+    }
+
     private fun entry(
         name: String,
-        size: Long,
+        size: Long = 0L,
         mimeType: String? = null,
+        lastModified: Long = 0L,
     ) = FileEntry(
         uri = mockk<Uri>(),
         documentId = name,
         name = name,
         isDirectory = false,
         size = size,
-        lastModified = 0L,
+        lastModified = lastModified,
         mimeType = mimeType,
         sourceApp = null,
     )

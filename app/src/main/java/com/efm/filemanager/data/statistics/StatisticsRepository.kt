@@ -7,12 +7,14 @@ import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.StatsCacheDao
 import com.efm.filemanager.data.local.StatsCacheEntity
 import com.efm.filemanager.data.local.StatsCacheLargestFileEntity
+import com.efm.filemanager.data.local.StatsCacheRecentFileEntity
 import com.efm.filemanager.data.local.StorageSnapshotDao
 import com.efm.filemanager.data.local.StorageSnapshotEntity
 import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.domain.model.category
 import com.efm.filemanager.domain.model.toStorageStats
@@ -65,7 +67,8 @@ class StatisticsRepository
             val sizeByCategory =
                 storageSnapshotDao.getLatestDayEntries().associate { FileCategory.valueOf(it.category) to it.bytes }
             val largestFiles = statsCacheDao.getLargestFiles().map { it.toFileEntry() }
-            return StorageStats(cachedMeta.totalSize, cachedMeta.totalFileCount, sizeByCategory, largestFiles)
+            val recentlyModifiedFiles = statsCacheDao.getRecentFiles().map { it.toFileEntry() }
+            return StorageStats(cachedMeta.totalSize, cachedMeta.totalFileCount, sizeByCategory, largestFiles, recentlyModifiedFiles)
         }
 
         private suspend fun freshStorageStats(currentVersion: Long): StorageStats {
@@ -73,7 +76,11 @@ class StatisticsRepository
             val meta = StatsCacheEntity(changeVersion = currentVersion, totalSize = stats.totalSize, totalFileCount = stats.totalFileCount)
             val cachedLargestFiles =
                 stats.largestFiles.mapIndexed { rank, file -> StatsCacheLargestFileEntity(rank, file.uri.toString(), file.name, file.size) }
-            statsCacheDao.replaceCache(meta, cachedLargestFiles)
+            val cachedRecentFiles =
+                stats.recentlyModifiedFiles.mapIndexed { rank, file ->
+                    StatsCacheRecentFileEntity(rank, file.uri.toString(), file.name, file.lastModified)
+                }
+            statsCacheDao.replaceCache(meta, cachedLargestFiles, cachedRecentFiles)
             return stats
         }
 
@@ -93,16 +100,23 @@ class StatisticsRepository
         }
 
         /**
-         * Phase 18's drill-down from the by-type/largest-files widgets -- every file across
-         * every granted tree, optionally narrowed to one [FileCategory], sorted largest-first
-         * (the one sort these widgets' own cards already imply). [category] null means "every
-         * file," used by the largest-files widget's own drill-down.
+         * Phase 18's drill-down from the by-type/largest-files/recently-modified widgets --
+         * every file across every granted tree, optionally narrowed to one [FileCategory],
+         * ordered by [sort] (the one order each widget's own card already implies). [category]
+         * null means "every file," used by the largest-files and recently-modified widgets'
+         * own drill-downs.
          */
-        suspend fun filesByCategory(category: FileCategory?): List<FileEntry> =
+        suspend fun filesByCategory(
+            category: FileCategory?,
+            sort: GlobalFilesSort = GlobalFilesSort.SIZE,
+        ): List<FileEntry> =
             withContext(Dispatchers.IO) {
                 val allFiles = collectAllFiles().map { it.toDomain() }
                 val filtered = if (category == null) allFiles else allFiles.filter { it.category() == category }
-                filtered.sortedByDescending { it.size }
+                when (sort) {
+                    GlobalFilesSort.SIZE -> filtered.sortedByDescending { it.size }
+                    GlobalFilesSort.RECENT -> filtered.sortedByDescending { it.lastModified }
+                }
             }
 
         private suspend fun collectAllFiles(): List<FileEntryEntity> {
@@ -134,6 +148,19 @@ internal fun StatsCacheLargestFileEntity.toFileEntry(): FileEntry =
         isDirectory = false,
         size = size,
         lastModified = 0L,
+        mimeType = null,
+        sourceApp = null,
+    )
+
+/** Same cache-hit placeholder shape as [StatsCacheLargestFileEntity.toFileEntry], for the recently-modified widget's cache. */
+internal fun StatsCacheRecentFileEntity.toFileEntry(): FileEntry =
+    FileEntry(
+        uri = Uri.parse(uri),
+        documentId = "",
+        name = name,
+        isDirectory = false,
+        size = 0L,
+        lastModified = lastModified,
         mimeType = null,
         sourceApp = null,
     )

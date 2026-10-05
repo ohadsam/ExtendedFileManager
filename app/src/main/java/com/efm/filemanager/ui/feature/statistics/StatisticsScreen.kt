@@ -48,8 +48,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.ui.components.query.labelRes
+import com.efm.filemanager.ui.feature.browse.formatDate
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 
 @Composable
@@ -104,9 +106,20 @@ private fun StatisticsBody(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { StorageUsedCard(uiState.storageStats, uiState.storageTrend) }
-        item { FileTypeBreakdownCard(uiState.storageStats.sizeByCategory, onCategoryClick = navActions.onOpenGlobalFiles) }
         item {
-            LargestFilesCard(uiState.storageStats.largestFiles, onClick = { navActions.onOpenGlobalFiles(null) })
+            FileTypeBreakdownCard(
+                uiState.storageStats.sizeByCategory,
+                onCategoryClick = { category -> navActions.onOpenGlobalFiles(category, GlobalFilesSort.SIZE) },
+            )
+        }
+        item {
+            LargestFilesCard(uiState.storageStats.largestFiles, onClick = { navActions.onOpenGlobalFiles(null, GlobalFilesSort.SIZE) })
+        }
+        item {
+            RecentlyModifiedCard(
+                uiState.storageStats.recentlyModifiedFiles,
+                onClick = { navActions.onOpenGlobalFiles(null, GlobalFilesSort.RECENT) },
+            )
         }
         item {
             DuplicatesStatCard(uiState.duplicatesSummary, onClick = navActions.onOpenDuplicates)
@@ -262,6 +275,20 @@ private fun LargestFilesCard(
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
             largestFiles.forEach { file -> StatRow(label = file.name, value = formatFileSize(file.size)) }
+        }
+    }
+}
+
+@Composable
+private fun RecentlyModifiedCard(
+    recentlyModifiedFiles: List<FileEntry>,
+    onClick: () -> Unit,
+) {
+    StatCard(title = stringResource(R.string.statistics_recently_modified_title), onClick = onClick) {
+        if (recentlyModifiedFiles.isEmpty()) {
+            Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
+        } else {
+            recentlyModifiedFiles.forEach { file -> StatRow(label = file.name, value = formatDate(file.lastModified)) }
         }
     }
 }

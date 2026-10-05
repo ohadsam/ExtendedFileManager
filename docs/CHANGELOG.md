@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.21.8 (2026-10-05)
+
+- Phase 18 gets a seventh widget: "Recently modified," showing the 5
+  most-recently-touched files across every granted tree, same card
+  shape as Largest files. Tapping it opens the same global file-list
+  drill-down, now generalized with a `GlobalFilesSort` (SIZE/RECENT) so
+  one screen serves both orderings instead of a second screen. The
+  5-file list is cached the same way the largest-files one already is
+  (`stats_cache_recent_files`), so a cache hit still populates it
+  without re-walking. Only the most-populated-folders widget remains
+  open for Phase 18.
+
 ## v0.21.7 (2026-10-05)
 
 - Phase 18's trend sparkline now keeps growing even on a day the user

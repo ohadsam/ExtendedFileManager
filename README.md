@@ -97,7 +97,10 @@ know the past. The dashboard's own full-tree walk is now also skipped entirely w
 changed since the last time it ran, reusing Phase 17's existing "has the file index changed"
 signal rather than re-walking just to get the same numbers back, and that same daily snapshot now
 records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
-user never opens Statistics. See `docs/PLAN.md` for the full phase list.
+user never opens Statistics. A seventh widget, "Recently modified," now shows the 5
+most-recently-touched files and taps through to the same global file list the by-type/
+largest-files widgets already use, now reusable for either ordering. See `docs/PLAN.md` for the
+full phase list.
 
 ## Building
 

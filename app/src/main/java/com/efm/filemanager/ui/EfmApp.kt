@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.efm.filemanager.domain.model.FileCategory
+import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.ui.feature.advisor.StorageAdvisorScreen
 import com.efm.filemanager.ui.feature.audit.AuditScreen
 import com.efm.filemanager.ui.feature.browse.BrowseNavActions
@@ -35,6 +36,7 @@ import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
 import com.efm.filemanager.ui.feature.favorites.FavoritesScreen
 import com.efm.filemanager.ui.feature.globalfiles.GLOBAL_FILES_ALL_CATEGORIES
 import com.efm.filemanager.ui.feature.globalfiles.GLOBAL_FILES_CATEGORY_ARG
+import com.efm.filemanager.ui.feature.globalfiles.GLOBAL_FILES_SORT_ARG
 import com.efm.filemanager.ui.feature.globalfiles.GlobalFileListScreen
 import com.efm.filemanager.ui.feature.help.HelpScreen
 import com.efm.filemanager.ui.feature.logs.LogsScreen
@@ -227,10 +229,13 @@ private fun statisticsNavActions(navController: NavHostController): StatisticsNa
         onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
         onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
         onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
-        onOpenGlobalFiles = { category -> navController.navigate(globalFilesRoute(category)) },
+        onOpenGlobalFiles = { category, sort -> navController.navigate(globalFilesRoute(category, sort)) },
     )
 
-private fun globalFilesRoute(category: FileCategory?): String = "$GLOBAL_FILES_ROUTE/${category?.name ?: GLOBAL_FILES_ALL_CATEGORIES}"
+private fun globalFilesRoute(
+    category: FileCategory?,
+    sort: GlobalFilesSort,
+): String = "$GLOBAL_FILES_ROUTE/${category?.name ?: GLOBAL_FILES_ALL_CATEGORIES}/${sort.name}"
 
 private fun settingsNavActions(navController: NavHostController): SettingsNavActions =
     SettingsNavActions(
@@ -253,8 +258,12 @@ private fun NavGraphBuilder.efmModalDestinations(navController: NavHostControlle
         ManageTagsScreen(onNavigateBack = { navController.popBackStack() })
     }
     composable(
-        "$GLOBAL_FILES_ROUTE/{$GLOBAL_FILES_CATEGORY_ARG}",
-        arguments = listOf(navArgument(GLOBAL_FILES_CATEGORY_ARG) { type = NavType.StringType }),
+        "$GLOBAL_FILES_ROUTE/{$GLOBAL_FILES_CATEGORY_ARG}/{$GLOBAL_FILES_SORT_ARG}",
+        arguments =
+            listOf(
+                navArgument(GLOBAL_FILES_CATEGORY_ARG) { type = NavType.StringType },
+                navArgument(GLOBAL_FILES_SORT_ARG) { type = NavType.StringType },
+            ),
     ) {
         GlobalFileListScreen(
             onNavigateBack = { navController.popBackStack() },
