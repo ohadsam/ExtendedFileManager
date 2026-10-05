@@ -64,4 +64,6 @@ abstract class EfmDatabase : RoomDatabase() {
     abstract fun storageSnapshotDao(): StorageSnapshotDao
 
     abstract fun statsCacheDao(): StatsCacheDao
+
+    abstract fun statsCacheFolderDao(): StatsCacheFolderDao
 }

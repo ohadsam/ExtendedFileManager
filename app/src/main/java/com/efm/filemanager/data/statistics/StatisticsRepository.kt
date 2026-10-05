@@ -6,6 +6,7 @@ import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.StatsCacheDao
 import com.efm.filemanager.data.local.StatsCacheEntity
+import com.efm.filemanager.data.local.StatsCacheFolderDao
 import com.efm.filemanager.data.local.StatsCacheFolderEntity
 import com.efm.filemanager.data.local.StatsCacheLargestFileEntity
 import com.efm.filemanager.data.local.StatsCacheRecentFileEntity
@@ -45,6 +46,7 @@ class StatisticsRepository
         private val documentTreeRepository: DocumentTreeRepository,
         private val storageSnapshotDao: StorageSnapshotDao,
         private val statsCacheDao: StatsCacheDao,
+        private val statsCacheFolderDao: StatsCacheFolderDao,
         private val preferencesRepository: PreferencesRepository,
     ) {
         /**
@@ -72,7 +74,7 @@ class StatisticsRepository
                 storageSnapshotDao.getLatestDayEntries().associate { FileCategory.valueOf(it.category) to it.bytes }
             val largestFiles = statsCacheDao.getLargestFiles().map { it.toFileEntry() }
             val recentlyModifiedFiles = statsCacheDao.getRecentFiles().map { it.toFileEntry() }
-            val mostPopulatedFolders = statsCacheDao.getFolders().map { FolderFileCount(it.name, it.fileCount) }
+            val mostPopulatedFolders = statsCacheFolderDao.getFolders().map { FolderFileCount(it.name, it.fileCount) }
             return StorageStats(
                 totalSize = cachedMeta.totalSize,
                 totalFileCount = cachedMeta.totalFileCount,
@@ -100,8 +102,30 @@ class StatisticsRepository
                 }
             val cachedFolders =
                 mostPopulatedFolders.mapIndexed { rank, folder -> StatsCacheFolderEntity(rank, folder.name, folder.fileCount) }
-            statsCacheDao.replaceCache(meta, cachedLargestFiles, cachedRecentFiles, cachedFolders)
+            writeCache(meta, cachedLargestFiles, cachedRecentFiles, cachedFolders)
             return stats
+        }
+
+        /**
+         * Not wrapped in a single DB transaction -- [StatsCacheDao] and [StatsCacheFolderDao] are
+         * separate interfaces (split apart to stay under detekt's `TooManyFunctions` threshold),
+         * and this cache is only a display/perf optimization, never the source of truth (a stale
+         * or partially-written cache just gets overwritten on the next walk), so that's an
+         * acceptable tradeoff rather than reaching for `RoomDatabase.withTransaction`.
+         */
+        private suspend fun writeCache(
+            meta: StatsCacheEntity,
+            largestFiles: List<StatsCacheLargestFileEntity>,
+            recentFiles: List<StatsCacheRecentFileEntity>,
+            folders: List<StatsCacheFolderEntity>,
+        ) {
+            statsCacheDao.insertMeta(meta)
+            statsCacheDao.clearLargestFiles()
+            statsCacheDao.insertLargestFiles(largestFiles)
+            statsCacheDao.clearRecentFiles()
+            statsCacheDao.insertRecentFiles(recentFiles)
+            statsCacheFolderDao.clearFolders()
+            statsCacheFolderDao.insertFolders(folders)
         }
 
         /**

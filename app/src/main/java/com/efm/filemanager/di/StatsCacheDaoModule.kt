@@ -2,6 +2,7 @@ package com.efm.filemanager.di
 
 import com.efm.filemanager.data.local.EfmDatabase
 import com.efm.filemanager.data.local.StatsCacheDao
+import com.efm.filemanager.data.local.StatsCacheFolderDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,4 +14,7 @@ import dagger.hilt.components.SingletonComponent
 object StatsCacheDaoModule {
     @Provides
     fun provideStatsCacheDao(database: EfmDatabase): StatsCacheDao = database.statsCacheDao()
+
+    @Provides
+    fun provideStatsCacheFolderDao(database: EfmDatabase): StatsCacheFolderDao = database.statsCacheFolderDao()
 }
