@@ -8,6 +8,7 @@ import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.MoveDirection
 import com.efm.filemanager.data.statistics.StatisticsRepository
+import com.efm.filemanager.domain.model.DashboardTemplate
 import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import com.efm.filemanager.domain.model.FileEntry
@@ -26,11 +27,12 @@ private const val STOP_TIMEOUT_MS = 5_000L
 private const val MAX_FAVORITES_SHOWN = 5
 
 /**
- * Phase 19 slice 1 shipped a fixed, read-only widget set; slice 2 added show/hide; slice 3 added
- * reordering, via the exact same drag-handle-drives-a-swap technique
+ * Phase 19 slice 1 shipped a fixed, read-only widget set; slices 2-4 added show/hide, reordering
+ * (the exact same drag-handle-drives-a-swap technique
  * [com.efm.filemanager.ui.feature.favorites.FavoritesViewModel.moveCollection] already uses for
- * Favorites collections. This slice adds the last per-widget customization, size (COMPACT vs.
- * DETAILED). Templates and saved layouts are still open (see docs/PLAN.md Phase 19).
+ * Favorites collections), and size (COMPACT vs. DETAILED). This slice adds built-in
+ * [DashboardTemplate]s as an explicit starting point. Saved layouts and the start-destination
+ * promotion are still open (see docs/PLAN.md Phase 19).
  */
 @HiltViewModel
 class DashboardViewModel
@@ -110,5 +112,9 @@ class DashboardViewModel
             size: DashboardWidgetSize,
         ) {
             viewModelScope.launch { dashboardLayoutRepository.setSize(type, size) }
+        }
+
+        fun applyTemplate(template: DashboardTemplate) {
+            viewModelScope.launch { dashboardLayoutRepository.applyTemplate(template) }
         }
     }

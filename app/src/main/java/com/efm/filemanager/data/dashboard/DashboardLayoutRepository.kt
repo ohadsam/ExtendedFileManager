@@ -3,6 +3,7 @@ package com.efm.filemanager.data.dashboard
 import com.efm.filemanager.data.local.DashboardWidgetDao
 import com.efm.filemanager.data.local.DashboardWidgetEntity
 import com.efm.filemanager.data.metadata.MoveDirection
+import com.efm.filemanager.domain.model.DashboardTemplate
 import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import kotlinx.coroutines.flow.Flow
@@ -67,6 +68,24 @@ class DashboardLayoutRepository
             val swapWith = widgets[swapIndex]
             dashboardWidgetDao.updateWidget(current.copy(sortOrder = swapWith.sortOrder))
             dashboardWidgetDao.updateWidget(swapWith.copy(sortOrder = current.sortOrder))
+        }
+
+        /**
+         * Rewrites every widget's enabled/order/size to match [template] -- a full rewrite, not a
+         * merge, since [DashboardTemplate] guarantees (see its own doc, checked by
+         * `DashboardTemplateTest`) exactly one entry per [DashboardWidgetType].
+         */
+        suspend fun applyTemplate(template: DashboardTemplate) {
+            template.widgets.forEachIndexed { index, templateWidget ->
+                dashboardWidgetDao.updateWidget(
+                    DashboardWidgetEntity(
+                        type = templateWidget.type.name,
+                        isEnabled = templateWidget.isEnabled,
+                        sortOrder = index,
+                        size = templateWidget.size.name,
+                    ),
+                )
+            }
         }
     }
 

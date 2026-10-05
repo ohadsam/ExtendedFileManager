@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.22.4 (2026-10-05)
+
+- Phase 19 slice 5: three built-in templates -- "Cleanup focus"
+  (duplicates/insights front and center), "Quick access" (favorites
+  first), and "At a glance" (storage only) -- reachable from a new
+  list icon in edit mode's top bar. Applying one rewrites every
+  widget's enabled/order/size in one go, exactly as if each change
+  had been made by hand, so the result stays freely customizable
+  afterward -- not a locked layout. A unit test checks every template
+  lists every catalog widget type exactly once, so a future catalog
+  addition can't silently leave a template's rewrite incomplete. Only
+  named saved layouts and the start-destination promotion remain
+  open for Phase 19.
+
 ## v0.22.3 (2026-10-05)
 
 - Phase 19 slice 4: per-widget sizing. A new size toggle in the edit

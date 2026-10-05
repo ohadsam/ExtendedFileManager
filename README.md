@@ -105,8 +105,10 @@ reusing an already-live data source, no new scanning. A pencil icon now enters a
 you can hide any widget, drag to reorder the rest, and toggle each one between its full content
 and a trimmed-down compact form (all three persisted) -- reordering reuses the exact same
 drag-gesture-drives-a-swap technique the Favorites screen's own collection list already uses.
-There's still no templates or saved layouts, and Browse stays the app's start destination for
-now -- this is the fourth of several slices this phase needs. See `docs/PLAN.md`
+Three built-in templates ("Cleanup focus," "Quick access," "At a glance") are now a tap away
+in edit mode too, each an explicit starting point you can keep customizing afterward, not a
+locked layout. There's still no named saved layouts, and Browse stays the app's start
+destination for now -- this is the fifth of several slices this phase needs. See `docs/PLAN.md`
 for the full phase list.
 
 ## Building

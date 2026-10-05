@@ -19,11 +19,13 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,11 +55,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.data.dashboard.DashboardWidgetConfig
 import com.efm.filemanager.data.metadata.MoveDirection
+import com.efm.filemanager.domain.model.DashboardTemplate
 import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.domain.model.toggled
+import com.efm.filemanager.ui.components.query.SelectableMenuItem
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 import com.efm.filemanager.ui.feature.statistics.DuplicatesSummary
 
@@ -75,6 +79,7 @@ fun DashboardScreen(
                 onOpenSearch = navActions.onOpenSearch,
                 isEditMode = uiState.isEditMode,
                 onToggleEditMode = viewModel::toggleEditMode,
+                onApplyTemplate = viewModel::applyTemplate,
             )
         },
     ) { innerPadding ->
@@ -98,6 +103,7 @@ private fun DashboardTopBar(
     onOpenSearch: () -> Unit,
     isEditMode: Boolean,
     onToggleEditMode: () -> Unit,
+    onApplyTemplate: (DashboardTemplate) -> Unit,
 ) {
     TopAppBar(
         navigationIcon = {
@@ -107,6 +113,10 @@ private fun DashboardTopBar(
         },
         title = { Text(stringResource(R.string.nav_dashboard)) },
         actions = {
+            // Templates only make sense while customizing -- applying one is itself an edit.
+            if (isEditMode) {
+                TemplatesMenuButton(onApplyTemplate = onApplyTemplate)
+            }
             IconButton(onClick = onToggleEditMode) {
                 Icon(
                     if (isEditMode) Icons.Filled.Done else Icons.Filled.Edit,
@@ -119,6 +129,27 @@ private fun DashboardTopBar(
             }
         },
     )
+}
+
+/** Not a "current template" picker -- applying one is a one-shot rewrite, same as tapping a reset, never a sticky selection. */
+@Composable
+private fun TemplatesMenuButton(onApplyTemplate: (DashboardTemplate) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.List, contentDescription = stringResource(R.string.dashboard_templates_action))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DashboardTemplate.entries.forEach { template ->
+                SelectableMenuItem(
+                    labelRes = template.labelRes(),
+                    selected = false,
+                    onDismiss = { expanded = false },
+                    onClick = { onApplyTemplate(template) },
+                )
+            }
+        }
+    }
 }
 
 @Composable

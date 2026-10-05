@@ -364,4 +364,8 @@
     <string name="dashboard_favorites_count">%d favorite(s)</string>
     <string name="dashboard_size_make_compact">Make compact</string>
     <string name="dashboard_size_make_detailed">Make detailed</string>
+    <string name="dashboard_templates_action">Apply a template</string>
+    <string name="dashboard_template_cleanup_focus">Cleanup focus</string>
+    <string name="dashboard_template_quick_access">Quick access</string>
+    <string name="dashboard_template_at_a_glance">At a glance</string>
 </resources>

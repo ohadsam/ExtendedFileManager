@@ -364,4 +364,8 @@
     <string name="dashboard_favorites_count">%d מועדפים</string>
     <string name="dashboard_size_make_compact">הפוך לקומפקטי</string>
     <string name="dashboard_size_make_detailed">הפוך למפורט</string>
+    <string name="dashboard_templates_action">החל תבנית</string>
+    <string name="dashboard_template_cleanup_focus">התמקדות בניקוי</string>
+    <string name="dashboard_template_quick_access">גישה מהירה</string>
+    <string name="dashboard_template_at_a_glance">מבט מהיר</string>
 </resources>
