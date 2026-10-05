@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.21.6 (2026-10-05)
+
+- Phase 18's last plumbing leftover lands: the Statistics dashboard's
+  full-tree walk is now skipped entirely when nothing's changed since
+  the last time it ran. A new `stats_cache`/`stats_cache_largest_files`
+  Room table pair caches the walk's result (total size, file count, top
+  5 largest files) alongside the `changeVersion` it was computed at --
+  the same cheap "has the file index changed" signal Phase 17's daily
+  job already uses -- and a cache hit rebuilds the by-type breakdown
+  from the most recent day's own `storage_snapshots` rows instead of
+  re-walking just to get the same numbers back. Phase 18 is now fully
+  done.
+
 ## v0.21.5 (2026-10-04)
 
 - Phase 14's adaptive-layout leftover lands: at tablet/unfolded-foldable

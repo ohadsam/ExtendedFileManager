@@ -24,9 +24,9 @@ private const val STOP_TIMEOUT_MS = 5_000L
  * one new lightweight computation ([StatisticsRepository.computeStorageStats]) for the one thing
  * nothing else already tracks -- total size/largest-files/type-breakdown across every granted
  * tree. That same computation also appends today's entry to the storage-trend history
- * ([StatisticsRepository.observeDailyTotalBytes]) every time it runs. A `stats_cache`/
- * `changeVersion` incremental-recompute table (to skip the walk entirely when nothing's changed)
- * is deliberately left for a later slice (see docs/PLAN.md Phase 18).
+ * ([StatisticsRepository.observeDailyTotalBytes]) every time it runs. The full-tree walk itself
+ * is skipped whenever nothing's changed since the last call, via a `stats_cache` table keyed to
+ * the same `changeVersion` signal Phase 17's daily job already uses.
  */
 @HiltViewModel
 class StatisticsViewModel

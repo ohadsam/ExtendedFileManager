@@ -4,9 +4,13 @@ import android.net.Uri
 import com.efm.filemanager.data.documenttree.DocumentTreeAccessManager
 import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.local.FileEntryEntity
+import com.efm.filemanager.data.local.StatsCacheDao
+import com.efm.filemanager.data.local.StatsCacheEntity
+import com.efm.filemanager.data.local.StatsCacheLargestFileEntity
 import com.efm.filemanager.data.local.StorageSnapshotDao
 import com.efm.filemanager.data.local.StorageSnapshotEntity
 import com.efm.filemanager.data.local.toDomain
+import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
@@ -14,6 +18,7 @@ import com.efm.filemanager.domain.model.category
 import com.efm.filemanager.domain.model.toStorageStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -33,13 +38,44 @@ class StatisticsRepository
         private val documentTreeAccessManager: DocumentTreeAccessManager,
         private val documentTreeRepository: DocumentTreeRepository,
         private val storageSnapshotDao: StorageSnapshotDao,
+        private val statsCacheDao: StatsCacheDao,
+        private val preferencesRepository: PreferencesRepository,
     ) {
+        /**
+         * Skips the full-tree walk entirely when nothing's changed since the last call: compares
+         * the current [PreferencesRepository.changeVersion] against whatever [StatsCacheDao] has
+         * cached from the last walk, and only re-walks on a mismatch (or no cache yet). A cache
+         * hit still records today's snapshot -- cheap, since the bytes are already in hand.
+         */
         suspend fun computeStorageStats(): StorageStats =
             withContext(Dispatchers.IO) {
-                val stats = collectAllFiles().map { it.toDomain() }.toStorageStats()
+                val currentVersion = preferencesRepository.changeVersion.first()
+                val cachedMeta = statsCacheDao.getMeta()
+                val stats =
+                    if (cachedMeta != null && cachedMeta.changeVersion == currentVersion) {
+                        statsFromCache(cachedMeta)
+                    } else {
+                        freshStorageStats(currentVersion)
+                    }
                 recordDailySnapshot(stats)
                 stats
             }
+
+        private suspend fun statsFromCache(cachedMeta: StatsCacheEntity): StorageStats {
+            val sizeByCategory =
+                storageSnapshotDao.getLatestDayEntries().associate { FileCategory.valueOf(it.category) to it.bytes }
+            val largestFiles = statsCacheDao.getLargestFiles().map { it.toFileEntry() }
+            return StorageStats(cachedMeta.totalSize, cachedMeta.totalFileCount, sizeByCategory, largestFiles)
+        }
+
+        private suspend fun freshStorageStats(currentVersion: Long): StorageStats {
+            val stats = collectAllFiles().map { it.toDomain() }.toStorageStats()
+            val meta = StatsCacheEntity(changeVersion = currentVersion, totalSize = stats.totalSize, totalFileCount = stats.totalFileCount)
+            val cachedLargestFiles =
+                stats.largestFiles.mapIndexed { rank, file -> StatsCacheLargestFileEntity(rank, file.uri.toString(), file.name, file.size) }
+            statsCacheDao.replaceCache(meta, cachedLargestFiles)
+            return stats
+        }
 
         /**
          * Phase 18's trend sparkline -- one point per day this ever ran, forward-built from
@@ -84,3 +120,20 @@ class StatisticsRepository
             }
         }
     }
+
+/**
+ * A cache-hit [StatsCacheLargestFileEntity] only ever feeds the largest-files widget's own
+ * name/size display, so the fields it never cached (directory flag, last-modified, MIME type,
+ * source app) get harmless placeholders rather than a real re-lookup.
+ */
+internal fun StatsCacheLargestFileEntity.toFileEntry(): FileEntry =
+    FileEntry(
+        uri = Uri.parse(uri),
+        documentId = "",
+        name = name,
+        isDirectory = false,
+        size = size,
+        lastModified = 0L,
+        mimeType = null,
+        sourceApp = null,
+    )

@@ -93,7 +93,9 @@ distinguishable from each other, checked with the `dataviz` skill's own color va
 legend swatch per category, and the storage-used widget now grows a trend sparkline once it has
 at least two days of history behind it -- a new table quietly records one snapshot every time
 that widget's own scan runs, building the trend forward from today rather than pretending to
-know the past. The incremental caching pieces are still open. See `docs/PLAN.md` for the full
+know the past. The dashboard's own full-tree walk is now also skipped entirely when nothing's
+changed since the last time it ran, reusing Phase 17's existing "has the file index changed"
+signal rather than re-walking just to get the same numbers back. See `docs/PLAN.md` for the full
 phase list.
 
 ## Building

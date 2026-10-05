@@ -18,6 +18,13 @@ interface StorageSnapshotDao {
     @Query("SELECT day, SUM(bytes) AS totalBytes FROM storage_snapshots GROUP BY day ORDER BY day ASC")
     fun observeDailyTotals(): Flow<List<DailyTotal>>
 
+    /**
+     * The per-category rows of the most recently recorded day -- Phase 18's cache-hit path
+     * rebuilds `StorageStats.sizeByCategory` from these instead of re-walking the tree.
+     */
+    @Query("SELECT * FROM storage_snapshots WHERE day = (SELECT MAX(day) FROM storage_snapshots)")
+    suspend fun getLatestDayEntries(): List<StorageSnapshotEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<StorageSnapshotEntity>)
 
