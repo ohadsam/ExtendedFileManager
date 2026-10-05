@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.22.2 (2026-10-05)
+
+- Phase 19 slice 3: Dashboard widgets can now be reordered, via a
+  drag handle in edit mode -- the exact same drag-crosses-a-row-then-
+  swap technique Favorites already uses for its own collections, not
+  a new drag-and-drop implementation. The edit-mode list is now a
+  compact, fixed-height row per widget (name + switch + drag handle)
+  rather than the full card, since a consistent row height is what
+  makes the drag threshold feel right -- also a more scannable way to
+  manage several widgets at once than the full cards were. Position
+  persists in the same `dashboard_widgets` table (a new `sortOrder`
+  column). Still no resizing, templates, or saved layouts -- see
+  docs/PLAN.md for what's still open.
+
 ## v0.22.1 (2026-10-05)
 
 - Phase 19 slice 2: the Dashboard screen's first real customization

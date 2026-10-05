@@ -9,7 +9,7 @@ import org.junit.Test
 class DashboardLayoutRepositoryTest {
     @Test
     fun `a valid type name maps to its config`() {
-        val entity = DashboardWidgetEntity(type = "DUPLICATES", isEnabled = false)
+        val entity = DashboardWidgetEntity(type = "DUPLICATES", isEnabled = false, sortOrder = 0)
 
         val config = entity.toConfig()
 
@@ -19,6 +19,6 @@ class DashboardLayoutRepositoryTest {
 
     @Test
     fun `an unrecognized type name maps to no config rather than crashing`() {
-        assertNull(DashboardWidgetEntity(type = "not-a-real-widget", isEnabled = true).toConfig())
+        assertNull(DashboardWidgetEntity(type = "not-a-real-widget", isEnabled = true, sortOrder = 0).toConfig())
     }
 }

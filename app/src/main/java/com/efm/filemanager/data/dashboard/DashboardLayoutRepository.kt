@@ -2,8 +2,10 @@ package com.efm.filemanager.data.dashboard
 
 import com.efm.filemanager.data.local.DashboardWidgetDao
 import com.efm.filemanager.data.local.DashboardWidgetEntity
+import com.efm.filemanager.data.metadata.MoveDirection
 import com.efm.filemanager.domain.model.DashboardWidgetType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -14,10 +16,11 @@ data class DashboardWidgetConfig(
 )
 
 /**
- * Phase 19's widget-visibility persistence. [ensureSeeded] inserts every catalog entry as
- * enabled on first run (or whenever a later phase adds a new [DashboardWidgetType] entry) --
- * [DashboardWidgetDao.insertIfAbsent] is an `IGNORE`-conflict insert, so a widget that already
- * has a row never has its enabled/disabled state overwritten.
+ * Phase 19's widget-visibility and -order persistence. [ensureSeeded] inserts every catalog
+ * entry as enabled, at its catalog declaration index, on first run (or whenever a later phase
+ * adds a new [DashboardWidgetType] entry) -- [DashboardWidgetDao.insertIfAbsent] is an
+ * `IGNORE`-conflict insert, so a widget that already has a row never has its enabled/disabled
+ * state or position overwritten.
  */
 class DashboardLayoutRepository
     @Inject
@@ -28,7 +31,10 @@ class DashboardLayoutRepository
             dashboardWidgetDao.observeAll().map { widgets -> widgets.mapNotNull { it.toConfig() } }
 
         suspend fun ensureSeeded() {
-            val seeds = DashboardWidgetType.entries.map { DashboardWidgetEntity(type = it.name, isEnabled = true) }
+            val seeds =
+                DashboardWidgetType.entries.mapIndexed { index, type ->
+                    DashboardWidgetEntity(type = type.name, isEnabled = true, sortOrder = index)
+                }
             dashboardWidgetDao.insertIfAbsent(seeds)
         }
 
@@ -36,6 +42,25 @@ class DashboardLayoutRepository
             type: DashboardWidgetType,
             isEnabled: Boolean,
         ) = dashboardWidgetDao.setEnabled(type.name, isEnabled)
+
+        /**
+         * Mirrors [com.efm.filemanager.data.metadata.FavoriteRepository.moveCollection]'s own
+         * swap-sortOrder-with-a-neighbor approach -- a handful of widgets doesn't need anything
+         * more elaborate than two single-row updates.
+         */
+        suspend fun moveWidget(
+            type: DashboardWidgetType,
+            direction: MoveDirection,
+        ) {
+            val widgets = dashboardWidgetDao.observeAll().first()
+            val index = widgets.indexOfFirst { it.type == type.name }
+            val swapIndex = if (direction == MoveDirection.UP) index - 1 else index + 1
+            if (index < 0 || swapIndex !in widgets.indices) return
+            val current = widgets[index]
+            val swapWith = widgets[swapIndex]
+            dashboardWidgetDao.updateWidget(current.copy(sortOrder = swapWith.sortOrder))
+            dashboardWidgetDao.updateWidget(swapWith.copy(sortOrder = current.sortOrder))
+        }
     }
 
 internal fun DashboardWidgetEntity.toConfig(): DashboardWidgetConfig? =

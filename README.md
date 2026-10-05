@@ -101,10 +101,12 @@ Browse's nav route has no folder-targeting argument today, so that's an explicit
 than something this phase could reuse Search's own drill-down trick for. Phase 19 (customizable
 home dashboard) has now started too: a new "Dashboard" screen (own nav-drawer entry) shows four
 cards -- storage used, duplicates, insights, and a favorites quick-access list -- every one
-reusing an already-live data source, no new scanning. A pencil icon now lets you hide any of
-those cards (persisted, so a hidden one stays hidden), but there's still no reordering, resizing,
-templates, or saved layouts yet, and Browse stays the app's start destination for now -- this is
-the second of several slices this phase needs. See `docs/PLAN.md` for the full phase list.
+reusing an already-live data source, no new scanning. A pencil icon now enters an edit mode where
+you can hide any widget and drag to reorder the rest (both persisted), reusing the exact same
+drag-gesture-drives-a-swap technique the Favorites screen's own collection list already uses.
+There's still no resizing, templates, or saved layouts, and Browse stays the app's start
+destination for now -- this is the third of several slices this phase needs. See `docs/PLAN.md`
+for the full phase list.
 
 ## Building
 

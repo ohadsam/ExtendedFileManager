@@ -4,14 +4,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DashboardWidgetDao {
-    @Query("SELECT * FROM dashboard_widgets")
+    @Query("SELECT * FROM dashboard_widgets ORDER BY sortOrder ASC")
     fun observeAll(): Flow<List<DashboardWidgetEntity>>
 
-    /** IGNORE, not REPLACE -- seeding never overwrites a widget's existing enabled/disabled state. */
+    /** IGNORE, not REPLACE -- seeding never overwrites a widget's existing enabled/disabled state or position. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(widgets: List<DashboardWidgetEntity>)
 
@@ -20,4 +21,8 @@ interface DashboardWidgetDao {
         type: String,
         isEnabled: Boolean,
     )
+
+    /** Used only to swap two widgets' [DashboardWidgetEntity.sortOrder] when reordering. */
+    @Update
+    suspend fun updateWidget(widget: DashboardWidgetEntity)
 }
