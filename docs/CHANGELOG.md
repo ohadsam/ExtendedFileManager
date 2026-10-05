@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.22.0 (2026-10-05)
+
+- Phase 19 starts: a new "Dashboard" screen (own nav-drawer entry,
+  appended last -- Browse stays the app's start destination for now)
+  shows four fixed cards -- storage used, duplicates, insights, and a
+  favorites quick-access list -- every one reusing an already-live
+  data source with zero new scanning, same principle Phase 18's own
+  dashboard follows. No widget catalog, customization, templates, or
+  saved layouts yet -- this is slice 1 of a multi-slice phase; see
+  docs/PLAN.md for what's still open.
+
 ## v0.21.9 (2026-10-05)
 
 - Phase 18's eighth and final widget lands: "Most populated folders,"

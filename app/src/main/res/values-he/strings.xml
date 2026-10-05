@@ -353,4 +353,8 @@
     <string name="statistics_operations_count">%d פעולות נרשמו</string>
     <string name="statistics_most_populated_folders_title">התיקיות המאוכלסות ביותר</string>
     <string name="statistics_folder_file_count">%d קבצים</string>
+    <string name="nav_dashboard">לוח בקרה</string>
+    <string name="dashboard_duplicate_groups_count">%d קבוצות כפילויות</string>
+    <string name="dashboard_favorites_title">מועדפים</string>
+    <string name="dashboard_favorites_empty">אין עדיין מועדפים</string>
 </resources>

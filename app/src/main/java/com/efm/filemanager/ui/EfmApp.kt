@@ -32,6 +32,8 @@ import com.efm.filemanager.ui.feature.audit.AuditScreen
 import com.efm.filemanager.ui.feature.browse.BrowseNavActions
 import com.efm.filemanager.ui.feature.browse.BrowseScreen
 import com.efm.filemanager.ui.feature.browse.BrowseViewModel
+import com.efm.filemanager.ui.feature.dashboard.DashboardNavActions
+import com.efm.filemanager.ui.feature.dashboard.DashboardScreen
 import com.efm.filemanager.ui.feature.duplicates.DuplicatesScreen
 import com.efm.filemanager.ui.feature.favorites.FavoritesScreen
 import com.efm.filemanager.ui.feature.globalfiles.GLOBAL_FILES_ALL_CATEGORIES
@@ -161,6 +163,7 @@ private fun NavGraphBuilder.efmDestinations(
     drawerState: DrawerState,
 ) {
     efmDrawerDestinations(navController, scope, drawerState)
+    efmDashboardDestination(navController, scope, drawerState)
     efmModalDestinations(navController)
 }
 
@@ -222,6 +225,33 @@ private fun NavGraphBuilder.efmDrawerDestinations(
         )
     }
 }
+
+// A separate NavGraphBuilder function (same reason statisticsNavActions()/settingsNavActions()
+// are their own functions): efmDrawerDestinations() was already close to detekt's LongMethod
+// threshold, and Phase 19's own screen is logically distinct from every other drawer entry
+// above it anyway (it reuses several of their routes rather than owning new ones).
+private fun NavGraphBuilder.efmDashboardDestination(
+    navController: NavHostController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+) {
+    composable(EfmDestination.Dashboard.route) {
+        DashboardScreen(
+            onOpenDrawer = { scope.launch { drawerState.open() } },
+            navActions = dashboardNavActions(navController),
+        )
+    }
+}
+
+// Extracted so efmDashboardDestination() stays trivial.
+private fun dashboardNavActions(navController: NavHostController): DashboardNavActions =
+    DashboardNavActions(
+        onOpenStatistics = { navController.navigate(EfmDestination.Statistics.route) },
+        onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
+        onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
+        onOpenFavorites = { navController.navigate(EfmDestination.Favorites.route) },
+        onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
+    )
 
 // Both extracted so efmDrawerDestinations() stays under detekt's LongMethod threshold.
 private fun statisticsNavActions(navController: NavHostController): StatisticsNavActions =

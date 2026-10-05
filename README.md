@@ -98,8 +98,12 @@ signal rather than re-walking just to get the same numbers back, and the daily s
 records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
 user never opens Statistics. The one widget without a tap-through yet is most-populated-folders --
 Browse's nav route has no folder-targeting argument today, so that's an explicit follow-up rather
-than something this phase could reuse Search's own drill-down trick for. See `docs/PLAN.md` for
-the full phase list.
+than something this phase could reuse Search's own drill-down trick for. Phase 19 (customizable
+home dashboard) has now started too: a new "Dashboard" screen (own nav-drawer entry) shows four
+fixed cards -- storage used, duplicates, insights, and a favorites quick-access list -- every one
+reusing an already-live data source, no new scanning. There's no widget catalog, customization,
+templates, or saved layouts yet, and Browse stays the app's start destination for now -- this is
+the first of several slices this phase needs. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

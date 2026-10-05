@@ -2,6 +2,7 @@ package com.efm.filemanager.ui.nav
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
@@ -28,4 +29,9 @@ enum class EfmDestination(
     Logs("logs", R.string.nav_logs, Icons.Filled.ReceiptLong),
     Audit("audit", R.string.nav_audit, Icons.Filled.History),
     Settings("settings", R.string.nav_settings, Icons.Filled.Settings),
+
+    // Phase 19 -- deliberately appended last, not reordered to the top: Browse stays the app's
+    // start destination until this screen earns that promotion in a later slice (see
+    // docs/PLAN.md Phase 19).
+    Dashboard("dashboard", R.string.nav_dashboard, Icons.Filled.Dashboard),
 }
