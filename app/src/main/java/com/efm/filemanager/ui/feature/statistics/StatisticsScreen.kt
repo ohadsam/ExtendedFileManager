@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FolderFileCount
 import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.ui.components.query.labelRes
@@ -121,6 +122,7 @@ private fun StatisticsBody(
                 onClick = { navActions.onOpenGlobalFiles(null, GlobalFilesSort.RECENT) },
             )
         }
+        item { MostPopulatedFoldersCard(uiState.storageStats.mostPopulatedFolders) }
         item {
             DuplicatesStatCard(uiState.duplicatesSummary, onClick = navActions.onOpenDuplicates)
         }
@@ -289,6 +291,28 @@ private fun RecentlyModifiedCard(
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
             recentlyModifiedFiles.forEach { file -> StatRow(label = file.name, value = formatDate(file.lastModified)) }
+        }
+    }
+}
+
+/**
+ * No [onClick] yet, unlike every other drill-down widget here -- Browse's nav route carries no
+ * folder-targeting argument today, and the shared-ViewModel-instance trick Search's own
+ * drill-down uses (`EfmSearchDestination`) only works because Search stays pushed *on top of*
+ * Browse on the back stack; a drawer destination like Statistics pops Browse off first
+ * (`popUpTo` with `saveState`), so `navController.getBackStackEntry(Browse.route)` isn't
+ * reachable from here the same way. Deferred rather than forced, same as this phase's other
+ * widgets originally shipped without drill-down before it was added in a dedicated slice.
+ */
+@Composable
+private fun MostPopulatedFoldersCard(mostPopulatedFolders: List<FolderFileCount>) {
+    StatCard(title = stringResource(R.string.statistics_most_populated_folders_title)) {
+        if (mostPopulatedFolders.isEmpty()) {
+            Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
+        } else {
+            mostPopulatedFolders.forEach { folder ->
+                StatRow(label = folder.name, value = stringResource(R.string.statistics_folder_file_count, folder.fileCount))
+            }
         }
     }
 }

@@ -13,6 +13,12 @@ data class StorageStats(
     val sizeByCategory: Map<FileCategory, Long> = emptyMap(),
     val largestFiles: List<FileEntry> = emptyList(),
     val recentlyModifiedFiles: List<FileEntry> = emptyList(),
+    /**
+     * Unlike every other field here, this one isn't computed by [toStorageStats]: grouping by
+     * folder needs each file's `parentUri`, which the domain [FileEntry] doesn't carry (only the
+     * Android-dependent `FileEntryEntity` does), so `StatisticsRepository` fills this in itself.
+     */
+    val mostPopulatedFolders: List<FolderFileCount> = emptyList(),
 )
 
 /**

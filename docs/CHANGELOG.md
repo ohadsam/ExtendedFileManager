@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.21.9 (2026-10-05)
+
+- Phase 18's eighth and final widget lands: "Most populated folders,"
+  the top 5 folders by file count across every granted tree. Folder
+  names are resolved via `DocumentFile` (one new SAF lookup per
+  granted root; every other folder's name was already in hand from
+  its own entity before this phase's walk ever recurses into it), and
+  cached the same way the other top-N widgets already are
+  (`stats_cache_folders`). This widget deliberately has no
+  tap-to-drill-down yet: Browse's nav route carries no
+  folder-targeting argument today, and the shared-ViewModel trick
+  Search's own drill-down relies on doesn't carry over to a drawer
+  destination (Statistics pops Browse off the back stack on the way
+  in). Phase 18 is now feature-complete against its own spec.
+
 ## v0.21.8 (2026-10-05)
 
 - Phase 18 gets a seventh widget: "Recently modified," showing the 5

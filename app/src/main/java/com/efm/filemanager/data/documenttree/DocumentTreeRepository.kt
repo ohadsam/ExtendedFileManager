@@ -51,6 +51,16 @@ class DocumentTreeRepository
             withContext(Dispatchers.IO) { fileEntryDao.getByUri(uri.toString())?.parentUri?.let(Uri::parse) }
 
         /**
+         * A folder's own display name, straight from SAF -- the same resolution
+         * [listChildrenFromSaf] already does for its own children's parent, exposed here for a
+         * just-the-name caller like Phase 18's most-populated-folders widget (which needs a
+         * granted tree *root*'s name; every other folder's name is already in hand from its own
+         * entity before this phase ever recurses into it).
+         */
+        suspend fun folderDisplayName(folderUri: Uri): String? =
+            withContext(Dispatchers.IO) { DocumentFile.fromTreeUri(context, folderUri)?.name }
+
+        /**
          * Walks [folderUri]'s ancestors up through the cached index (each folder's own row was
          * written when its parent was listed) until it reaches a uri no row exists for -- that's
          * necessarily a granted tree root, since only children ever get indexed, never the root

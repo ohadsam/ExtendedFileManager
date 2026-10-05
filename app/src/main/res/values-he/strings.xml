@@ -351,4 +351,6 @@
     <string name="statistics_advisor_flagged_count">%d קבצים סומנו</string>
     <string name="statistics_operations_title">פעולות</string>
     <string name="statistics_operations_count">%d פעולות נרשמו</string>
+    <string name="statistics_most_populated_folders_title">התיקיות המאוכלסות ביותר</string>
+    <string name="statistics_folder_file_count">%d קבצים</string>
 </resources>

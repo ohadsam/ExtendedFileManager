@@ -80,27 +80,26 @@ opens straight into the Insights screen when tapped. A Settings "Insights" secti
 pieces -- "Run daily insights" and "Notify me" (which triggers the real notification-permission
 request on Android 13+). Having that daily job also trigger its own fresh, incrementally-throttled
 duplicate rescan (rather than only reading whatever Phase 6's own scan last cached) is the one
-piece left for later. Phase 18 (statistics dashboard) has now started too: a new "Statistics"
-screen (own nav-drawer entry) shows six basic widgets -- storage used, a by-file-type size
-breakdown, largest files, duplicate-group count + reclaimable space, how many files Insights has
+piece left for later. Phase 18 (statistics dashboard) is done too: a new "Statistics" screen (own
+nav-drawer entry) shows eight widgets -- storage used (with a trend sparkline once there's at
+least two days of history), a by-file-type size breakdown, largest files, recently modified,
+most populated folders, duplicate-group count + reclaimable space, how many files Insights has
 flagged, and a total operations-recorded count -- all reusing data that already exists elsewhere
-in the app wherever possible. Every widget now taps through somewhere: Duplicates/Insights/
-Operations jump straight to their owning screen, and the by-type and largest-files widgets open a
-new global, size-sorted file list (optionally filtered to one file type) that didn't exist in this
-app before. The by-type widget also has its first chart -- a horizontal stacked bar (not a donut,
+in the app wherever possible. Every widget but one now taps through somewhere: Duplicates/
+Insights/Operations jump straight to their owning screen, and the by-type/largest-files/
+recently-modified widgets open a new global file list (optionally filtered to one file type,
+sorted by size or by recency depending which widget it came from) that didn't exist in this app
+before. The by-type widget also has its first chart -- a horizontal stacked bar (not a donut,
 since a donut's every-slice-at-once display can't guarantee all seven category colors stay
 distinguishable from each other, checked with the `dataviz` skill's own color validator) with a
-legend swatch per category, and the storage-used widget now grows a trend sparkline once it has
-at least two days of history behind it -- a new table quietly records one snapshot every time
-that widget's own scan runs, building the trend forward from today rather than pretending to
-know the past. The dashboard's own full-tree walk is now also skipped entirely when nothing's
+legend swatch per category. The dashboard's own full-tree walk is skipped entirely when nothing's
 changed since the last time it ran, reusing Phase 17's existing "has the file index changed"
-signal rather than re-walking just to get the same numbers back, and that same daily snapshot now
+signal rather than re-walking just to get the same numbers back, and the daily storage snapshot
 records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
-user never opens Statistics. A seventh widget, "Recently modified," now shows the 5
-most-recently-touched files and taps through to the same global file list the by-type/
-largest-files widgets already use, now reusable for either ordering. See `docs/PLAN.md` for the
-full phase list.
+user never opens Statistics. The one widget without a tap-through yet is most-populated-folders --
+Browse's nav route has no folder-targeting argument today, so that's an explicit follow-up rather
+than something this phase could reuse Search's own drill-down trick for. See `docs/PLAN.md` for
+the full phase list.
 
 ## Building
 

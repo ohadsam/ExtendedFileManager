@@ -351,4 +351,6 @@
     <string name="statistics_advisor_flagged_count">%d file(s) flagged</string>
     <string name="statistics_operations_title">Operations</string>
     <string name="statistics_operations_count">%d operation(s) recorded</string>
+    <string name="statistics_most_populated_folders_title">Most populated folders</string>
+    <string name="statistics_folder_file_count">%d file(s)</string>
 </resources>

@@ -27,8 +27,9 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         StatsCacheEntity::class,
         StatsCacheLargestFileEntity::class,
         StatsCacheRecentFileEntity::class,
+        StatsCacheFolderEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {

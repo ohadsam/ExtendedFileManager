@@ -6,6 +6,7 @@ import com.efm.filemanager.data.documenttree.DocumentTreeRepository
 import com.efm.filemanager.data.local.FileEntryEntity
 import com.efm.filemanager.data.local.StatsCacheDao
 import com.efm.filemanager.data.local.StatsCacheEntity
+import com.efm.filemanager.data.local.StatsCacheFolderEntity
 import com.efm.filemanager.data.local.StatsCacheLargestFileEntity
 import com.efm.filemanager.data.local.StatsCacheRecentFileEntity
 import com.efm.filemanager.data.local.StorageSnapshotDao
@@ -14,6 +15,7 @@ import com.efm.filemanager.data.local.toDomain
 import com.efm.filemanager.data.prefs.PreferencesRepository
 import com.efm.filemanager.domain.model.FileCategory
 import com.efm.filemanager.domain.model.FileEntry
+import com.efm.filemanager.domain.model.FolderFileCount
 import com.efm.filemanager.domain.model.GlobalFilesSort
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.domain.model.category
@@ -25,6 +27,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
+private const val TOP_FOLDERS_COUNT = 5
 
 /**
  * Phase 18's storage-usage widget needs a full-tree, every-file size snapshot, and nothing else
@@ -68,11 +72,25 @@ class StatisticsRepository
                 storageSnapshotDao.getLatestDayEntries().associate { FileCategory.valueOf(it.category) to it.bytes }
             val largestFiles = statsCacheDao.getLargestFiles().map { it.toFileEntry() }
             val recentlyModifiedFiles = statsCacheDao.getRecentFiles().map { it.toFileEntry() }
-            return StorageStats(cachedMeta.totalSize, cachedMeta.totalFileCount, sizeByCategory, largestFiles, recentlyModifiedFiles)
+            val mostPopulatedFolders = statsCacheDao.getFolders().map { FolderFileCount(it.name, it.fileCount) }
+            return StorageStats(
+                totalSize = cachedMeta.totalSize,
+                totalFileCount = cachedMeta.totalFileCount,
+                sizeByCategory = sizeByCategory,
+                largestFiles = largestFiles,
+                recentlyModifiedFiles = recentlyModifiedFiles,
+                mostPopulatedFolders = mostPopulatedFolders,
+            )
         }
 
         private suspend fun freshStorageStats(currentVersion: Long): StorageStats {
-            val stats = collectAllFiles().map { it.toDomain() }.toStorageStats()
+            val walk = walkAllFiles()
+            val baseStats = walk.files.map { it.toDomain() }.toStorageStats()
+            val mostPopulatedFolders =
+                walk.files.topFolderCounts(TOP_FOLDERS_COUNT).map { (parentUri, count) ->
+                    FolderFileCount(walk.folderNames[parentUri] ?: parentUri, count)
+                }
+            val stats = baseStats.copy(mostPopulatedFolders = mostPopulatedFolders)
             val meta = StatsCacheEntity(changeVersion = currentVersion, totalSize = stats.totalSize, totalFileCount = stats.totalFileCount)
             val cachedLargestFiles =
                 stats.largestFiles.mapIndexed { rank, file -> StatsCacheLargestFileEntity(rank, file.uri.toString(), file.name, file.size) }
@@ -80,7 +98,9 @@ class StatisticsRepository
                 stats.recentlyModifiedFiles.mapIndexed { rank, file ->
                     StatsCacheRecentFileEntity(rank, file.uri.toString(), file.name, file.lastModified)
                 }
-            statsCacheDao.replaceCache(meta, cachedLargestFiles, cachedRecentFiles)
+            val cachedFolders =
+                mostPopulatedFolders.mapIndexed { rank, folder -> StatsCacheFolderEntity(rank, folder.name, folder.fileCount) }
+            statsCacheDao.replaceCache(meta, cachedLargestFiles, cachedRecentFiles, cachedFolders)
             return stats
         }
 
@@ -119,21 +139,59 @@ class StatisticsRepository
                 }
             }
 
-        private suspend fun collectAllFiles(): List<FileEntryEntity> {
+        private suspend fun collectAllFiles(): List<FileEntryEntity> = walkAllFiles().files
+
+        /**
+         * [FileWalkResult.folderNames] exists purely for the most-populated-folders widget: every
+         * non-root folder's display name is already in hand from its own entity before this walk
+         * ever recurses into it, so the only *new* SAF lookup this widget needs is one
+         * [DocumentTreeRepository.folderDisplayName] call per granted root (never returned as a
+         * child entity itself).
+         */
+        private suspend fun walkAllFiles(): FileWalkResult {
             val out = mutableListOf<FileEntryEntity>()
-            documentTreeAccessManager.grantedTreeUris().forEach { root -> collectFiles(root, out) }
-            return out
+            val folderNames = mutableMapOf<String, String>()
+            documentTreeAccessManager.grantedTreeUris().forEach { root ->
+                folderNames[root.toString()] = documentTreeRepository.folderDisplayName(root) ?: root.toString()
+                collectFiles(root, out, folderNames)
+            }
+            return FileWalkResult(out, folderNames)
         }
 
         private suspend fun collectFiles(
             folderUri: Uri,
             out: MutableList<FileEntryEntity>,
+            folderNames: MutableMap<String, String>,
         ) {
             documentTreeRepository.listChildrenFromSaf(folderUri).forEach { entity ->
-                if (entity.isDirectory) collectFiles(Uri.parse(entity.uri), out) else out.add(entity)
+                if (entity.isDirectory) {
+                    folderNames[entity.uri] = entity.name
+                    collectFiles(Uri.parse(entity.uri), out, folderNames)
+                } else {
+                    out.add(entity)
+                }
             }
         }
     }
+
+private data class FileWalkResult(
+    val files: List<FileEntryEntity>,
+    val folderNames: Map<String, String>,
+)
+
+/**
+ * Pure (operates only on [FileEntryEntity]'s plain-string fields, no Android types) -- the
+ * receiver list already holds only files, never directories (see [StatisticsRepository.collectFiles]),
+ * so grouping by [FileEntryEntity.parentUri] directly counts a folder's immediate file count, no
+ * extra filter needed.
+ */
+internal fun List<FileEntryEntity>.topFolderCounts(topCount: Int): List<Pair<String, Int>> =
+    groupBy { it.parentUri }
+        .mapValues { (_, files) -> files.size }
+        .entries
+        .sortedByDescending { it.value }
+        .take(topCount)
+        .map { it.key to it.value }
 
 /**
  * A cache-hit [StatsCacheLargestFileEntity] only ever feeds the largest-files widget's own
