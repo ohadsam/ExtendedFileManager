@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.dashboard
 
+import com.efm.filemanager.data.dashboard.DashboardSavedLayout
 import com.efm.filemanager.data.dashboard.DashboardWidgetConfig
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
@@ -19,4 +20,5 @@ data class DashboardUiState(
     val isEditMode: Boolean = false,
     /** In catalog ([com.efm.filemanager.domain.model.DashboardWidgetType]) order, not DB row order. */
     val widgetConfigs: List<DashboardWidgetConfig> = emptyList(),
+    val savedLayouts: List<DashboardSavedLayout> = emptyList(),
 )

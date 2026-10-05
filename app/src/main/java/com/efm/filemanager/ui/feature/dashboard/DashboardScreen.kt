@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +54,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.efm.filemanager.R
+import com.efm.filemanager.data.dashboard.DashboardSavedLayout
 import com.efm.filemanager.data.dashboard.DashboardWidgetConfig
 import com.efm.filemanager.data.metadata.MoveDirection
 import com.efm.filemanager.domain.model.DashboardTemplate
@@ -61,6 +63,7 @@ import com.efm.filemanager.domain.model.DashboardWidgetType
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.domain.model.toggled
+import com.efm.filemanager.ui.components.query.QueryMenuSectionHeader
 import com.efm.filemanager.ui.components.query.SelectableMenuItem
 import com.efm.filemanager.ui.feature.browse.formatFileSize
 import com.efm.filemanager.ui.feature.statistics.DuplicatesSummary
@@ -72,6 +75,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var dialog by remember { mutableStateOf<DashboardDialog?>(null) }
     Scaffold(
         topBar = {
             DashboardTopBar(
@@ -79,7 +83,13 @@ fun DashboardScreen(
                 onOpenSearch = navActions.onOpenSearch,
                 isEditMode = uiState.isEditMode,
                 onToggleEditMode = viewModel::toggleEditMode,
-                onApplyTemplate = viewModel::applyTemplate,
+                layoutsMenuState =
+                    LayoutsMenuState(
+                        savedLayouts = uiState.savedLayouts,
+                        onApplyTemplate = viewModel::applyTemplate,
+                        onApplySavedLayout = viewModel::applySavedLayout,
+                        onSaveCurrentClick = { dialog = DashboardDialog.SaveLayout },
+                    ),
             )
         },
     ) { innerPadding ->
@@ -95,6 +105,7 @@ fun DashboardScreen(
             DashboardBody(modifier = Modifier.padding(innerPadding), uiState = uiState, navActions = navActions)
         }
     }
+    DashboardDialogHost(dialog = dialog, viewModel = viewModel, onDismiss = { dialog = null })
 }
 
 @Composable
@@ -103,7 +114,7 @@ private fun DashboardTopBar(
     onOpenSearch: () -> Unit,
     isEditMode: Boolean,
     onToggleEditMode: () -> Unit,
-    onApplyTemplate: (DashboardTemplate) -> Unit,
+    layoutsMenuState: LayoutsMenuState,
 ) {
     TopAppBar(
         navigationIcon = {
@@ -113,9 +124,9 @@ private fun DashboardTopBar(
         },
         title = { Text(stringResource(R.string.nav_dashboard)) },
         actions = {
-            // Templates only make sense while customizing -- applying one is itself an edit.
+            // Layouts only make sense while customizing -- applying one is itself an edit.
             if (isEditMode) {
-                TemplatesMenuButton(onApplyTemplate = onApplyTemplate)
+                LayoutsMenuButton(layoutsMenuState)
             }
             IconButton(onClick = onToggleEditMode) {
                 Icon(
@@ -131,22 +142,54 @@ private fun DashboardTopBar(
     )
 }
 
-/** Not a "current template" picker -- applying one is a one-shot rewrite, same as tapping a reset, never a sticky selection. */
+/** Bundled so [DashboardTopBar] stays under detekt's `LongParameterList` threshold. */
+private data class LayoutsMenuState(
+    val savedLayouts: List<DashboardSavedLayout>,
+    val onApplyTemplate: (DashboardTemplate) -> Unit,
+    val onApplySavedLayout: (DashboardSavedLayout) -> Unit,
+    val onSaveCurrentClick: () -> Unit,
+)
+
+/**
+ * Covers both halves of the spec's single "layout picker": the built-in [DashboardTemplate]s and
+ * the user's own named saves. Neither section is a "current selection" list -- applying either
+ * one is a one-shot rewrite, same as tapping a reset, never a sticky choice that stays checked.
+ */
 @Composable
-private fun TemplatesMenuButton(onApplyTemplate: (DashboardTemplate) -> Unit) {
+private fun LayoutsMenuButton(state: LayoutsMenuState) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Filled.List, contentDescription = stringResource(R.string.dashboard_templates_action))
+            Icon(Icons.Filled.List, contentDescription = stringResource(R.string.dashboard_layouts_action))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.dashboard_save_layout_action)) },
+                onClick = {
+                    expanded = false
+                    state.onSaveCurrentClick()
+                },
+            )
+            QueryMenuSectionHeader(stringResource(R.string.dashboard_templates_section))
             DashboardTemplate.entries.forEach { template ->
                 SelectableMenuItem(
                     labelRes = template.labelRes(),
                     selected = false,
                     onDismiss = { expanded = false },
-                    onClick = { onApplyTemplate(template) },
+                    onClick = { state.onApplyTemplate(template) },
                 )
+            }
+            if (state.savedLayouts.isNotEmpty()) {
+                QueryMenuSectionHeader(stringResource(R.string.dashboard_saved_layouts_section))
+                state.savedLayouts.forEach { layout ->
+                    DropdownMenuItem(
+                        text = { Text(layout.name) },
+                        onClick = {
+                            expanded = false
+                            state.onApplySavedLayout(layout)
+                        },
+                    )
+                }
             }
         }
     }

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.22.5 (2026-10-05)
+
+- Phase 19 slice 6: named saved layouts. The same list icon that
+  opens built-in templates now also offers "Save current as…"
+  (a name dialog) and, once you have any, a "Saved layouts" section
+  listing them by name -- tapping one rewrites the dashboard to match,
+  exactly like applying a template. Two new Room tables
+  (`dashboard_layouts`/`dashboard_layout_widgets`) hold the snapshots;
+  `DashboardLayoutRepository.saveCurrentAsLayout()`/`applySavedLayout()`
+  are the save/load inverse of each other. Renaming and deleting a
+  saved layout are deliberately left for a follow-up -- this slice is
+  save + switch only. Only the start-destination promotion remains
+  open for Phase 19.
+
 ## v0.22.4 (2026-10-05)
 
 - Phase 19 slice 5: three built-in templates -- "Cleanup focus"

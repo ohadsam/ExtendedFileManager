@@ -1,5 +1,6 @@
 package com.efm.filemanager.di
 
+import com.efm.filemanager.data.local.DashboardLayoutDao
 import com.efm.filemanager.data.local.DashboardWidgetDao
 import com.efm.filemanager.data.local.EfmDatabase
 import dagger.Module
@@ -13,4 +14,7 @@ import dagger.hilt.components.SingletonComponent
 object DashboardWidgetDaoModule {
     @Provides
     fun provideDashboardWidgetDao(database: EfmDatabase): DashboardWidgetDao = database.dashboardWidgetDao()
+
+    @Provides
+    fun provideDashboardLayoutDao(database: EfmDatabase): DashboardLayoutDao = database.dashboardLayoutDao()
 }
