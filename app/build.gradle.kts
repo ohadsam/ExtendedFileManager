@@ -16,8 +16,8 @@ android {
         applicationId = "com.efm.filemanager"
         minSdk = 26
         targetSdk = 35
-        versionCode = 61
-        versionName = "0.22.7"
+        versionCode = 62
+        versionName = "0.23.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -34,7 +34,16 @@ android {
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
+            enableUnitTestCoverage = true
         }
+    }
+
+    // Phase 20: report generation only, no enforced threshold yet -- there's no way to run
+    // Gradle in this sandbox to see real current coverage numbers first, and picking a
+    // threshold blind risks failing CI on every push until it's guessed right. A follow-up
+    // slice adds `testCoverage.minimumCoverage`/a verification task once real numbers exist.
+    testCoverage {
+        jacocoVersion = "0.8.12"
     }
 
     compileOptions {

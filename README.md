@@ -110,7 +110,10 @@ edit mode too, each an explicit starting point you can keep customizing afterwar
 locked layout. You can also save your own current arrangement as a named layout, switch back
 to it later, and rename or delete a saved one too, each from that same menu. Dashboard is now
 the app's start destination -- Browse is still one tap away in the drawer, just no longer
-first. See `docs/PLAN.md` for the full phase list.
+first. Phase 20 (test & release hardening) has now started: CI generates a Jacoco coverage
+report for the debug variant's unit tests on every push (not yet a pass/fail gate -- that
+needs real numbers to set a threshold against first, which this sandbox can't produce without
+running Gradle locally). See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

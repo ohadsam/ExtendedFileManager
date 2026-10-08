@@ -53,6 +53,11 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
 
+      # Phase 20: coverage report only, not a pass/fail gate yet -- see app/build.gradle.kts'
+      # own testCoverage comment for why a threshold isn't enforced in this slice.
+      - name: Unit test coverage report
+        run: ./gradlew createDebugUnitTestCoverageReport
+
       - name: Assemble debug APK
         run: ./gradlew assembleDebug
 
@@ -69,6 +74,7 @@ jobs:
             app/build/reports/ktlint
             app/build/reports/detekt
             app/build/reports/lint-results-debug.html
+            app/build/reports/coverage
           retention-days: 14
 
       - name: Upload R8/ProGuard mapping

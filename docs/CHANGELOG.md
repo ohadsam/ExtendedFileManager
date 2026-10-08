@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.23.0 (2026-10-08)
+
+- Phase 20 starts: a Jacoco *coverage report* (not yet a gate) for the
+  debug variant's unit tests. `enableUnitTestCoverage = true` plus
+  `android.testCoverage.jacocoVersion` (AGP's own built-in mechanism)
+  produce `app/build/reports/coverage/test/debug/index.html` via a
+  new `createDebugUnitTestCoverageReport` CI step, uploaded alongside
+  the other test-reports artifacts. No enforced threshold yet --
+  there's no way to run Gradle in this sandbox to see real coverage
+  numbers first, so a blind `minimumCoverage` guess is deferred to a
+  follow-up slice. Also recorded: Phase 20's "security test suite"
+  item turns out to be partly already done (protected-path denial and
+  path traversal are thoroughly covered by Phase 11's own
+  `PathGuardTest.kt`) and partly not unit-testable from this sandbox
+  at all (Vault's `encrypt`/`decrypt` are thin wrappers directly over
+  `EncryptedFile`/`AndroidKeyStore`, with no pure logic inside them to
+  extract and test, and `AndroidKeyStore` isn't available outside a
+  real device) -- flagged as a real instrumented-test gap rather than
+  faked with a mock that wouldn't test real encryption.
+
 ## v0.22.7 (2026-10-08)
 
 - Phase 19's final slice: Dashboard is now the app's start destination
