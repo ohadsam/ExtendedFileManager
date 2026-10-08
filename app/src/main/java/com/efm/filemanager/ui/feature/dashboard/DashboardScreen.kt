@@ -188,39 +188,49 @@ private fun LayoutsMenuButton(state: LayoutsMenuState) {
             if (state.savedLayouts.isNotEmpty()) {
                 QueryMenuSectionHeader(stringResource(R.string.dashboard_saved_layouts_section))
                 state.savedLayouts.forEach { layout ->
-                    DropdownMenuItem(
-                        text = { Text(layout.name) },
-                        onClick = {
+                    SavedLayoutMenuItem(
+                        layout = layout,
+                        onApply = {
                             expanded = false
                             state.onApplySavedLayout(layout)
                         },
-                        trailingIcon = {
-                            Row {
-                                IconButton(
-                                    onClick = {
-                                        expanded = false
-                                        state.onRenameSavedLayout(layout)
-                                    },
-                                    modifier = Modifier.size(32.dp),
-                                ) {
-                                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
-                                }
-                                IconButton(
-                                    onClick = {
-                                        expanded = false
-                                        state.onDeleteSavedLayout(layout)
-                                    },
-                                    modifier = Modifier.size(32.dp),
-                                ) {
-                                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-                                }
-                            }
+                        onRename = {
+                            expanded = false
+                            state.onRenameSavedLayout(layout)
+                        },
+                        onDelete = {
+                            expanded = false
+                            state.onDeleteSavedLayout(layout)
                         },
                     )
                 }
             }
         }
     }
+}
+
+/** Extracted from [LayoutsMenuButton] to stay under detekt's `LongMethod` threshold. */
+@Composable
+private fun SavedLayoutMenuItem(
+    layout: DashboardSavedLayout,
+    onApply: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(layout.name) },
+        onClick = onApply,
+        trailingIcon = {
+            Row {
+                IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+                }
+            }
+        },
+    )
 }
 
 @Composable
