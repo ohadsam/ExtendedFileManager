@@ -126,7 +126,10 @@ class DashboardLayoutRepository
             }
         }
 
-        suspend fun renameSavedLayout(layoutId: Long, name: String) = dashboardLayoutDao.renameLayout(layoutId, name)
+        suspend fun renameSavedLayout(
+            layoutId: Long,
+            name: String,
+        ) = dashboardLayoutDao.renameLayout(layoutId, name)
 
         /** No `@ForeignKey` on [DashboardLayoutWidgetEntity] (same convention as favorites) -- clean up its rows manually first. */
         suspend fun deleteSavedLayout(layoutId: Long) {
