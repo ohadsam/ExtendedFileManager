@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.22.6 (2026-10-08)
+
+- Phase 19 slice 7: renaming and deleting a saved layout. Each row
+  in the "Saved layouts" section of the list menu now also has a
+  rename and a delete icon, next to its name -- rename reuses the
+  shared name-input dialog (pre-filled with the current name), delete
+  goes through the same "are you sure" confirmation every other
+  destructive action in this app does. Deleting a saved layout only
+  removes that snapshot (`dashboard_layouts`/`dashboard_layout_widgets`
+  rows) -- it never touches the widgets currently on screen. Only the
+  start-destination promotion remains open for Phase 19.
+
 ## v0.22.5 (2026-10-05)
 
 - Phase 19 slice 6: named saved layouts. The same list icon that

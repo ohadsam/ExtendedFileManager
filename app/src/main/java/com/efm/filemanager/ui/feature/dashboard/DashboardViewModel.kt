@@ -132,4 +132,15 @@ class DashboardViewModel
         fun applySavedLayout(layout: DashboardSavedLayout) {
             viewModelScope.launch { dashboardLayoutRepository.applySavedLayout(layout.id) }
         }
+
+        fun renameSavedLayout(
+            layout: DashboardSavedLayout,
+            name: String,
+        ) {
+            viewModelScope.launch { dashboardLayoutRepository.renameSavedLayout(layout.id, name) }
+        }
+
+        fun deleteSavedLayout(layout: DashboardSavedLayout) {
+            viewModelScope.launch { dashboardLayoutRepository.deleteSavedLayout(layout.id) }
+        }
     }

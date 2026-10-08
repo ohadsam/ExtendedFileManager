@@ -373,4 +373,6 @@
     <string name="dashboard_save_layout_action">Save current as…</string>
     <string name="dashboard_save_layout_title">Save layout as</string>
     <string name="dashboard_save_layout_confirm">Save</string>
+    <string name="dashboard_delete_layout_title">Delete layout?</string>
+    <string name="dashboard_delete_layout_message">Delete \"%1$s\"? This only removes the saved layout, not your widgets.</string>
 </resources>

@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
@@ -89,6 +91,8 @@ fun DashboardScreen(
                         onApplyTemplate = viewModel::applyTemplate,
                         onApplySavedLayout = viewModel::applySavedLayout,
                         onSaveCurrentClick = { dialog = DashboardDialog.SaveLayout },
+                        onRenameSavedLayout = { layout -> dialog = DashboardDialog.RenameLayout(layout) },
+                        onDeleteSavedLayout = { layout -> dialog = DashboardDialog.DeleteLayout(layout) },
                     ),
             )
         },
@@ -148,6 +152,8 @@ private data class LayoutsMenuState(
     val onApplyTemplate: (DashboardTemplate) -> Unit,
     val onApplySavedLayout: (DashboardSavedLayout) -> Unit,
     val onSaveCurrentClick: () -> Unit,
+    val onRenameSavedLayout: (DashboardSavedLayout) -> Unit,
+    val onDeleteSavedLayout: (DashboardSavedLayout) -> Unit,
 )
 
 /**
@@ -187,6 +193,28 @@ private fun LayoutsMenuButton(state: LayoutsMenuState) {
                         onClick = {
                             expanded = false
                             state.onApplySavedLayout(layout)
+                        },
+                        trailingIcon = {
+                            Row {
+                                IconButton(
+                                    onClick = {
+                                        expanded = false
+                                        state.onRenameSavedLayout(layout)
+                                    },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
+                                }
+                                IconButton(
+                                    onClick = {
+                                        expanded = false
+                                        state.onDeleteSavedLayout(layout)
+                                    },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+                                }
+                            }
                         },
                     )
                 }
