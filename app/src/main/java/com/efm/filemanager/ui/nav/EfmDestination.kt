@@ -20,6 +20,10 @@ enum class EfmDestination(
     val labelRes: Int,
     val icon: ImageVector,
 ) {
+    // Phase 19's final slice: now the app's start destination, so it leads the drawer too --
+    // the drawer's own top-to-bottom order always matches what a cold start lands on first.
+    Dashboard("dashboard", R.string.nav_dashboard, Icons.Filled.Dashboard),
+
     Browse("browse", R.string.nav_browse, Icons.Filled.Folder),
     Duplicates("duplicates", R.string.nav_duplicates, Icons.Filled.FileCopy),
     Favorites("favorites", R.string.nav_favorites, Icons.Filled.Star),
@@ -29,9 +33,4 @@ enum class EfmDestination(
     Logs("logs", R.string.nav_logs, Icons.Filled.ReceiptLong),
     Audit("audit", R.string.nav_audit, Icons.Filled.History),
     Settings("settings", R.string.nav_settings, Icons.Filled.Settings),
-
-    // Phase 19 -- deliberately appended last, not reordered to the top: Browse stays the app's
-    // start destination until this screen earns that promotion in a later slice (see
-    // docs/PLAN.md Phase 19).
-    Dashboard("dashboard", R.string.nav_dashboard, Icons.Filled.Dashboard),
 }

@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.22.7 (2026-10-08)
+
+- Phase 19's final slice: Dashboard is now the app's start destination
+  (Browse is still one tap away in the drawer, just no longer first --
+  the drawer itself now leads with Dashboard too). This exposed a real
+  coupling that needed fixing first: Search's "open location" action
+  shared `BrowseViewModel` by looking up Browse's own backstack entry,
+  which only ever worked because Browse used to be the start
+  destination and so was always on the stack. `BrowseViewModel` is now
+  hoisted once in `EfmApp` (Activity-scoped, the same pattern
+  `AppThemeViewModel` already uses one level up in `EfmRoot`) and
+  passed down explicitly, so it's there even when Search is reached
+  straight from Dashboard without ever visiting Browse first. That
+  also surfaced a related bug search already had since Dashboard
+  gained its own search icon in slice 1: tapping a result used to
+  just pop the back stack, landing back on whichever screen opened
+  search (often Dashboard) instead of showing the location just
+  navigated to -- it now explicitly navigates to Browse, the same
+  navigate-and-restore pattern the drawer itself already uses. Phase
+  19 is now complete.
+
 ## v0.22.6 (2026-10-08)
 
 - Phase 19 slice 7: renaming and deleting a saved layout. Each row

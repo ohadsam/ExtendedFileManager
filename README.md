@@ -99,18 +99,18 @@ records itself automatically (piggybacking on Phase 17's own once-a-day job) eve
 user never opens Statistics. The one widget without a tap-through yet is most-populated-folders --
 Browse's nav route has no folder-targeting argument today, so that's an explicit follow-up rather
 than something this phase could reuse Search's own drill-down trick for. Phase 19 (customizable
-home dashboard) has now started too: a new "Dashboard" screen (own nav-drawer entry) shows four
-cards -- storage used, duplicates, insights, and a favorites quick-access list -- every one
-reusing an already-live data source, no new scanning. A pencil icon now enters an edit mode where
-you can hide any widget, drag to reorder the rest, and toggle each one between its full content
-and a trimmed-down compact form (all three persisted) -- reordering reuses the exact same
+home dashboard) is now done too: a new "Dashboard" screen shows four cards -- storage used,
+duplicates, insights, and a favorites quick-access list -- every one reusing an already-live
+data source, no new scanning. A pencil icon now enters an edit mode where you can hide any
+widget, drag to reorder the rest, and toggle each one between its full content and a
+trimmed-down compact form (all three persisted) -- reordering reuses the exact same
 drag-gesture-drives-a-swap technique the Favorites screen's own collection list already uses.
-Three built-in templates ("Cleanup focus," "Quick access," "At a glance") are now a tap away
-in edit mode too, each an explicit starting point you can keep customizing afterward, not a
-locked layout. You can also save your own current arrangement as a named layout, switch back to it later,
-and now rename or delete a saved one too, each from that same menu -- Browse stays the app's
-start destination for now, the one piece still open in this phase. See `docs/PLAN.md`
-for the full phase list.
+Three built-in templates ("Cleanup focus," "Quick access," "At a glance") are a tap away in
+edit mode too, each an explicit starting point you can keep customizing afterward, not a
+locked layout. You can also save your own current arrangement as a named layout, switch back
+to it later, and rename or delete a saved one too, each from that same menu. Dashboard is now
+the app's start destination -- Browse is still one tap away in the drawer, just no longer
+first. See `docs/PLAN.md` for the full phase list.
 
 ## Building
 

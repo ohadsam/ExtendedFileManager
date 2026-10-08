@@ -31,10 +31,11 @@ private const val MAX_FAVORITES_SHOWN = 5
  * Phase 19 slice 1 shipped a fixed, read-only widget set; slices 2-5 added show/hide, reordering
  * (the exact same drag-handle-drives-a-swap technique
  * [com.efm.filemanager.ui.feature.favorites.FavoritesViewModel.moveCollection] already uses for
- * Favorites collections), size (COMPACT vs. DETAILED), and built-in [DashboardTemplate]s. This
- * slice adds the user's own named saved layouts -- `saveCurrentAsLayout` snapshots today's
- * widget rows, `applySavedLayout` rewrites them back. The start-destination promotion is still
- * open (see docs/PLAN.md Phase 19).
+ * Favorites collections), size (COMPACT vs. DETAILED), and built-in [DashboardTemplate]s. Slices
+ * 6-7 added the user's own named saved layouts -- `saveCurrentAsLayout` snapshots today's widget
+ * rows, `applySavedLayout` rewrites them back, `renameSavedLayout`/`deleteSavedLayout` manage the
+ * saved snapshots themselves. Phase 19's final slice then promoted this screen (see
+ * [com.efm.filemanager.ui.EfmApp]) to the app's start destination.
  */
 @HiltViewModel
 class DashboardViewModel
