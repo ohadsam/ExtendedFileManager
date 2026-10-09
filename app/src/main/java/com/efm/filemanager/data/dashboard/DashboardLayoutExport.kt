@@ -33,8 +33,8 @@ internal fun parseDashboardLayoutExport(text: String): DashboardLayoutExport? {
 private fun String.toTemplateWidgetLine(): DashboardTemplateWidget? {
     val parts = split(FIELD_DELIMITER)
     if (parts.size != 3) return null
-    val type = runCatching { DashboardWidgetType.valueOf(parts[0]) }.getOrNull() ?: return null
-    val isEnabled = parts[1].toBooleanStrictOrNull() ?: return null
-    val size = runCatching { DashboardWidgetSize.valueOf(parts[2]) }.getOrNull() ?: return null
-    return DashboardTemplateWidget(type, isEnabled, size)
+    val type = runCatching { DashboardWidgetType.valueOf(parts[0]) }.getOrNull()
+    val isEnabled = parts[1].toBooleanStrictOrNull()
+    val size = runCatching { DashboardWidgetSize.valueOf(parts[2]) }.getOrNull()
+    return if (type != null && isEnabled != null && size != null) DashboardTemplateWidget(type, isEnabled, size) else null
 }
