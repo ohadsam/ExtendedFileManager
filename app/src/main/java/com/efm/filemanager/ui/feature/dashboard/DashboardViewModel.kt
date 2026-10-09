@@ -1,10 +1,13 @@
 package com.efm.filemanager.ui.feature.dashboard
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
 import com.efm.filemanager.data.dashboard.DashboardLayoutRepository
 import com.efm.filemanager.data.dashboard.DashboardSavedLayout
+import com.efm.filemanager.data.dashboard.parseDashboardLayoutExport
+import com.efm.filemanager.data.dashboard.serialize
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.MoveDirection
@@ -165,5 +168,25 @@ class DashboardViewModel
 
         fun deleteSavedLayout(layout: DashboardSavedLayout) {
             viewModelScope.launch { dashboardLayoutRepository.deleteSavedLayout(layout.id) }
+        }
+
+        /** [uri] is already a granted `CreateDocument` destination -- nothing to do if the layout was deleted in the meantime. */
+        fun exportLayout(
+            layout: DashboardSavedLayout,
+            uri: Uri,
+        ) {
+            viewModelScope.launch {
+                val export = dashboardLayoutRepository.exportLayout(layout.id) ?: return@launch
+                dashboardLayoutRepository.writeExportText(uri, export.serialize())
+            }
+        }
+
+        /** Silently no-ops on an unreadable or malformed file -- no in-progress dialog state yet to report a failure into. */
+        fun importLayout(uri: Uri) {
+            viewModelScope.launch {
+                val text = dashboardLayoutRepository.readImportText(uri) ?: return@launch
+                val export = parseDashboardLayoutExport(text) ?: return@launch
+                dashboardLayoutRepository.importLayout(export)
+            }
         }
     }

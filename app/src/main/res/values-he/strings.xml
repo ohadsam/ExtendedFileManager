@@ -386,4 +386,6 @@
     <string name="dashboard_settings_section">לוח בקרה</string>
     <string name="dashboard_settings_info_body">קובע מתי רכיב שטח האחסון הנמוך בלוח הבקרה מופיע.</string>
     <string name="dashboard_settings_threshold_mb">הזהר כשנותרים מתחת ל-%d MB פנויים</string>
+    <string name="dashboard_import_layout_action">ייבוא פריסה…</string>
+    <string name="dashboard_export_layout_action">ייצוא</string>
 </resources>

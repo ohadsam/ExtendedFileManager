@@ -386,4 +386,6 @@
     <string name="dashboard_settings_section">Dashboard</string>
     <string name="dashboard_settings_info_body">Controls when the Dashboard\'s low-storage widget surfaces itself.</string>
     <string name="dashboard_settings_threshold_mb">Warn below %d MB free</string>
+    <string name="dashboard_import_layout_action">Import layout…</string>
+    <string name="dashboard_export_layout_action">Export</string>
 </resources>

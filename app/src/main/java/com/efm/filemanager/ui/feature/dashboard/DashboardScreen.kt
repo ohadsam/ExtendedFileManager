@@ -1,5 +1,7 @@
 package com.efm.filemanager.ui.feature.dashboard
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -16,11 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -78,6 +82,17 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var dialog by remember { mutableStateOf<DashboardDialog?>(null) }
+    var pendingExportLayout by remember { mutableStateOf<DashboardSavedLayout?>(null) }
+    val exportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+            val layout = pendingExportLayout
+            if (uri != null && layout != null) viewModel.exportLayout(layout, uri)
+            pendingExportLayout = null
+        }
+    val importLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) viewModel.importLayout(uri)
+        }
     Scaffold(
         topBar = {
             DashboardTopBar(
@@ -93,6 +108,11 @@ fun DashboardScreen(
                         onSaveCurrentClick = { dialog = DashboardDialog.SaveLayout },
                         onRenameSavedLayout = { layout -> dialog = DashboardDialog.RenameLayout(layout) },
                         onDeleteSavedLayout = { layout -> dialog = DashboardDialog.DeleteLayout(layout) },
+                        onExportSavedLayout = { layout ->
+                            pendingExportLayout = layout
+                            exportLauncher.launch("${layout.name}.txt")
+                        },
+                        onImportLayoutClick = { importLauncher.launch(arrayOf("text/plain", "*/*")) },
                     ),
             )
         },
@@ -154,6 +174,8 @@ private data class LayoutsMenuState(
     val onSaveCurrentClick: () -> Unit,
     val onRenameSavedLayout: (DashboardSavedLayout) -> Unit,
     val onDeleteSavedLayout: (DashboardSavedLayout) -> Unit,
+    val onExportSavedLayout: (DashboardSavedLayout) -> Unit,
+    val onImportLayoutClick: () -> Unit,
 )
 
 /**
@@ -174,6 +196,14 @@ private fun LayoutsMenuButton(state: LayoutsMenuState) {
                 onClick = {
                     expanded = false
                     state.onSaveCurrentClick()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.dashboard_import_layout_action)) },
+                leadingIcon = { Icon(Icons.Filled.FileDownload, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    state.onImportLayoutClick()
                 },
             )
             QueryMenuSectionHeader(stringResource(R.string.dashboard_templates_section))
@@ -202,6 +232,10 @@ private fun LayoutsMenuButton(state: LayoutsMenuState) {
                             expanded = false
                             state.onDeleteSavedLayout(layout)
                         },
+                        onExport = {
+                            expanded = false
+                            state.onExportSavedLayout(layout)
+                        },
                     )
                 }
             }
@@ -216,12 +250,16 @@ private fun SavedLayoutMenuItem(
     onApply: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
+    onExport: () -> Unit,
 ) {
     DropdownMenuItem(
         text = { Text(layout.name) },
         onClick = onApply,
         trailingIcon = {
             Row {
+                IconButton(onClick = onExport, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.dashboard_export_layout_action))
+                }
                 IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.rename_title))
                 }

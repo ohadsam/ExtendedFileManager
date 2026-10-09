@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.23.8 (2026-10-09)
+
+- Phase 19's layout export/import landed, the phase's last remaining
+  backlog item besides the separate `AppWidgetProvider` family: a
+  saved layout's row menu gained an export icon, writing a simple
+  line-based text snapshot (not JSON -- this app has no JSON
+  dependency and the shape doesn't need one) to a `CreateDocument`
+  destination, the same `ContentResolver` pattern `LogRepository`'s
+  own export already uses. A new "Import layout…" menu entry reads
+  such a file back via `OpenDocument` and inserts it as a new named
+  saved layout; a malformed or unreadable file is silently ignored
+  rather than crashing.
+
 ## v0.23.7 (2026-10-09)
 
 - Phase 19's automatic low-storage widget landed: a new

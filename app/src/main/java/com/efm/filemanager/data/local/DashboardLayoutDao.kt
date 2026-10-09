@@ -19,6 +19,9 @@ interface DashboardLayoutDao {
     @Query("SELECT * FROM dashboard_layout_widgets WHERE layoutId = :layoutId ORDER BY sortOrder ASC")
     suspend fun getLayoutWidgets(layoutId: Long): List<DashboardLayoutWidgetEntity>
 
+    @Query("SELECT * FROM dashboard_layouts WHERE id = :id")
+    suspend fun getLayout(id: Long): DashboardLayoutEntity?
+
     @Query("UPDATE dashboard_layouts SET name = :name WHERE id = :id")
     suspend fun renameLayout(
         id: Long,

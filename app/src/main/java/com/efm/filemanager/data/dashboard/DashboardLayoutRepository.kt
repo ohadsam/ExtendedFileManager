@@ -1,5 +1,7 @@
 package com.efm.filemanager.data.dashboard
 
+import android.content.Context
+import android.net.Uri
 import com.efm.filemanager.data.local.DashboardLayoutDao
 import com.efm.filemanager.data.local.DashboardLayoutEntity
 import com.efm.filemanager.data.local.DashboardLayoutWidgetEntity
@@ -7,11 +9,15 @@ import com.efm.filemanager.data.local.DashboardWidgetDao
 import com.efm.filemanager.data.local.DashboardWidgetEntity
 import com.efm.filemanager.data.metadata.MoveDirection
 import com.efm.filemanager.domain.model.DashboardTemplate
+import com.efm.filemanager.domain.model.DashboardTemplateWidget
 import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** One [DashboardWidgetType]'s current visibility, position (via list order), and size. */
@@ -39,6 +45,7 @@ class DashboardLayoutRepository
     constructor(
         private val dashboardWidgetDao: DashboardWidgetDao,
         private val dashboardLayoutDao: DashboardLayoutDao,
+        @ApplicationContext private val context: Context,
     ) {
         fun observeWidgets(): Flow<List<DashboardWidgetConfig>> =
             dashboardWidgetDao.observeAll().map { widgets -> widgets.mapNotNull { it.toConfig() } }
@@ -136,6 +143,38 @@ class DashboardLayoutRepository
             dashboardLayoutDao.deleteLayoutWidgets(layoutId)
             dashboardLayoutDao.deleteLayout(layoutId)
         }
+
+        /** Null if [layoutId] no longer exists, or its rows are somehow all unrecognized -- nothing left worth exporting. */
+        suspend fun exportLayout(layoutId: Long): DashboardLayoutExport? {
+            val name = dashboardLayoutDao.getLayout(layoutId)?.name ?: return null
+            val widgets = dashboardLayoutDao.getLayoutWidgets(layoutId).mapNotNull { it.toTemplateWidget() }
+            return if (widgets.isEmpty()) null else DashboardLayoutExport(name, widgets)
+        }
+
+        /** The import-side mirror of [saveCurrentAsLayout] -- a new named layout from [export]'s rows rather than today's live widgets. */
+        suspend fun importLayout(export: DashboardLayoutExport) {
+            val entity = DashboardLayoutEntity(name = export.name, createdAt = System.currentTimeMillis())
+            val layoutId = dashboardLayoutDao.insertLayout(entity)
+            val widgets =
+                export.widgets.mapIndexed { index, widget ->
+                    DashboardLayoutWidgetEntity(layoutId, widget.type.name, widget.isEnabled, index, widget.size.name)
+                }
+            dashboardLayoutDao.insertLayoutWidgets(widgets)
+        }
+
+        /** Writes to an already-granted destination, same as `LogRepository.exportText` -- typically a `CreateDocument` picker's result. */
+        suspend fun writeExportText(
+            uri: Uri,
+            text: String,
+        ) = withContext(Dispatchers.IO) {
+            context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+        }
+
+        /** Null if the picked document can't be opened or read -- e.g. permission revoked between picking it and this call. */
+        suspend fun readImportText(uri: Uri): String? =
+            withContext(Dispatchers.IO) {
+                context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() }
+            }
     }
 
 /** An unrecognized or missing [DashboardWidgetEntity.size] value falls back to DETAILED -- never a silent crash over a cosmetic setting. */
@@ -143,4 +182,11 @@ internal fun DashboardWidgetEntity.toConfig(): DashboardWidgetConfig? =
     runCatching { DashboardWidgetType.valueOf(type) }.getOrNull()?.let { type ->
         val resolvedSize = runCatching { DashboardWidgetSize.valueOf(size) }.getOrDefault(DashboardWidgetSize.DETAILED)
         DashboardWidgetConfig(type, isEnabled, resolvedSize)
+    }
+
+/** Same fallback rules as [toConfig] -- an export is just the same per-widget shape, reused by [DashboardLayoutRepository.exportLayout]. */
+internal fun DashboardLayoutWidgetEntity.toTemplateWidget(): DashboardTemplateWidget? =
+    runCatching { DashboardWidgetType.valueOf(type) }.getOrNull()?.let { type ->
+        val resolvedSize = runCatching { DashboardWidgetSize.valueOf(size) }.getOrDefault(DashboardWidgetSize.DETAILED)
+        DashboardTemplateWidget(type, isEnabled, resolvedSize)
     }
