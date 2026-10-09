@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -113,6 +114,7 @@ private fun StatisticsBody(
                 onCategoryClick = { category -> navActions.onOpenGlobalFiles(category, GlobalFilesSort.SIZE) },
             )
         }
+        item { FileTypeTrendsCard(uiState.categoryTrends) }
         item {
             LargestFilesCard(uiState.storageStats.largestFiles, onClick = { navActions.onOpenGlobalFiles(null, GlobalFilesSort.SIZE) })
         }
@@ -185,26 +187,50 @@ private fun StorageUsedCard(
  */
 @Composable
 private fun StorageTrendSparkline(dailyTotals: List<Long>) {
-    val lineColor = MaterialTheme.colorScheme.primary
-    Canvas(modifier = Modifier.fillMaxWidth().height(SPARKLINE_HEIGHT)) {
-        val maxValue = dailyTotals.max().toFloat()
-        val minValue = dailyTotals.min().toFloat()
+    TrendSparkline(dailyTotals, color = MaterialTheme.colorScheme.primary, height = SPARKLINE_HEIGHT)
+}
+
+/**
+ * The per-file-type trend widget's own mini sparkline -- same shape as [StorageTrendSparkline],
+ * just shorter (small multiples, one per category, not one hero chart) and colored with that
+ * category's own [FileCategory.chartColor] instead of the theme's primary hue. A single lone
+ * color, never compared against another series within this same chart, so none of the all-pairs
+ * color-distinction concerns a combined multi-category chart would raise actually apply here.
+ */
+@Composable
+private fun CategoryTrendSparkline(
+    dailyBytes: List<Long>,
+    color: Color,
+) {
+    TrendSparkline(dailyBytes, color = color, height = CATEGORY_SPARKLINE_HEIGHT)
+}
+
+@Composable
+private fun TrendSparkline(
+    dailyValues: List<Long>,
+    color: Color,
+    height: Dp,
+) {
+    Canvas(modifier = Modifier.fillMaxWidth().height(height)) {
+        val maxValue = dailyValues.max().toFloat()
+        val minValue = dailyValues.min().toFloat()
         val range = (maxValue - minValue).coerceAtLeast(1f)
-        val stepX = size.width / (dailyTotals.size - 1)
+        val stepX = size.width / (dailyValues.size - 1)
         val path =
             Path().apply {
-                dailyTotals.forEachIndexed { index, value ->
+                dailyValues.forEachIndexed { index, value ->
                     val x = index * stepX
                     val y = size.height - ((value.toFloat() - minValue) / range) * size.height
                     if (index == 0) moveTo(x, y) else lineTo(x, y)
                 }
             }
         val stroke = Stroke(width = SPARKLINE_STROKE_WIDTH.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-        drawPath(path, color = lineColor, style = stroke)
+        drawPath(path, color = color, style = stroke)
     }
 }
 
 private val SPARKLINE_HEIGHT = 32.dp
+private val CATEGORY_SPARKLINE_HEIGHT = 16.dp
 private val SPARKLINE_STROKE_WIDTH = 2.dp
 
 @Composable
@@ -227,6 +253,47 @@ private fun FileTypeBreakdownCard(
                     onClick = { onCategoryClick(category) },
                 )
             }
+        }
+    }
+}
+
+/**
+ * The original spec's second trend chart: per-[FileCategory] size over time, alongside the
+ * existing total-bytes sparkline. Small multiples, not one combined chart -- see
+ * [StatisticsRepository.observeCategoryTrends]'s own doc for why. Sorted by each category's
+ * current (most recent) size, descending, matching [FileTypeBreakdownCard]'s own sort; a
+ * category with fewer than two recorded days shows its current value with no sparkline, the
+ * same "not enough data yet" rule [StorageTrendSparkline] already applies.
+ */
+@Composable
+private fun FileTypeTrendsCard(categoryTrends: Map<FileCategory, List<Long>>) {
+    StatCard(title = stringResource(R.string.statistics_type_trends_title)) {
+        if (categoryTrends.isEmpty()) {
+            Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
+        } else {
+            val sorted = categoryTrends.entries.sortedByDescending { it.value.lastOrNull() ?: 0L }
+            sorted.forEachIndexed { index, (category, trend) ->
+                if (index > 0) Spacer(modifier = Modifier.height(8.dp))
+                FileTypeTrendRow(category, trend)
+            }
+        }
+    }
+}
+
+@Composable
+private fun FileTypeTrendRow(
+    category: FileCategory,
+    trend: List<Long>,
+) {
+    Column {
+        StatRow(
+            label = stringResource(category.labelRes()),
+            value = formatFileSize(trend.lastOrNull() ?: 0L),
+            swatchColor = category.chartColor(),
+        )
+        if (trend.size >= 2) {
+            Spacer(modifier = Modifier.height(4.dp))
+            CategoryTrendSparkline(trend, color = category.chartColor())
         }
     }
 }

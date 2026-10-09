@@ -18,6 +18,10 @@ interface StorageSnapshotDao {
     @Query("SELECT day, SUM(bytes) AS totalBytes FROM storage_snapshots GROUP BY day ORDER BY day ASC")
     fun observeDailyTotals(): Flow<List<DailyTotal>>
 
+    /** Every recorded row, across every day and category -- the per-file-type trend widget's own raw data. */
+    @Query("SELECT * FROM storage_snapshots ORDER BY day ASC")
+    fun observeAll(): Flow<List<StorageSnapshotEntity>>
+
     /**
      * The per-category rows of the most recently recorded day -- Phase 18's cache-hit path
      * rebuilds `StorageStats.sizeByCategory` from these instead of re-walking the tree.

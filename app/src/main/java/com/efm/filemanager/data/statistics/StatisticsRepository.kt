@@ -137,6 +137,17 @@ class StatisticsRepository
         fun observeDailyTotalBytes(): Flow<List<Long>> =
             storageSnapshotDao.observeDailyTotals().map { totals -> totals.map { it.totalBytes } }
 
+        /**
+         * The second trend chart the original spec called for, alongside [observeDailyTotalBytes]'s
+         * total-bytes-over-time: one [FileCategory]'s own history is small-multiples material, not
+         * one combined chart -- all seven categories visible at once would need the stricter
+         * all-pairs color gate the by-type breakdown widget's own palette was deliberately never
+         * validated for (that's the same reason that widget is a stacked bar, not a donut). A lone
+         * category drawn by itself, one color at a time, needs no pairwise distinction at all.
+         */
+        fun observeCategoryTrends(): Flow<Map<FileCategory, List<Long>>> =
+            storageSnapshotDao.observeAll().map { it.toCategoryTrends() }
+
         private suspend fun recordDailySnapshot(stats: StorageStats) {
             val day = System.currentTimeMillis() / TimeUnit.DAYS.toMillis(1)
             val entries = stats.sizeByCategory.map { (category, bytes) -> StorageSnapshotEntity(day, category.name, bytes) }
@@ -216,6 +227,20 @@ internal fun List<FileEntryEntity>.topFolderCounts(topCount: Int): List<Pair<Str
         .sortedByDescending { it.value }
         .take(topCount)
         .map { it.key to it.value }
+
+/**
+ * Pure (plain string/long fields only) -- groups [StorageSnapshotEntity.category] (stored as
+ * [FileCategory]'s own name) back into its enum, dropping any row from a since-removed category
+ * name rather than crashing on it. Each category's own list stays in the day-ascending order the
+ * query already returns, one entry per day that category was recorded.
+ */
+internal fun List<StorageSnapshotEntity>.toCategoryTrends(): Map<FileCategory, List<Long>> =
+    groupBy { it.category }
+        .mapNotNull { (categoryName, rows) ->
+            val category = runCatching { FileCategory.valueOf(categoryName) }.getOrNull() ?: return@mapNotNull null
+            category to rows.map { it.bytes }
+        }
+        .toMap()
 
 /**
  * A cache-hit [StatsCacheLargestFileEntity] only ever feeds the largest-files widget's own

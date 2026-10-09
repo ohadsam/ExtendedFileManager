@@ -345,6 +345,7 @@
     <string name="statistics_storage_used_title">אחסון בשימוש</string>
     <string name="statistics_file_count">%d קבצים בתיקיות המורשות שלך</string>
     <string name="statistics_by_type_title">לפי סוג קובץ</string>
+    <string name="statistics_type_trends_title">מגמות לפי סוג</string>
     <string name="statistics_largest_files_title">הקבצים הגדולים ביותר</string>
     <string name="statistics_recently_modified_title">עודכנו לאחרונה</string>
     <string name="statistics_empty">אין עדיין מידע מספיק</string>

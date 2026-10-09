@@ -62,7 +62,11 @@ class StatisticsViewModel
             }
 
         val uiState: StateFlow<StatisticsUiState> =
-            combine(baseUiState, statisticsRepository.observeDailyTotalBytes()) { base, trend -> base.copy(storageTrend = trend) }
+            combine(
+                baseUiState,
+                statisticsRepository.observeDailyTotalBytes(),
+                statisticsRepository.observeCategoryTrends(),
+            ) { base, trend, categoryTrends -> base.copy(storageTrend = trend, categoryTrends = categoryTrends) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), StatisticsUiState())
 
         init {

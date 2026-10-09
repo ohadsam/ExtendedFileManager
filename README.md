@@ -98,7 +98,11 @@ changed since the last time it ran, reusing Phase 17's existing "has the file in
 signal rather than re-walking just to get the same numbers back, and the daily storage snapshot
 records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
 user never opens Statistics. Every widget now taps through, most-populated-folders included --
-each row opens its own folder straight in Browse. Phase 19 (customizable
+each row opens its own folder straight in Browse. A "Trends by type" card closes out the phase --
+one small, single-hue sparkline per file category rather than one combined multi-line chart,
+since the by-type widget's seven-color palette was only ever validated for a stacked bar's
+touching-segment comparisons, not the stricter all-pairs check a simultaneous multi-series chart
+would need. Phase 19 (customizable
 home dashboard) is now done too: a new "Dashboard" screen shows four cards -- storage used,
 duplicates, insights, and a favorites quick-access list -- every one reusing an already-live
 data source, no new scanning. A pencil icon now enters an edit mode where you can hide any

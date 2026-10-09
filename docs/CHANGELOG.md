@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.23.6 (2026-10-09)
+
+- Phase 18's last backlog item closed: a "Trends by type" card shows a
+  per-`FileCategory` size-over-time sparkline, alongside the existing
+  total-bytes trend. `StorageSnapshotDao.observeAll()` feeds a pure
+  `List<StorageSnapshotEntity>.toCategoryTrends()` grouping; the
+  `dataviz` skill's own guidance ruled out one combined multi-line
+  chart, since `StatisticsColors.kt`'s palette was only ever validated
+  for the stacked bar's adjacent-pairs color gate, not the all-pairs
+  gate a simultaneous multi-series chart needs -- small multiples (one
+  isolated sparkline per category) need no pairwise validation at
+  all. Phase 18 has no explicit follow-ups left.
+
 ## v0.23.5 (2026-10-09)
 
 - Phase 18 backlog item closed: the most-populated-folders widget now
