@@ -293,6 +293,8 @@
     <string name="storage_advisor_settings_unused_duration">להחשיב כלא בשימוש אחרי</string>
     <string name="storage_advisor_size_mb">%d מגה-בייט</string>
     <string name="storage_advisor_unused_months">%d חודשים</string>
+    <string name="storage_advisor_settings_staged_review">חלון סקירה לפריטים מסומנים</string>
+    <string name="storage_advisor_staged_review_days">%d ימים</string>
 
     <string name="nav_vault">כספת</string>
     <string name="vault_setup_title">הגדר סיסמת כספת</string>

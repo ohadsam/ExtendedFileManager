@@ -293,6 +293,8 @@
     <string name="storage_advisor_settings_unused_duration">Consider unused after</string>
     <string name="storage_advisor_size_mb">%d MB</string>
     <string name="storage_advisor_unused_months">%d months</string>
+    <string name="storage_advisor_settings_staged_review">Staged review window</string>
+    <string name="storage_advisor_staged_review_days">%d days</string>
 
     <string name="nav_vault">Vault</string>
     <string name="vault_setup_title">Set a vault password</string>

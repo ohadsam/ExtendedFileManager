@@ -2,6 +2,7 @@ package com.efm.filemanager.data.insights
 
 import com.efm.filemanager.data.advisor.StorageAdvisorRepository
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
+import com.efm.filemanager.data.metadata.FileFlagsRepository
 import com.efm.filemanager.data.statistics.StatisticsRepository
 import javax.inject.Inject
 
@@ -12,4 +13,5 @@ class DailyInsightsRepositories
         val storageAdvisorRepository: StorageAdvisorRepository,
         val duplicateScanRepository: DuplicateScanRepository,
         val statisticsRepository: StatisticsRepository,
+        val fileFlagsRepository: FileFlagsRepository,
     )

@@ -20,6 +20,7 @@ import javax.inject.Inject
 data class StorageAdvisorSettingsState(
     val minSizeMb: Int = 100,
     val unusedMonths: Int = 6,
+    val stagedReviewDays: Int = 30,
 )
 
 data class InsightsSettingsState(
@@ -46,8 +47,12 @@ class SettingsViewModel
         private val grantedFolderCount = MutableStateFlow(currentGrantedFolderCount())
 
         private val advisorSettings =
-            combine(preferencesRepository.advisorMinSizeMb, preferencesRepository.advisorUnusedMonths) { minSizeMb, unusedMonths ->
-                StorageAdvisorSettingsState(minSizeMb, unusedMonths)
+            combine(
+                preferencesRepository.advisorMinSizeMb,
+                preferencesRepository.advisorUnusedMonths,
+                preferencesRepository.stagedReviewDays,
+            ) { minSizeMb, unusedMonths, stagedReviewDays ->
+                StorageAdvisorSettingsState(minSizeMb, unusedMonths, stagedReviewDays)
             }
 
         private val insightsSettings =
@@ -88,6 +93,10 @@ class SettingsViewModel
 
         fun setAdvisorUnusedMonths(months: Int) {
             viewModelScope.launch { preferencesRepository.setAdvisorUnusedMonths(months) }
+        }
+
+        fun setStagedReviewDays(days: Int) {
+            viewModelScope.launch { preferencesRepository.setStagedReviewDays(days) }
         }
 
         fun setRunDailyInsights(enabled: Boolean) {

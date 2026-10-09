@@ -107,10 +107,13 @@ private fun SettingsBody(
         )
         HorizontalDivider()
         StorageAdvisorSettingsSection(
-            minSizeMb = uiState.advisorSettings.minSizeMb,
-            unusedMonths = uiState.advisorSettings.unusedMonths,
-            onMinSizeChange = viewModel::setAdvisorMinSizeMb,
-            onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
+            settings = uiState.advisorSettings,
+            callbacks =
+                AdvisorSettingsCallbacks(
+                    onMinSizeChange = viewModel::setAdvisorMinSizeMb,
+                    onUnusedMonthsChange = viewModel::setAdvisorUnusedMonths,
+                    onStagedReviewDaysChange = viewModel::setStagedReviewDays,
+                ),
         )
         HorizontalDivider()
         InsightsSettingsSectionHost(
@@ -250,13 +253,19 @@ private fun DisplaySection(
 
 private val ADVISOR_MIN_SIZE_PRESETS_MB = listOf(50, 100, 250, 500)
 private val ADVISOR_UNUSED_PRESETS_MONTHS = listOf(3, 6, 12)
+private val STAGED_REVIEW_PRESETS_DAYS = listOf(7, 14, 30, 60)
+
+/** Bundled so [StorageAdvisorSettingsSection] stays under detekt's `LongParameterList` threshold. */
+private data class AdvisorSettingsCallbacks(
+    val onMinSizeChange: (Int) -> Unit,
+    val onUnusedMonthsChange: (Int) -> Unit,
+    val onStagedReviewDaysChange: (Int) -> Unit,
+)
 
 @Composable
 private fun StorageAdvisorSettingsSection(
-    minSizeMb: Int,
-    unusedMonths: Int,
-    onMinSizeChange: (Int) -> Unit,
-    onUnusedMonthsChange: (Int) -> Unit,
+    settings: StorageAdvisorSettingsState,
+    callbacks: AdvisorSettingsCallbacks,
 ) {
     Column {
         SectionHeader(title = stringResource(R.string.storage_advisor_settings_section))
@@ -268,8 +277,8 @@ private fun StorageAdvisorSettingsSection(
         ADVISOR_MIN_SIZE_PRESETS_MB.forEach { mb ->
             RadioOptionRow(
                 label = stringResource(R.string.storage_advisor_size_mb, mb),
-                selected = minSizeMb == mb,
-                onClick = { onMinSizeChange(mb) },
+                selected = settings.minSizeMb == mb,
+                onClick = { callbacks.onMinSizeChange(mb) },
             )
         }
         Text(
@@ -280,8 +289,20 @@ private fun StorageAdvisorSettingsSection(
         ADVISOR_UNUSED_PRESETS_MONTHS.forEach { months ->
             RadioOptionRow(
                 label = stringResource(R.string.storage_advisor_unused_months, months),
-                selected = unusedMonths == months,
-                onClick = { onUnusedMonthsChange(months) },
+                selected = settings.unusedMonths == months,
+                onClick = { callbacks.onUnusedMonthsChange(months) },
+            )
+        }
+        Text(
+            text = stringResource(R.string.storage_advisor_settings_staged_review),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+        STAGED_REVIEW_PRESETS_DAYS.forEach { days ->
+            RadioOptionRow(
+                label = stringResource(R.string.storage_advisor_staged_review_days, days),
+                selected = settings.stagedReviewDays == days,
+                onClick = { callbacks.onStagedReviewDaysChange(days) },
             )
         }
     }

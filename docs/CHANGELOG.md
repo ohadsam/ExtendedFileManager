@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.23.1 (2026-10-09)
+
+- Phase 10 backlog item closed: the periodic staged-review nudge
+  notification, deferred back when Phase 10 landed since this app had
+  no notification infrastructure yet. A new "Staged review window"
+  Settings control (7/14/30/60 days, default 30) and a pure
+  `isOverdueForReview()` check feed straight into the existing daily
+  insights notification's combined count -- no new channel or screen,
+  same single-summary-notification shape every other category already
+  uses. The Staged tab is still where you act on them; this closes
+  the "get notified" half of the original spec.
+
 ## v0.23.0 (2026-10-08)
 
 - Phase 20 starts: a Jacoco *coverage report* (not yet a gate) for the

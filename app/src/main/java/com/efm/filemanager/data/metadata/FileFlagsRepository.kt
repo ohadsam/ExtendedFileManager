@@ -6,6 +6,7 @@ import com.efm.filemanager.data.local.FileFlagsEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /** Per-file lock-against-deletion, free-text note, staged-for-deletion, and last-opened-via-EFM -- Phase 9/10's flags. */
@@ -64,4 +65,17 @@ class FileFlagsRepository
 
         suspend fun lastOpenedAtByUriOnce(): Map<String, Long> =
             flagsByFileUri.first().mapNotNull { (uri, flags) -> flags.lastOpenedAt?.let { uri to it } }.toMap()
+
+        /** How many staged items have sat past [reviewWindowDays] -- Phase 10's "notify once a staged item is due for review." */
+        suspend fun countOverdueStaged(
+            reviewWindowDays: Int,
+            now: Long = System.currentTimeMillis(),
+        ): Int = stagedByFileUri.first().values.count { isOverdueForReview(it.stagedAt, reviewWindowDays, now) }
     }
+
+/** [stagedAt] of `null` (not staged) is never overdue. Pure and unit-tested independent of any Android API. */
+internal fun isOverdueForReview(
+    stagedAt: Long?,
+    reviewWindowDays: Int,
+    now: Long,
+): Boolean = stagedAt != null && now - stagedAt >= TimeUnit.DAYS.toMillis(reviewWindowDays.toLong())

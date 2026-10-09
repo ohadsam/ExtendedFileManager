@@ -19,6 +19,7 @@ private val Context.dataStore by preferencesDataStore(name = "efm_preferences")
 
 private const val DEFAULT_ADVISOR_MIN_SIZE_MB = 100
 private const val DEFAULT_ADVISOR_UNUSED_MONTHS = 6
+private const val DEFAULT_STAGED_REVIEW_DAYS = 30
 
 /**
  * Shared DataStore-backed preferences store -- later phases (per-folder settings, ...)
@@ -66,6 +67,10 @@ class PreferencesRepository
         val notifyMeEnabled: Flow<Boolean> =
             context.dataStore.data.map { prefs -> prefs[NOTIFY_ME_KEY] ?: true }
 
+        /** Phase 10's staged-for-deletion review window, in days -- how long a staged item sits before counting as overdue for review. */
+        val stagedReviewDays: Flow<Int> =
+            context.dataStore.data.map { prefs -> prefs[STAGED_REVIEW_DAYS_KEY] ?: DEFAULT_STAGED_REVIEW_DAYS }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -102,6 +107,10 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[NOTIFY_ME_KEY] = enabled }
         }
 
+        suspend fun setStagedReviewDays(days: Int) {
+            context.dataStore.edit { prefs -> prefs[STAGED_REVIEW_DAYS_KEY] = days }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
@@ -112,6 +121,7 @@ class PreferencesRepository
             val CHANGE_VERSION_KEY: Preferences.Key<Long> = longPreferencesKey("file_index_change_version")
             val RUN_DAILY_INSIGHTS_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("run_daily_insights")
             val NOTIFY_ME_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("notify_me_enabled")
+            val STAGED_REVIEW_DAYS_KEY: Preferences.Key<Int> = intPreferencesKey("staged_review_days")
         }
     }
 

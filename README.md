@@ -20,9 +20,9 @@ Phase 9 (favorites with nested collections, a reusable colored tag catalog with 
 screen, lock-against-deletion, free-text notes, and the same multi-select quick-actions reachable
 from Browse/Search/Duplicates/Preview alike), and Phase 10 (storage optimization advisor: a
 Storage Advisor screen scans for large-unused/junk/temporary-file recommendations -- reviewed,
-staged for later, dismissed, or deleted, with Settings-tunable thresholds -- everything from the
-original spec has landed except the periodic staged-review reminder, deferred to Phase 17's proper
-notification infrastructure), and Phase 11 (security hardening) are done — CI is green
+staged for later, dismissed, or deleted, with Settings-tunable thresholds, including a periodic
+staged-review nudge folded into the daily insights notification once Phase 17 built the
+notification infrastructure it needed), and Phase 11 (security hardening) are done — CI is green
 end-to-end, including a successful `assembleDebug`. A protected-path guard now
 refuses to create/rename/move/copy/delete/extract into Android/data, Android/obb, or another
 app's private storage, and rejects any traversal-unsafe name, across every mutating repository;
