@@ -20,10 +20,12 @@ internal const val DAILY_INSIGHTS_WORK_NAME = "daily_insights"
  * notification, rather than leaving the Insights screen as something the user has to remember
  * to open. This worker only recomputes Phase 10's already-cheap recommendation categories, the
  * same ones the Insights screen already shows and already persists to Room via
- * [com.efm.filemanager.data.advisor.StorageAdvisorRepository.scan] -- it reads the duplicate
- * count from whatever [com.efm.filemanager.data.duplicates.DuplicateScanRepository] last cached
- * rather than re-running that expensive scan itself; the changeVersion-based incremental skip for
- * triggering a fresh duplicate scan here is still open (see docs/PLAN.md Phase 17). Settings'
+ * [com.efm.filemanager.data.advisor.StorageAdvisorRepository.scan] -- the duplicate count is the
+ * one exception: it only reads whatever's already cached when nothing's changed since the last
+ * time this worker actually ran [com.efm.filemanager.data.duplicates.DuplicateScanRepository.scan]
+ * itself (same `changeVersion`-comparison skip [com.efm.filemanager.data.statistics.StatisticsRepository]
+ * already uses), and re-runs that real, expensive scan otherwise -- so the notification's
+ * duplicate count can't go stale indefinitely the way it could before this landed. Settings'
  * "Run daily insights" toggle skips the insights scan/notification specifically; Phase 18's daily
  * storage-stats snapshot (below) piggybacks on this same cadence regardless of that toggle, since
  * it's a separate dashboard feature, not part of Insights. Also folded into the same scan:
@@ -66,12 +68,12 @@ class DailyInsightsWorker
         private suspend fun runInsightsScan() {
             Timber.i("DailyInsightsWorker: starting daily scan")
             val advisorCount = repositories.storageAdvisorRepository.scan {}
-            val duplicateCount = repositories.duplicateScanRepository.observeGroups().first().sumOf { it.files.size }
+            val duplicateCount = duplicateCount()
             val overdueStagedCount =
                 repositories.fileFlagsRepository.countOverdueStaged(preferencesRepository.stagedReviewDays.first())
             val foundCount = advisorCount + duplicateCount + overdueStagedCount
             Timber.i(
-                "DailyInsightsWorker: found %d total (%d advisor + %d cached duplicate + %d overdue staged)",
+                "DailyInsightsWorker: found %d total (%d advisor + %d duplicate + %d overdue staged)",
                 foundCount,
                 advisorCount,
                 duplicateCount,
@@ -82,5 +84,19 @@ class DailyInsightsWorker
             } else {
                 Timber.i("DailyInsightsWorker: notify-me disabled via Settings, skipping notification")
             }
+        }
+
+        /** Re-runs the real duplicate scan only when the file index has moved since the last time this ran it. */
+        private suspend fun duplicateCount(): Int {
+            val currentVersion = preferencesRepository.changeVersion.first()
+            val lastScannedVersion = preferencesRepository.lastDuplicateScanChangeVersion.first()
+            if (lastScannedVersion == currentVersion) {
+                Timber.i("DailyInsightsWorker: file index unchanged, reusing cached duplicate count")
+                return repositories.duplicateScanRepository.observeGroups().first().sumOf { it.files.size }
+            }
+            Timber.i("DailyInsightsWorker: file index changed, re-running duplicate scan")
+            val count = repositories.duplicateScanRepository.scan {}
+            preferencesRepository.setLastDuplicateScanChangeVersion(currentVersion)
+            return count
         }
     }

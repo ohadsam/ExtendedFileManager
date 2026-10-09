@@ -71,6 +71,10 @@ class PreferencesRepository
         val stagedReviewDays: Flow<Int> =
             context.dataStore.data.map { prefs -> prefs[STAGED_REVIEW_DAYS_KEY] ?: DEFAULT_STAGED_REVIEW_DAYS }
 
+        /** [changeVersion] as of the last duplicate scan that actually ran -- null means never. */
+        val lastDuplicateScanChangeVersion: Flow<Long?> =
+            context.dataStore.data.map { prefs -> prefs[LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY] }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -111,6 +115,10 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[STAGED_REVIEW_DAYS_KEY] = days }
         }
 
+        suspend fun setLastDuplicateScanChangeVersion(version: Long) {
+            context.dataStore.edit { prefs -> prefs[LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY] = version }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
@@ -122,6 +130,7 @@ class PreferencesRepository
             val RUN_DAILY_INSIGHTS_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("run_daily_insights")
             val NOTIFY_ME_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("notify_me_enabled")
             val STAGED_REVIEW_DAYS_KEY: Preferences.Key<Int> = intPreferencesKey("staged_review_days")
+            val LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY: Preferences.Key<Long> = longPreferencesKey("last_duplicate_scan_change_version")
         }
     }
 

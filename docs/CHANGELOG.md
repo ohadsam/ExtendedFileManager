@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.23.4 (2026-10-09)
+
+- Phase 17 backlog item closed: the daily insights job now actually
+  reads its own `changeVersion` counter. A new
+  `lastDuplicateScanChangeVersion` preference lets
+  `DailyInsightsWorker` tell whether the file index has moved since
+  the last time it really ran the duplicate scan -- unchanged means
+  it reuses the cached count, same as before; changed means it
+  re-runs the real scan and records the new version. The daily
+  notification's duplicate count can no longer go stale indefinitely.
+
 ## v0.23.3 (2026-10-09)
 
 - Phase 16 backlog item closed: "Share" is now available from every

@@ -78,9 +78,10 @@ background job re-runs the cheap part of that scan once a day, adds in whatever 
 already cached, and posts one summary notification ("Worth a look -- N item(s) found") that
 opens straight into the Insights screen when tapped. A Settings "Insights" section controls both
 pieces -- "Run daily insights" and "Notify me" (which triggers the real notification-permission
-request on Android 13+). Having that daily job also trigger its own fresh, incrementally-throttled
-duplicate rescan (rather than only reading whatever Phase 6's own scan last cached) is the one
-piece left for later. Phase 18 (statistics dashboard) is done too: a new "Statistics" screen (own
+request on Android 13+). That daily job now also triggers its own fresh duplicate rescan, but only
+when the file index has actually changed since the last time it ran one -- otherwise it just
+reuses Phase 6's own last-cached count, never a redundant rescan. Phase 18 (statistics dashboard)
+is done too: a new "Statistics" screen (own
 nav-drawer entry) shows eight widgets -- storage used (with a trend sparkline once there's at
 least two days of history), a by-file-type size breakdown, largest files, recently modified,
 most populated folders, duplicate-group count + reclaimable space, how many files Insights has
