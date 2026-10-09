@@ -145,8 +145,7 @@ class StatisticsRepository
          * validated for (that's the same reason that widget is a stacked bar, not a donut). A lone
          * category drawn by itself, one color at a time, needs no pairwise distinction at all.
          */
-        fun observeCategoryTrends(): Flow<Map<FileCategory, List<Long>>> =
-            storageSnapshotDao.observeAll().map { it.toCategoryTrends() }
+        fun observeCategoryTrends(): Flow<Map<FileCategory, List<Long>>> = storageSnapshotDao.observeAll().map { it.toCategoryTrends() }
 
         private suspend fun recordDailySnapshot(stats: StorageStats) {
             val day = System.currentTimeMillis() / TimeUnit.DAYS.toMillis(1)
