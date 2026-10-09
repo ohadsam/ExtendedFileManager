@@ -74,7 +74,7 @@ class StatisticsRepository
                 storageSnapshotDao.getLatestDayEntries().associate { FileCategory.valueOf(it.category) to it.bytes }
             val largestFiles = statsCacheDao.getLargestFiles().map { it.toFileEntry() }
             val recentlyModifiedFiles = statsCacheDao.getRecentFiles().map { it.toFileEntry() }
-            val mostPopulatedFolders = statsCacheFolderDao.getFolders().map { FolderFileCount(it.name, it.fileCount) }
+            val mostPopulatedFolders = statsCacheFolderDao.getFolders().map { FolderFileCount(it.uri, it.name, it.fileCount) }
             return StorageStats(
                 totalSize = cachedMeta.totalSize,
                 totalFileCount = cachedMeta.totalFileCount,
@@ -90,7 +90,7 @@ class StatisticsRepository
             val baseStats = walk.files.map { it.toDomain() }.toStorageStats()
             val mostPopulatedFolders =
                 walk.files.topFolderCounts(TOP_FOLDERS_COUNT).map { (parentUri, count) ->
-                    FolderFileCount(walk.folderNames[parentUri] ?: parentUri, count)
+                    FolderFileCount(parentUri, walk.folderNames[parentUri] ?: parentUri, count)
                 }
             val stats = baseStats.copy(mostPopulatedFolders = mostPopulatedFolders)
             val meta = StatsCacheEntity(changeVersion = currentVersion, totalSize = stats.totalSize, totalFileCount = stats.totalFileCount)
@@ -101,7 +101,7 @@ class StatisticsRepository
                     StatsCacheRecentFileEntity(rank, file.uri.toString(), file.name, file.lastModified)
                 }
             val cachedFolders =
-                mostPopulatedFolders.mapIndexed { rank, folder -> StatsCacheFolderEntity(rank, folder.name, folder.fileCount) }
+                mostPopulatedFolders.mapIndexed { rank, folder -> StatsCacheFolderEntity(rank, folder.uri, folder.name, folder.fileCount) }
             writeCache(meta, cachedLargestFiles, cachedRecentFiles, cachedFolders)
             return stats
         }

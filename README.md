@@ -86,7 +86,7 @@ nav-drawer entry) shows eight widgets -- storage used (with a trend sparkline on
 least two days of history), a by-file-type size breakdown, largest files, recently modified,
 most populated folders, duplicate-group count + reclaimable space, how many files Insights has
 flagged, and a total operations-recorded count -- all reusing data that already exists elsewhere
-in the app wherever possible. Every widget but one now taps through somewhere: Duplicates/
+in the app wherever possible. Every widget now taps through somewhere: Duplicates/
 Insights/Operations jump straight to their owning screen, and the by-type/largest-files/
 recently-modified widgets open a new global file list (optionally filtered to one file type,
 sorted by size or by recency depending which widget it came from) that didn't exist in this app
@@ -97,9 +97,8 @@ legend swatch per category. The dashboard's own full-tree walk is skipped entire
 changed since the last time it ran, reusing Phase 17's existing "has the file index changed"
 signal rather than re-walking just to get the same numbers back, and the daily storage snapshot
 records itself automatically (piggybacking on Phase 17's own once-a-day job) even on a day the
-user never opens Statistics. The one widget without a tap-through yet is most-populated-folders --
-Browse's nav route has no folder-targeting argument today, so that's an explicit follow-up rather
-than something this phase could reuse Search's own drill-down trick for. Phase 19 (customizable
+user never opens Statistics. Every widget now taps through, most-populated-folders included --
+each row opens its own folder straight in Browse. Phase 19 (customizable
 home dashboard) is now done too: a new "Dashboard" screen shows four cards -- storage used,
 duplicates, insights, and a favorites quick-access list -- every one reusing an already-live
 data source, no new scanning. A pencil icon now enters an edit mode where you can hide any

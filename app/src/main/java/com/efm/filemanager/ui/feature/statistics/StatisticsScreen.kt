@@ -122,7 +122,9 @@ private fun StatisticsBody(
                 onClick = { navActions.onOpenGlobalFiles(null, GlobalFilesSort.RECENT) },
             )
         }
-        item { MostPopulatedFoldersCard(uiState.storageStats.mostPopulatedFolders) }
+        item {
+            MostPopulatedFoldersCard(uiState.storageStats.mostPopulatedFolders, onFolderClick = navActions.onOpenFolder)
+        }
         item {
             DuplicatesStatCard(uiState.duplicatesSummary, onClick = navActions.onOpenDuplicates)
         }
@@ -296,22 +298,29 @@ private fun RecentlyModifiedCard(
 }
 
 /**
- * No [onClick] yet, unlike every other drill-down widget here -- Browse's nav route carries no
- * folder-targeting argument today, and the shared-ViewModel-instance trick Search's own
- * drill-down uses (`EfmSearchDestination`) only works because Search stays pushed *on top of*
- * Browse on the back stack; a drawer destination like Statistics pops Browse off first
- * (`popUpTo` with `saveState`), so `navController.getBackStackEntry(Browse.route)` isn't
- * reachable from here the same way. Deferred rather than forced, same as this phase's other
- * widgets originally shipped without drill-down before it was added in a dedicated slice.
+ * Each row drills into its own folder (unlike every other widget here, which drills into one
+ * shared destination), so the per-row [StatRow.onClick] carries the folder, not a whole-card one.
+ * Reaches Browse via the same `browseViewModel`-hoisted-in-`EfmApp` + navigate-and-restore pattern
+ * `EfmSearchDestination`'s own drill-down uses -- this widget shipped without it originally only
+ * because that pattern didn't exist yet (Statistics pops Browse off the back stack via `popUpTo`,
+ * so the older `getBackStackEntry(Browse.route)` trick Search alone could still rely on never
+ * worked here).
  */
 @Composable
-private fun MostPopulatedFoldersCard(mostPopulatedFolders: List<FolderFileCount>) {
+private fun MostPopulatedFoldersCard(
+    mostPopulatedFolders: List<FolderFileCount>,
+    onFolderClick: (String) -> Unit,
+) {
     StatCard(title = stringResource(R.string.statistics_most_populated_folders_title)) {
         if (mostPopulatedFolders.isEmpty()) {
             Text(stringResource(R.string.statistics_empty), style = MaterialTheme.typography.bodySmall)
         } else {
             mostPopulatedFolders.forEach { folder ->
-                StatRow(label = folder.name, value = stringResource(R.string.statistics_folder_file_count, folder.fileCount))
+                StatRow(
+                    label = folder.name,
+                    value = stringResource(R.string.statistics_folder_file_count, folder.fileCount),
+                    onClick = { onFolderClick(folder.uri) },
+                )
             }
         }
     }

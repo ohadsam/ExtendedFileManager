@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.23.5 (2026-10-09)
+
+- Phase 18 backlog item closed: the most-populated-folders widget now
+  drills down too. `FolderFileCount`/`StatsCacheFolderEntity` gained a
+  `uri` field (database version 19) so there's something to navigate
+  to; each row opens its own folder via a new
+  `BrowseViewModel.navigateToFolder()`, reusing the same
+  `browseViewModel`-hoisted-in-`EfmApp` + navigate-and-restore pattern
+  Search's own drill-down already uses. This was blocked before that
+  hoisting existed (Statistics pops Browse off the back stack, so the
+  older `getBackStackEntry` trick Search alone could rely on never
+  reached it) -- now every Statistics widget drills down. Only a
+  second, per-file-type trend chart remains open for this phase.
+
 ## v0.23.4 (2026-10-09)
 
 - Phase 17 backlog item closed: the daily insights job now actually

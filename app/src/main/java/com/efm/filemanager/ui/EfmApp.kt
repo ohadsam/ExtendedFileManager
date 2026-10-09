@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui
 
+import android.net.Uri
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
@@ -215,7 +216,7 @@ private fun NavGraphBuilder.efmDrawerDestinations(
     composable(EfmDestination.Statistics.route) {
         StatisticsScreen(
             onOpenDrawer = { scope.launch { drawerState.open() } },
-            navActions = statisticsNavActions(navController),
+            navActions = statisticsNavActions(navController, browseViewModel),
         )
     }
     composable(EfmDestination.Vault.route) {
@@ -263,12 +264,23 @@ private fun dashboardNavActions(navController: NavHostController): DashboardNavA
     )
 
 // Both extracted so efmDrawerDestinations() stays under detekt's LongMethod threshold.
-private fun statisticsNavActions(navController: NavHostController): StatisticsNavActions =
+private fun statisticsNavActions(
+    navController: NavHostController,
+    browseViewModel: BrowseViewModel,
+): StatisticsNavActions =
     StatisticsNavActions(
         onOpenDuplicates = { navController.navigate(EfmDestination.Duplicates.route) },
         onOpenInsights = { navController.navigate(EfmDestination.Insights.route) },
         onOpenAudit = { navController.navigate(EfmDestination.Audit.route) },
         onOpenGlobalFiles = { category, sort -> navController.navigate(globalFilesRoute(category, sort)) },
+        onOpenFolder = { uriString ->
+            browseViewModel.navigateToFolder(Uri.parse(uriString))
+            navController.navigate(EfmDestination.Browse.route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        },
     )
 
 private fun globalFilesRoute(

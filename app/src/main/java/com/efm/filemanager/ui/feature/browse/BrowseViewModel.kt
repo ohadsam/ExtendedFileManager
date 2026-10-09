@@ -174,12 +174,21 @@ class BrowseViewModel
         fun navigateToLocation(entry: FileEntry) {
             viewModelScope.launch {
                 val targetFolderUri = if (entry.isDirectory) entry.uri else (repository.parentUriOf(entry.uri) ?: return@launch)
-                val chain = repository.ancestorChain(targetFolderUri)
-                val rootCrumb = BreadcrumbEntry(chain.rootUri, documentTreeAccessManager.rootLabel(chain.rootUri))
-                val folderCrumbs = chain.folders.map { folder -> BreadcrumbEntry(folder.uri, folder.name) }
-                _uiState.update { it.copy(breadcrumbs = listOf(rootCrumb) + folderCrumbs) }
-                observeFolder(targetFolderUri)
+                jumpToFolder(targetFolderUri)
             }
+        }
+
+        /** The directory-only half of [navigateToLocation], reusable by anything that only ever has a folder's own URI. */
+        fun navigateToFolder(folderUri: Uri) {
+            viewModelScope.launch { jumpToFolder(folderUri) }
+        }
+
+        private suspend fun jumpToFolder(folderUri: Uri) {
+            val chain = repository.ancestorChain(folderUri)
+            val rootCrumb = BreadcrumbEntry(chain.rootUri, documentTreeAccessManager.rootLabel(chain.rootUri))
+            val folderCrumbs = chain.folders.map { folder -> BreadcrumbEntry(folder.uri, folder.name) }
+            _uiState.update { it.copy(breadcrumbs = listOf(rootCrumb) + folderCrumbs) }
+            observeFolder(folderUri)
         }
 
         fun navigateToBreadcrumb(index: Int) {

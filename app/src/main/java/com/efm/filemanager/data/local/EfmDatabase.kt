@@ -32,7 +32,7 @@ import com.efm.filemanager.data.trash.TrashedFileEntity
         DashboardLayoutEntity::class,
         DashboardLayoutWidgetEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = false,
 )
 abstract class EfmDatabase : RoomDatabase() {
