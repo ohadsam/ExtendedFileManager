@@ -8,8 +8,6 @@ import com.efm.filemanager.data.dashboard.DashboardSavedLayout
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.MoveDirection
-import com.efm.filemanager.data.prefs.PreferencesRepository
-import com.efm.filemanager.data.statistics.DeviceStorageRepository
 import com.efm.filemanager.data.statistics.StatisticsRepository
 import com.efm.filemanager.data.statistics.isLowStorage
 import com.efm.filemanager.domain.model.DashboardTemplate
@@ -55,8 +53,7 @@ class DashboardViewModel
         private val storageAdvisorRepository: StorageAdvisorRepository,
         private val fileMetadataRepository: FileMetadataRepository,
         private val dashboardLayoutRepository: DashboardLayoutRepository,
-        private val deviceStorageRepository: DeviceStorageRepository,
-        private val preferencesRepository: PreferencesRepository,
+        private val lowStorageRepositories: LowStorageRepositories,
     ) : ViewModel() {
         private val isLoading = MutableStateFlow(true)
         private val storageStats = MutableStateFlow(StorageStats())
@@ -86,7 +83,7 @@ class DashboardViewModel
             }
 
         private val lowStorageState: Flow<LowStorageState> =
-            combine(freeStorageBytes, preferencesRepository.lowStorageThresholdMb) { free, thresholdMb ->
+            combine(freeStorageBytes, lowStorageRepositories.preferencesRepository.lowStorageThresholdMb) { free, thresholdMb ->
                 LowStorageState(freeBytes = free, isLow = isLowStorage(free, thresholdMb))
             }
 
@@ -117,7 +114,7 @@ class DashboardViewModel
                 isLoading.value = true
                 storageStats.value = statisticsRepository.computeStorageStats()
                 favoriteEntries.value = fileMetadataRepository.resolveFavoriteEntries().take(MAX_FAVORITES_SHOWN)
-                freeStorageBytes.value = deviceStorageRepository.freeBytes()
+                freeStorageBytes.value = lowStorageRepositories.deviceStorageRepository.freeBytes()
                 isLoading.value = false
             }
         }
