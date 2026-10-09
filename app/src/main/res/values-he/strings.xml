@@ -166,6 +166,8 @@
     <string name="undo">בטל</string>
 
     <string name="operation_failed">משהו השתבש. נסה שוב.</string>
+    <string name="error_protected_path">זהו מיקום מערכת מוגן ולא ניתן לשנות אותו.</string>
+    <string name="error_path_traversal">\"%1$s\" אינו שם תקין.</string>
 
     <string name="selection_clear">נקה בחירה</string>
     <string name="selection_count">%d נבחרו</string>

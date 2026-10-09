@@ -70,7 +70,8 @@ sealed interface BrowseEvent {
 
     data class AddToVaultBlockedByLock(val lockedEntries: List<FileEntry>) : BrowseEvent
 
-    data object OperationFailed : BrowseEvent
+    /** [cause] is the first non-lock failure's exception, when one is available, so the UI can show a specific message. */
+    data class OperationFailed(val cause: Throwable? = null) : BrowseEvent
 }
 
 @HiltViewModel
@@ -112,7 +113,7 @@ class BrowseViewModel
                     BrowsePickerCallbacks(
                         currentSourceParentUri = ::currentParentUri,
                         currentRootCrumb = { _uiState.value.breadcrumbs.firstOrNull() },
-                        onOperationFailed = { _events.emit(BrowseEvent.OperationFailed) },
+                        onOperationFailed = { _events.emit(BrowseEvent.OperationFailed()) },
                     ),
             )
 
@@ -206,7 +207,7 @@ class BrowseViewModel
                 val otherFailureCount = entries.size - trashedIds.size - lockedEntries.size
                 if (trashedIds.isNotEmpty()) _events.emit(BrowseEvent.UndoDelete(trashedIds))
                 if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.DeleteBlockedByLock(lockedEntries))
-                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed)
+                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed(firstOtherFailureCause(results.values)))
             }
         }
 
@@ -216,7 +217,7 @@ class BrowseViewModel
                 val lockedEntries = results.filterValues { it.exceptionOrNull() is LockedFileException }.keys.toList()
                 val otherFailureCount = entries.size - results.count { it.value.isSuccess } - lockedEntries.size
                 if (lockedEntries.isNotEmpty()) _events.emit(BrowseEvent.AddToVaultBlockedByLock(lockedEntries))
-                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed)
+                if (otherFailureCount > 0) _events.emit(BrowseEvent.OperationFailed(firstOtherFailureCause(results.values)))
             }
         }
 
@@ -237,9 +238,14 @@ class BrowseViewModel
         private fun runAgainstCurrentFolder(operation: suspend (Uri) -> Result<Unit>) {
             val parentUri = currentParentUri() ?: return
             viewModelScope.launch {
-                if (operation(parentUri).isFailure) _events.emit(BrowseEvent.OperationFailed)
+                val result = operation(parentUri)
+                if (result.isFailure) _events.emit(BrowseEvent.OperationFailed(result.exceptionOrNull()))
             }
         }
+
+        /** The first failure that isn't [LockedFileException] -- that case already gets its own, more specific event. */
+        private fun firstOtherFailureCause(results: Collection<Result<*>>): Throwable? =
+            results.firstOrNull { it.isFailure && it.exceptionOrNull() !is LockedFileException }?.exceptionOrNull()
 
         private fun currentParentUri(): Uri? = _uiState.value.breadcrumbs.lastOrNull()?.uri
 

@@ -1,5 +1,6 @@
 package com.efm.filemanager.ui.feature.browse
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -9,6 +10,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.efm.filemanager.R
+import com.efm.filemanager.data.security.PathTraversalException
+import com.efm.filemanager.data.security.ProtectedPathException
 import com.efm.filemanager.data.share.ShareIntentFactory
 import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
@@ -28,7 +31,6 @@ internal fun BrowseSnackbarEffect(
 ) {
     val undoDeleteMessage = stringResource(R.string.delete_undo_message)
     val undoLabel = stringResource(R.string.undo)
-    val operationFailedMessage = stringResource(R.string.operation_failed)
     val unlockLabel = stringResource(R.string.file_details_lock)
     val context = LocalContext.current
 
@@ -58,11 +60,29 @@ internal fun BrowseSnackbarEffect(
                         viewModel.metadataActions.unlock(event.lockedEntries.map { it.uri })
                     }
                 }
-                BrowseEvent.OperationFailed -> snackbarHostState.showSnackbar(operationFailedMessage)
+                is BrowseEvent.OperationFailed ->
+                    snackbarHostState.showSnackbar(operationFailedMessage(context, event.cause))
             }
         }
     }
 }
+
+/**
+ * Phase 11's own "unclaimed scope" note closed here: a protected-path/path-traversal denial now
+ * gets its own specific wording instead of the generic fallback every other failure still shows.
+ * Plain `context.getString` rather than `stringResource`, since this runs inside
+ * [LaunchedEffect]'s suspend collector, not composable scope -- same reason [DeleteBlockedByLock]
+ * above already resolves its own dynamic-arg message this way.
+ */
+private fun operationFailedMessage(
+    context: Context,
+    cause: Throwable?,
+): String =
+    when (cause) {
+        is ProtectedPathException -> context.getString(R.string.error_protected_path)
+        is PathTraversalException -> context.getString(R.string.error_path_traversal, cause.attemptedName)
+        else -> context.getString(R.string.operation_failed)
+    }
 
 /**
  * [onFinished] both dismisses the active dialog and clears the current selection -- every

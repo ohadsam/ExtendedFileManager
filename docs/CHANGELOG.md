@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.23.2 (2026-10-09)
+
+- Phase 11 backlog item closed: Browse's generic "Something went
+  wrong" snackbar now shows specific wording for a protected-path or
+  path-traversal denial instead of swallowing the reason. Scoped to
+  Browse only, the screen this gap was reported against -- the same
+  generic-failure pattern on Duplicates/Favorites/Search/Preview/Vault
+  is a natural follow-up.
+
 ## v0.23.1 (2026-10-09)
 
 - Phase 10 backlog item closed: the periodic staged-review nudge
