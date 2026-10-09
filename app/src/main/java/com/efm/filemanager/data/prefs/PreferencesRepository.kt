@@ -20,6 +20,7 @@ private val Context.dataStore by preferencesDataStore(name = "efm_preferences")
 private const val DEFAULT_ADVISOR_MIN_SIZE_MB = 100
 private const val DEFAULT_ADVISOR_UNUSED_MONTHS = 6
 private const val DEFAULT_STAGED_REVIEW_DAYS = 30
+private const val DEFAULT_LOW_STORAGE_THRESHOLD_MB = 1_000
 
 /**
  * Shared DataStore-backed preferences store -- later phases (per-folder settings, ...)
@@ -75,6 +76,10 @@ class PreferencesRepository
         val lastDuplicateScanChangeVersion: Flow<Long?> =
             context.dataStore.data.map { prefs -> prefs[LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY] }
 
+        /** Phase 19's low-storage Dashboard widget surfaces itself once free space drops below this. */
+        val lowStorageThresholdMb: Flow<Int> =
+            context.dataStore.data.map { prefs -> prefs[LOW_STORAGE_THRESHOLD_MB_KEY] ?: DEFAULT_LOW_STORAGE_THRESHOLD_MB }
+
         suspend fun setAppearanceMode(mode: AppearanceMode) {
             context.dataStore.edit { prefs -> prefs[APPEARANCE_MODE_KEY] = mode.name }
         }
@@ -119,6 +124,10 @@ class PreferencesRepository
             context.dataStore.edit { prefs -> prefs[LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY] = version }
         }
 
+        suspend fun setLowStorageThresholdMb(mb: Int) {
+            context.dataStore.edit { prefs -> prefs[LOW_STORAGE_THRESHOLD_MB_KEY] = mb }
+        }
+
         private companion object {
             val APPEARANCE_MODE_KEY: Preferences.Key<String> = stringPreferencesKey("appearance_mode")
             val DYNAMIC_COLOR_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color_enabled")
@@ -131,6 +140,7 @@ class PreferencesRepository
             val NOTIFY_ME_KEY: Preferences.Key<Boolean> = booleanPreferencesKey("notify_me_enabled")
             val STAGED_REVIEW_DAYS_KEY: Preferences.Key<Int> = intPreferencesKey("staged_review_days")
             val LAST_DUPLICATE_SCAN_CHANGE_VERSION_KEY: Preferences.Key<Long> = longPreferencesKey("last_duplicate_scan_change_version")
+            val LOW_STORAGE_THRESHOLD_MB_KEY: Preferences.Key<Int> = intPreferencesKey("low_storage_threshold_mb")
         }
     }
 

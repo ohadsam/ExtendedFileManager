@@ -11,6 +11,7 @@ internal fun DashboardWidgetType.titleRes(): Int =
         DashboardWidgetType.DUPLICATES -> R.string.statistics_duplicates_title
         DashboardWidgetType.INSIGHTS -> R.string.statistics_advisor_title
         DashboardWidgetType.FAVORITES -> R.string.dashboard_favorites_title
+        DashboardWidgetType.LOW_STORAGE -> R.string.dashboard_low_storage_title
     }
 
 internal fun DashboardTemplate.labelRes(): Int =

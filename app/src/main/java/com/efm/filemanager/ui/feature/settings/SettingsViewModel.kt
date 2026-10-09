@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +29,10 @@ data class InsightsSettingsState(
     val notifyMeEnabled: Boolean = true,
 )
 
+data class DashboardSettingsState(
+    val lowStorageThresholdMb: Int = 1_000,
+)
+
 data class SettingsUiState(
     val appearanceMode: AppearanceMode = AppearanceMode.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
@@ -35,6 +40,7 @@ data class SettingsUiState(
     val viewMode: ViewMode = ViewMode.LIST,
     val advisorSettings: StorageAdvisorSettingsState = StorageAdvisorSettingsState(),
     val insightsSettings: InsightsSettingsState = InsightsSettingsState(),
+    val dashboardSettings: DashboardSettingsState = DashboardSettingsState(),
 )
 
 @HiltViewModel
@@ -60,6 +66,9 @@ class SettingsViewModel
                 InsightsSettingsState(runEnabled, notifyEnabled)
             }
 
+        private val dashboardSettings =
+            preferencesRepository.lowStorageThresholdMb.map { thresholdMb -> DashboardSettingsState(thresholdMb) }
+
         private val baseUiState =
             combine(
                 preferencesRepository.appearanceMode,
@@ -72,8 +81,9 @@ class SettingsViewModel
             }
 
         val uiState: StateFlow<SettingsUiState> =
-            combine(baseUiState, insightsSettings) { base, insights -> base.copy(insightsSettings = insights) }
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
+            combine(baseUiState, insightsSettings, dashboardSettings) { base, insights, dashboard ->
+                base.copy(insightsSettings = insights, dashboardSettings = dashboard)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), SettingsUiState())
 
         fun setAppearanceMode(mode: AppearanceMode) {
             viewModelScope.launch { preferencesRepository.setAppearanceMode(mode) }
@@ -105,6 +115,10 @@ class SettingsViewModel
 
         fun setNotifyMeEnabled(enabled: Boolean) {
             viewModelScope.launch { preferencesRepository.setNotifyMeEnabled(enabled) }
+        }
+
+        fun setLowStorageThresholdMb(mb: Int) {
+            viewModelScope.launch { preferencesRepository.setLowStorageThresholdMb(mb) }
         }
 
         fun refreshPermissionsStatus() {

@@ -245,7 +245,10 @@ private fun DashboardBody(
         }
         return
     }
-    val visibleConfigs = uiState.widgetConfigs.filter { it.isEnabled }
+    val visibleConfigs =
+        uiState.widgetConfigs.filter { config ->
+            config.isEnabled && (config.type != DashboardWidgetType.LOW_STORAGE || uiState.isLowStorage)
+        }
     if (visibleConfigs.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.dashboard_all_hidden))
@@ -278,6 +281,8 @@ private fun DashboardWidgetRow(
         DashboardWidgetType.INSIGHTS -> InsightsCard(uiState.advisorFlaggedCount, onClick = navActions.onOpenInsights)
         DashboardWidgetType.FAVORITES ->
             FavoritesCard(uiState.favoriteEntries, config.size, onClick = navActions.onOpenFavorites)
+        DashboardWidgetType.LOW_STORAGE ->
+            LowStorageCard(uiState.freeStorageBytes, config.size, onClick = navActions.onOpenStatistics)
     }
 }
 
@@ -363,6 +368,34 @@ private fun FavoritesCard(
             size == DashboardWidgetSize.COMPACT ->
                 Text(stringResource(R.string.dashboard_favorites_count, entries.size), style = MaterialTheme.typography.bodyMedium)
             else -> entries.forEach { entry -> Text(entry.name, style = MaterialTheme.typography.bodyMedium) }
+        }
+    }
+}
+
+/**
+ * The one catalog entry that's automatic rather than user-added: [DashboardBody]'s own visibility
+ * filter only ever reaches this card once [DashboardUiState.isLowStorage] is true, so there's
+ * nothing to word as a reassuring empty state here the way every other widget's card needs one --
+ * by the time this renders at all, there's always something to say.
+ */
+@Composable
+private fun LowStorageCard(
+    freeBytes: Long,
+    size: DashboardWidgetSize,
+    onClick: () -> Unit,
+) {
+    DashboardCard(title = stringResource(R.string.dashboard_low_storage_title), onClick = onClick) {
+        Text(
+            stringResource(R.string.dashboard_low_storage_warning),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
+        if (size == DashboardWidgetSize.DETAILED) {
+            Text(
+                stringResource(R.string.dashboard_low_storage_free_detail, formatFileSize(freeBytes)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

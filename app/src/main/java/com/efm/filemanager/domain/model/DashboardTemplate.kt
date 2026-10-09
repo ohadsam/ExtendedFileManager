@@ -18,6 +18,7 @@ data class DashboardTemplateWidget(
 enum class DashboardTemplate(val widgets: List<DashboardTemplateWidget>) {
     CLEANUP_FOCUS(
         listOf(
+            DashboardTemplateWidget(DashboardWidgetType.LOW_STORAGE, isEnabled = true, size = DashboardWidgetSize.DETAILED),
             DashboardTemplateWidget(DashboardWidgetType.DUPLICATES, isEnabled = true, size = DashboardWidgetSize.DETAILED),
             DashboardTemplateWidget(DashboardWidgetType.INSIGHTS, isEnabled = true, size = DashboardWidgetSize.DETAILED),
             DashboardTemplateWidget(DashboardWidgetType.STORAGE_SUMMARY, isEnabled = true, size = DashboardWidgetSize.COMPACT),
@@ -28,6 +29,7 @@ enum class DashboardTemplate(val widgets: List<DashboardTemplateWidget>) {
         listOf(
             DashboardTemplateWidget(DashboardWidgetType.FAVORITES, isEnabled = true, size = DashboardWidgetSize.DETAILED),
             DashboardTemplateWidget(DashboardWidgetType.STORAGE_SUMMARY, isEnabled = true, size = DashboardWidgetSize.COMPACT),
+            DashboardTemplateWidget(DashboardWidgetType.LOW_STORAGE, isEnabled = true, size = DashboardWidgetSize.COMPACT),
             DashboardTemplateWidget(DashboardWidgetType.DUPLICATES, isEnabled = false, size = DashboardWidgetSize.COMPACT),
             DashboardTemplateWidget(DashboardWidgetType.INSIGHTS, isEnabled = false, size = DashboardWidgetSize.COMPACT),
         ),
@@ -35,6 +37,7 @@ enum class DashboardTemplate(val widgets: List<DashboardTemplateWidget>) {
     AT_A_GLANCE(
         listOf(
             DashboardTemplateWidget(DashboardWidgetType.STORAGE_SUMMARY, isEnabled = true, size = DashboardWidgetSize.DETAILED),
+            DashboardTemplateWidget(DashboardWidgetType.LOW_STORAGE, isEnabled = true, size = DashboardWidgetSize.COMPACT),
             DashboardTemplateWidget(DashboardWidgetType.DUPLICATES, isEnabled = false, size = DashboardWidgetSize.COMPACT),
             DashboardTemplateWidget(DashboardWidgetType.INSIGHTS, isEnabled = false, size = DashboardWidgetSize.COMPACT),
             DashboardTemplateWidget(DashboardWidgetType.FAVORITES, isEnabled = false, size = DashboardWidgetSize.COMPACT),

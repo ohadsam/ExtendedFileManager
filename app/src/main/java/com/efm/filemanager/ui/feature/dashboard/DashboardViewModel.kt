@@ -8,7 +8,10 @@ import com.efm.filemanager.data.dashboard.DashboardSavedLayout
 import com.efm.filemanager.data.duplicates.DuplicateScanRepository
 import com.efm.filemanager.data.metadata.FileMetadataRepository
 import com.efm.filemanager.data.metadata.MoveDirection
+import com.efm.filemanager.data.prefs.PreferencesRepository
+import com.efm.filemanager.data.statistics.DeviceStorageRepository
 import com.efm.filemanager.data.statistics.StatisticsRepository
+import com.efm.filemanager.data.statistics.isLowStorage
 import com.efm.filemanager.domain.model.DashboardTemplate
 import com.efm.filemanager.domain.model.DashboardWidgetSize
 import com.efm.filemanager.domain.model.DashboardWidgetType
@@ -16,6 +19,7 @@ import com.efm.filemanager.domain.model.FileEntry
 import com.efm.filemanager.domain.model.StorageStats
 import com.efm.filemanager.ui.feature.statistics.DuplicatesSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +30,11 @@ import javax.inject.Inject
 
 private const val STOP_TIMEOUT_MS = 5_000L
 private const val MAX_FAVORITES_SHOWN = 5
+
+private data class LowStorageState(
+    val freeBytes: Long,
+    val isLow: Boolean,
+)
 
 /**
  * Phase 19 slice 1 shipped a fixed, read-only widget set; slices 2-5 added show/hide, reordering
@@ -46,11 +55,14 @@ class DashboardViewModel
         private val storageAdvisorRepository: StorageAdvisorRepository,
         private val fileMetadataRepository: FileMetadataRepository,
         private val dashboardLayoutRepository: DashboardLayoutRepository,
+        private val deviceStorageRepository: DeviceStorageRepository,
+        private val preferencesRepository: PreferencesRepository,
     ) : ViewModel() {
         private val isLoading = MutableStateFlow(true)
         private val storageStats = MutableStateFlow(StorageStats())
         private val favoriteEntries = MutableStateFlow(emptyList<FileEntry>())
         private val isEditMode = MutableStateFlow(false)
+        private val freeStorageBytes = MutableStateFlow(0L)
 
         private val baseUiState =
             combine(
@@ -73,14 +85,26 @@ class DashboardViewModel
                 )
             }
 
+        private val lowStorageState: Flow<LowStorageState> =
+            combine(freeStorageBytes, preferencesRepository.lowStorageThresholdMb) { free, thresholdMb ->
+                LowStorageState(freeBytes = free, isLow = isLowStorage(free, thresholdMb))
+            }
+
         val uiState: StateFlow<DashboardUiState> =
             combine(
                 baseUiState,
                 isEditMode,
                 dashboardLayoutRepository.observeWidgets(),
                 dashboardLayoutRepository.observeSavedLayouts(),
-            ) { base, editMode, configs, savedLayouts ->
-                base.copy(isEditMode = editMode, widgetConfigs = configs, savedLayouts = savedLayouts)
+                lowStorageState,
+            ) { base, editMode, configs, savedLayouts, lowStorage ->
+                base.copy(
+                    isEditMode = editMode,
+                    widgetConfigs = configs,
+                    savedLayouts = savedLayouts,
+                    freeStorageBytes = lowStorage.freeBytes,
+                    isLowStorage = lowStorage.isLow,
+                )
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), DashboardUiState())
 
         init {
@@ -93,6 +117,7 @@ class DashboardViewModel
                 isLoading.value = true
                 storageStats.value = statisticsRepository.computeStorageStats()
                 favoriteEntries.value = fileMetadataRepository.resolveFavoriteEntries().take(MAX_FAVORITES_SHOWN)
+                freeStorageBytes.value = deviceStorageRepository.freeBytes()
                 isLoading.value = false
             }
         }

@@ -114,7 +114,11 @@ edit mode too, each an explicit starting point you can keep customizing afterwar
 locked layout. You can also save your own current arrangement as a named layout, switch back
 to it later, and rename or delete a saved one too, each from that same menu. Dashboard is now
 the app's start destination -- Browse is still one tap away in the drawer, just no longer
-first. Phase 20 (test & release hardening) has now started: CI generates a Jacoco coverage
+first. An automatic low-storage widget closes out Phase 19: it's enabled by default like any
+other card, but only actually appears once free space (checked against a device-level
+`StatFs` reading, since nothing else in this app tracks real free space) drops below a
+threshold you can change in Settings -- a widget that surfaces itself, not one you have to
+notice and turn on. Phase 20 (test & release hardening) has now started: CI generates a Jacoco coverage
 report for the debug variant's unit tests on every push (not yet a pass/fail gate -- that
 needs real numbers to set a threshold against first, which this sandbox can't produce without
 running Gradle locally). See `docs/PLAN.md` for the full phase list.

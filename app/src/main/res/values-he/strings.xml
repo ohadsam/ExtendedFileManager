@@ -380,4 +380,10 @@
     <string name="dashboard_save_layout_confirm">שמור</string>
     <string name="dashboard_delete_layout_title">למחוק פריסה?</string>
     <string name="dashboard_delete_layout_message">למחוק את \"%1$s\"? פעולה זו מוחקת רק את הפריסה השמורה, לא את הווידג\'טים שלך.</string>
+    <string name="dashboard_low_storage_title">שטח אחסון נמוך</string>
+    <string name="dashboard_low_storage_warning">נותר מעט שטח פנוי</string>
+    <string name="dashboard_low_storage_free_detail">%s פנויים</string>
+    <string name="dashboard_settings_section">לוח בקרה</string>
+    <string name="dashboard_settings_info_body">קובע מתי רכיב שטח האחסון הנמוך בלוח הבקרה מופיע.</string>
+    <string name="dashboard_settings_threshold_mb">הזהר כשנותרים מתחת ל-%d MB פנויים</string>
 </resources>

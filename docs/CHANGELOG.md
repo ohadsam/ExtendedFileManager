@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.23.7 (2026-10-09)
+
+- Phase 19's automatic low-storage widget landed: a new
+  `DashboardWidgetType.LOW_STORAGE` catalog entry is seeded enabled in
+  every built-in template, but its card only actually renders once
+  `DeviceStorageRepository.freeBytes()` (`StatFs` on the app's own
+  files directory -- nothing else in this app tracks real device free
+  space, only SAF-granted-tree file sizes) drops below a new
+  `lowStorageThresholdMb` Settings preference, so it surfaces itself
+  automatically rather than being something the user has to notice
+  and enable. A new Dashboard section in Settings lets the threshold
+  be changed (500MB/1GB/2GB/5GB presets). Layout export/import and
+  the separate `AppWidgetProvider` family remain open for this phase.
+
 ## v0.23.6 (2026-10-09)
 
 - Phase 18's last backlog item closed: a "Trends by type" card shows a

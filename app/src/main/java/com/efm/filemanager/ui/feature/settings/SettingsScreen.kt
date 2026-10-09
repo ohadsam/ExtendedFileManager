@@ -116,6 +116,11 @@ private fun SettingsBody(
                 ),
         )
         HorizontalDivider()
+        DashboardSettingsSection(
+            settings = uiState.dashboardSettings,
+            onLowStorageThresholdChange = viewModel::setLowStorageThresholdMb,
+        )
+        HorizontalDivider()
         InsightsSettingsSectionHost(
             insightsSettings = uiState.insightsSettings,
             onRunDailyInsightsChange = viewModel::setRunDailyInsights,
@@ -303,6 +308,28 @@ private fun StorageAdvisorSettingsSection(
                 label = stringResource(R.string.storage_advisor_staged_review_days, days),
                 selected = settings.stagedReviewDays == days,
                 onClick = { callbacks.onStagedReviewDaysChange(days) },
+            )
+        }
+    }
+}
+
+private val LOW_STORAGE_THRESHOLD_PRESETS_MB = listOf(500, 1_000, 2_000, 5_000)
+
+@Composable
+private fun DashboardSettingsSection(
+    settings: DashboardSettingsState,
+    onLowStorageThresholdChange: (Int) -> Unit,
+) {
+    Column {
+        SectionHeader(
+            title = stringResource(R.string.dashboard_settings_section),
+            infoDescription = stringResource(R.string.dashboard_settings_info_body),
+        )
+        LOW_STORAGE_THRESHOLD_PRESETS_MB.forEach { mb ->
+            RadioOptionRow(
+                label = stringResource(R.string.dashboard_settings_threshold_mb, mb),
+                selected = settings.lowStorageThresholdMb == mb,
+                onClick = { onLowStorageThresholdChange(mb) },
             )
         }
     }

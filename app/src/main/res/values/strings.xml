@@ -380,4 +380,10 @@
     <string name="dashboard_save_layout_confirm">Save</string>
     <string name="dashboard_delete_layout_title">Delete layout?</string>
     <string name="dashboard_delete_layout_message">Delete \"%1$s\"? This only removes the saved layout, not your widgets.</string>
+    <string name="dashboard_low_storage_title">Low storage</string>
+    <string name="dashboard_low_storage_warning">Running low on free space</string>
+    <string name="dashboard_low_storage_free_detail">%s free</string>
+    <string name="dashboard_settings_section">Dashboard</string>
+    <string name="dashboard_settings_info_body">Controls when the Dashboard\'s low-storage widget surfaces itself.</string>
+    <string name="dashboard_settings_threshold_mb">Warn below %d MB free</string>
 </resources>

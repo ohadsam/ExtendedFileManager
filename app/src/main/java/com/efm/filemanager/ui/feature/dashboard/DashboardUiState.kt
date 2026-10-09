@@ -21,4 +21,7 @@ data class DashboardUiState(
     /** In catalog ([com.efm.filemanager.domain.model.DashboardWidgetType]) order, not DB row order. */
     val widgetConfigs: List<DashboardWidgetConfig> = emptyList(),
     val savedLayouts: List<DashboardSavedLayout> = emptyList(),
+    val freeStorageBytes: Long = 0L,
+    /** True once [freeStorageBytes] drops below the user's threshold -- the low-storage card's own automatic show/hide signal. */
+    val isLowStorage: Boolean = false,
 )
