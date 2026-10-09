@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.23.3 (2026-10-09)
+
+- Phase 16 backlog item closed: "Share" is now available from every
+  screen that shows files, not just Browse. Duplicates, Search, and
+  Preview each gained it in their existing selection-mode overflow
+  menu; Favorites (no multi-select bar) gained it as a per-entry
+  action next to "Add to Vault". The one-shot launch-then-clear
+  logic moved into a shared `ui/components/ShareLauncher.kt` so all
+  five screens (Browse included) call the same composable instead of
+  each repeating `Intent.createChooser`.
+
 ## v0.23.2 (2026-10-09)
 
 - Phase 11 backlog item closed: Browse's generic "Something went

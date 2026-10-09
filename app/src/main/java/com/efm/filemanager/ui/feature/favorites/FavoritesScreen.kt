@@ -54,6 +54,7 @@ import com.efm.filemanager.domain.model.PreviewType
 import com.efm.filemanager.domain.model.previewType
 import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FileRow
+import com.efm.filemanager.ui.components.ShareLauncher
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 
 private val COLLECTION_ROW_HEIGHT = 48.dp
@@ -64,6 +65,7 @@ private class FavoritesScreenState {
     var dialog by mutableStateOf<FavoritesDialog?>(null)
     var detailsTarget by mutableStateOf<FileEntry?>(null)
     var addToVaultTarget by mutableStateOf<FileEntry?>(null)
+    var shareTarget by mutableStateOf<FileEntry?>(null)
 }
 
 @Composable
@@ -150,6 +152,7 @@ private fun buildFavoritesActions(
         onEntryLongClick = { entry -> viewModel.removeFavorite(entry) },
         onShowDetails = { entry -> state.detailsTarget = entry },
         onAddToVault = { entry -> state.addToVaultTarget = entry },
+        onShare = { entry -> state.shareTarget = entry },
     )
 
 @Composable
@@ -172,6 +175,10 @@ private fun FavoritesDialogsSection(
             },
             onDismiss = { state.addToVaultTarget = null },
         )
+    }
+
+    state.shareTarget?.let { target ->
+        ShareLauncher(entries = listOf(target), onFinished = { state.shareTarget = null })
     }
 }
 
@@ -300,6 +307,13 @@ private fun FavoritesEntryRow(
                     onClick = {
                         menuExpanded = false
                         actions.onAddToVault(entry)
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_share)) },
+                    onClick = {
+                        menuExpanded = false
+                        actions.onShare(entry)
                     },
                 )
             }

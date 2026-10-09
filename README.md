@@ -65,11 +65,11 @@ tablet-layout pass is still open, needing a real device this sandbox doesn't hav
 started: a "What's New" sheet now shows once after an upgrade (never on a fresh install),
 catching this release up on the Logs and Audit screens; the GitHub-Releases update checker is
 deferred to a later slice. Phase 16 (cloud upload & sharing) is done too: a new "Share"
-action in Browse's selection menu opens the system share sheet for selected files, and a new
-"Upload to…" action reuses the same destination picker as Move/Copy to upload to any folder --
-including a Google Drive folder -- in the background, with a status banner (queued/uploading/
-failed, with Retry/Dismiss) above the file list. Rolling Share out to every other screen is still
-a follow-up. Phase 17 (daily insights & smart notifications) is now done: what used to be the
+action -- now on every screen that shows files, not just Browse -- opens the system share sheet
+for selected files, and a new "Upload to…" action reuses the same destination picker as Move/Copy
+to upload to any folder -- including a Google Drive folder -- in the background, with a status
+banner (queued/uploading/failed, with Retry/Dismiss) above the file list. Phase 17 (daily insights
+& smart notifications) is now done: what used to be the
 "Storage Advisor" screen is "Insights" everywhere it shows to the user, and now also flags files
 with an unrecognized or suspicious double extension (like "invoice.pdf.exe") as worth a look --
 a hygiene nudge, not a security verdict -- alongside a new "Duplicates" category folding in

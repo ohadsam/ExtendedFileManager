@@ -13,4 +13,5 @@ internal data class FavoritesRowActions(
     val onEntryLongClick: (FileEntry) -> Unit,
     val onShowDetails: (FileEntry) -> Unit,
     val onAddToVault: (FileEntry) -> Unit,
+    val onShare: (FileEntry) -> Unit,
 )

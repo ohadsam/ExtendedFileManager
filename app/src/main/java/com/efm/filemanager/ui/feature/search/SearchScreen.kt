@@ -55,6 +55,7 @@ import com.efm.filemanager.ui.components.FileEntryActions
 import com.efm.filemanager.ui.components.GroupedFileList
 import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
+import com.efm.filemanager.ui.components.ShareLauncher
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.components.query.FilterMenu
 import com.efm.filemanager.ui.components.query.SortGroupMenu
@@ -67,6 +68,7 @@ private class SearchUiFlags {
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
     var addToVaultConfirmVisible by mutableStateOf(false)
+    var shareEntries by mutableStateOf<List<FileEntry>?>(null)
 }
 
 @Composable
@@ -158,6 +160,7 @@ private fun SearchSelectionBar(
         count = selectedUris.size,
         onClose = { selectedUris.clear() },
         onAddToVault = { flags.addToVaultConfirmVisible = true },
+        onShare = { flags.shareEntries = selectedEntries },
         actions =
             MetadataQuickActions(
                 onAddTag = { flags.tagPickerVisible = true },
@@ -234,6 +237,24 @@ private fun SearchDialogsSection(
             onDismiss = { flags.addToVaultConfirmVisible = false },
         )
     }
+
+    SearchShareCase(flags = flags, selectedUris = selectedUris)
+}
+
+/** Extracted from [SearchDialogsSection] to stay under detekt's `LongMethod` threshold. */
+@Composable
+private fun SearchShareCase(
+    flags: SearchUiFlags,
+    selectedUris: SnapshotStateList<Uri>,
+) {
+    val entries = flags.shareEntries ?: return
+    ShareLauncher(
+        entries = entries,
+        onFinished = {
+            selectedUris.removeAll(entries.map { it.uri })
+            flags.shareEntries = null
+        },
+    )
 }
 
 @Composable
@@ -332,6 +353,7 @@ private fun SearchSelectionTopBar(
     count: Int,
     onClose: () -> Unit,
     onAddToVault: () -> Unit,
+    onShare: () -> Unit,
     actions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -352,6 +374,7 @@ private fun SearchSelectionTopBar(
                     onDismiss = { menuExpanded = false },
                     quickActions = actions,
                     onAddToVault = onAddToVault,
+                    onShare = onShare,
                 )
             }
         },
@@ -364,6 +387,7 @@ private fun SearchOverflowMenu(
     onDismiss: () -> Unit,
     quickActions: MetadataQuickActions,
     onAddToVault: () -> Unit,
+    onShare: () -> Unit,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         val onShowDetails = quickActions.onShowDetails
@@ -396,6 +420,13 @@ private fun SearchOverflowMenu(
             onClick = {
                 onDismiss()
                 onAddToVault()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_share)) },
+            onClick = {
+                onDismiss()
+                onShare()
             },
         )
     }

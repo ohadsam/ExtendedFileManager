@@ -54,6 +54,7 @@ import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
 import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
+import com.efm.filemanager.ui.components.ShareLauncher
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
@@ -65,6 +66,7 @@ private class DuplicatesUiFlags {
     var tagPickerVisible by mutableStateOf(false)
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
+    var shareEntries by mutableStateOf<List<FileEntry>?>(null)
 }
 
 @Composable
@@ -176,6 +178,8 @@ private fun DuplicatesDialogsSection(
         )
     }
 
+    DuplicatesShareCase(flags = flags, selectedUris = selectedUris)
+
     if (flags.tagPickerVisible) {
         DuplicatesTagPickerSheet(
             tags = tags,
@@ -203,6 +207,22 @@ private fun DuplicatesDialogsSection(
             onDismiss = { flags.collectionPickerVisible = false },
         )
     }
+}
+
+/** Extracted from [DuplicatesDialogsSection] to stay under detekt's `LongMethod` threshold. */
+@Composable
+private fun DuplicatesShareCase(
+    flags: DuplicatesUiFlags,
+    selectedUris: SnapshotStateList<Uri>,
+) {
+    val entries = flags.shareEntries ?: return
+    ShareLauncher(
+        entries = entries,
+        onFinished = {
+            selectedUris.removeAll(entries.map { it.uri })
+            flags.shareEntries = null
+        },
+    )
 }
 
 @Composable
@@ -234,6 +254,7 @@ private fun DuplicatesFab(
     DuplicatesSelectionFabs(
         onDeleteClick = { flags.showDeleteConfirm = true },
         onAddToVaultClick = { flags.showAddToVaultConfirm = true },
+        onShareClick = { flags.shareEntries = selectedEntries },
         quickActions =
             MetadataQuickActions(
                 onAddTag = { flags.tagPickerVisible = true },
@@ -278,6 +299,7 @@ private fun DuplicatesTagPickerSheet(
 private fun DuplicatesSelectionFabs(
     onDeleteClick: () -> Unit,
     onAddToVaultClick: () -> Unit,
+    onShareClick: () -> Unit,
     quickActions: MetadataQuickActions,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -291,6 +313,7 @@ private fun DuplicatesSelectionFabs(
                 onDismiss = { menuExpanded = false },
                 quickActions = quickActions,
                 onAddToVault = onAddToVaultClick,
+                onShare = onShareClick,
             )
         }
         ExtendedFloatingActionButton(
@@ -307,6 +330,7 @@ private fun DuplicatesOverflowMenu(
     onDismiss: () -> Unit,
     quickActions: MetadataQuickActions,
     onAddToVault: () -> Unit,
+    onShare: () -> Unit,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         val onShowDetails = quickActions.onShowDetails
@@ -339,6 +363,13 @@ private fun DuplicatesOverflowMenu(
             onClick = {
                 onDismiss()
                 onAddToVault()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_share)) },
+            onClick = {
+                onDismiss()
+                onShare()
             },
         )
     }

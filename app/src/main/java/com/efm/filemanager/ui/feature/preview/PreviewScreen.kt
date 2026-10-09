@@ -47,6 +47,7 @@ import com.efm.filemanager.ui.components.ConfirmDangerousActionDialog
 import com.efm.filemanager.ui.components.FavoriteCollectionPickerDialog
 import com.efm.filemanager.ui.components.MetadataMenuItems
 import com.efm.filemanager.ui.components.MetadataQuickActions
+import com.efm.filemanager.ui.components.ShareLauncher
 import com.efm.filemanager.ui.components.TagPickerDialog
 import com.efm.filemanager.ui.feature.filedetails.FileDetailsSheet
 import kotlinx.coroutines.launch
@@ -72,6 +73,7 @@ private class PreviewUiFlags {
     var detailsVisible by mutableStateOf(false)
     var collectionPickerVisible by mutableStateOf(false)
     var addToVaultConfirmVisible by mutableStateOf(false)
+    var shareVisible by mutableStateOf(false)
 }
 
 private data class PreviewContentState(
@@ -161,6 +163,7 @@ private fun PreviewScaffold(state: PreviewContentState) {
                         onShowDetails = { state.flags.detailsVisible = true },
                         onNeedsFavoriteCollection = { state.flags.collectionPickerVisible = true },
                         onAddToVault = { state.flags.addToVaultConfirmVisible = true },
+                        onShare = { state.flags.shareVisible = true },
                     ),
                 viewModel = state.viewModel,
             )
@@ -231,6 +234,25 @@ private fun PreviewDialogsSection(
             onDismiss = { flags.addToVaultConfirmVisible = false },
         )
     }
+
+    PreviewShareLauncherCase(flags = flags, session = session, selectedUris = selectedUris)
+}
+
+/** Extracted from [PreviewDialogsSection] to stay under detekt's `LongMethod` threshold. */
+@Composable
+private fun PreviewShareLauncherCase(
+    flags: PreviewUiFlags,
+    session: PreviewSession,
+    selectedUris: SnapshotStateList<Uri>,
+) {
+    if (!flags.shareVisible) return
+    ShareLauncher(
+        entries = session.entries.filter { it.uri in selectedUris },
+        onFinished = {
+            selectedUris.clear()
+            flags.shareVisible = false
+        },
+    )
 }
 
 @Composable
@@ -272,6 +294,7 @@ private data class PreviewTopBarCallbacks(
     val onShowDetails: () -> Unit,
     val onNeedsFavoriteCollection: () -> Unit,
     val onAddToVault: () -> Unit,
+    val onShare: () -> Unit,
 )
 
 @Composable
@@ -312,6 +335,7 @@ private fun PreviewTopBar(
                     scope.launch { viewModel.metadataActions.toggleLock(entries) }
                 },
                 onAddToVault = callbacks.onAddToVault,
+                onShare = callbacks.onShare,
                 onShowDetails = if (selectedUris.size == 1) callbacks.onShowDetails else null,
             )
         PreviewSelectionTopBar(
@@ -408,6 +432,7 @@ private fun PreviewSelectionTopBar(
                             onShowDetails = actions.onShowDetails,
                         ),
                     onAddToVault = actions.onAddToVault,
+                    onShare = actions.onShare,
                 )
             }
         },
@@ -420,6 +445,7 @@ private fun PreviewOverflowMenu(
     onDismiss: () -> Unit,
     quickActions: MetadataQuickActions,
     onAddToVault: () -> Unit,
+    onShare: () -> Unit,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         val onShowDetails = quickActions.onShowDetails
@@ -452,6 +478,13 @@ private fun PreviewOverflowMenu(
             onClick = {
                 onDismiss()
                 onAddToVault()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.action_share)) },
+            onClick = {
+                onDismiss()
+                onShare()
             },
         )
     }
