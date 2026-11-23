@@ -45,7 +45,13 @@ Not one merged skim. Each persona looks for different things; do all four, in or
    cannot contain `--` anywhere in their body, even as part of a longer dash -- this compiles
    clean by eye but fails `aapt2` at build time; the Kotlin KDoc "--" em-dash convention this
    project uses everywhere does not carry over to XML, and the fix is a plain hyphen or colon
-   instead. Does a non-obvious piece of logic (a
+   instead. **Any edited `.github/workflows/*.yml`: grep every `if:` line for a bare `secrets.`
+   reference.** The `secrets` context is not available in a job- or step-level `if:` at all --
+   GitHub rejects the *entire workflow file* at parse time, before scheduling any job (the
+   tell-tale symptom: the run completes instantly with conclusion "failure", zero jobs ever
+   created, and the run's displayed name falls back to the file path because GitHub couldn't even
+   read the `name:` field). Route the secret through that step's own `env:` first, then test
+   `env.SOME_VAR` in `if:` instead. Does a non-obvious piece of logic (a
    platform quirk, a workaround, a deliberate scope boundary) have a short comment explaining why,
    and is anything commented that didn't need it (self-explanatory code restated in prose)?
 2. **UI expert.** Compose conventions: no business logic inside composables, state hoisted
