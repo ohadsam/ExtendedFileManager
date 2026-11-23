@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.24.0 (2026-11-23)
+
+- Phase 15 is done: a "Check for updates" button (Settings' new "About"
+  section) checks GitHub Releases for a newer version, downloads it
+  through the system DownloadManager, verifies the downloaded APK is
+  signed with this app's own certificate before ever offering to
+  install it, and refuses the install prompt outright on a mismatch.
+  This is the app's first and only network access -- deliberately
+  user-initiated only, never automatic or background.
+- Added sharing the app itself (distinct from sharing files): two new
+  buttons in the same "About" section share a link to the project via
+  WhatsApp or email, falling back to the system share sheet if
+  WhatsApp isn't installed.
+- Release builds can now be signed with a real key (read from CI
+  secrets, never committed) -- required for the update checker to
+  ever install anything, since Android refuses to install an "update"
+  signed differently than the installed app. No keystore has been
+  provisioned yet, so release builds stay unsigned for now; see
+  `CLAUDE.md`.
+
 ## v0.23.8 (2026-10-09)
 
 - Phase 19's layout export/import landed, the phase's last remaining

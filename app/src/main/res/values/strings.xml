@@ -6,6 +6,8 @@
     <string name="whats_new_got_it">Got it</string>
     <string name="whats_new_v37_title">Logs &amp; Audit screens</string>
     <string name="whats_new_v37_body">A new Logs screen keeps a searchable, filterable, exportable record of what the app does, and a new Audit screen tracks every file operation in a tamper-evident log -- so you always know what changed and when.</string>
+    <string name="whats_new_v71_title">Check for updates &amp; share the app</string>
+    <string name="whats_new_v71_body">Settings' new "About" section can check for a newer version on GitHub, download it, and verify its signature before installing -- the app\'s first and only network access, and only when you tap the button. You can also share the app via WhatsApp or email from the same section.</string>
 
     <string name="nav_drawer_open">Open navigation menu</string>
     <string name="nav_browse">Browse</string>
@@ -388,4 +390,30 @@
     <string name="dashboard_settings_threshold_mb">Warn below %d MB free</string>
     <string name="dashboard_import_layout_action">Import layout…</string>
     <string name="dashboard_export_layout_action">Export</string>
+    <string name="about_section">About</string>
+    <string name="about_info_body">Checking for updates makes one network request to GitHub -- the only time this app ever accesses the internet.</string>
+    <string name="about_version">Version %s</string>
+    <string name="update_check_action">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_up_to_date">You\'re up to date.</string>
+    <string name="update_available_title">Update available: %s</string>
+    <string name="update_download_action">Download</string>
+    <string name="update_later_action">Later</string>
+    <string name="update_permission_title">Allow installing updates</string>
+    <string name="update_permission_message">To install this update, allow Extended File Manager to install unknown apps in the next screen.</string>
+    <string name="update_permission_open_settings">Open settings</string>
+    <string name="update_permission_cancel">Cancel</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_ready_title">Update downloaded</string>
+    <string name="update_ready_message">The update is ready to install.</string>
+    <string name="update_install_action">Install</string>
+    <string name="update_got_it_action">OK</string>
+    <string name="update_error_no_apk">This release has no installable file attached.</string>
+    <string name="update_error_download_failed">The download failed. Check your connection and try again.</string>
+    <string name="update_error_signature_mismatch">The downloaded file doesn\'t match this app\'s signature -- install was refused.</string>
+    <string name="update_error_network">Couldn\'t check for updates. Check your connection and try again.</string>
+    <string name="share_app_whatsapp_action">Share via WhatsApp</string>
+    <string name="share_app_email_action">Share via email</string>
+    <string name="share_app_text">Check out Extended File Manager, a file manager for Android: %s</string>
+    <string name="share_app_email_subject">Extended File Manager</string>
 </resources>

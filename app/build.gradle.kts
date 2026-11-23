@@ -16,10 +16,28 @@ android {
         applicationId = "com.efm.filemanager"
         minSdk = 26
         targetSdk = 35
-        versionCode = 70
-        versionName = "0.23.8"
+        versionCode = 71
+        versionName = "0.24.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // Phase 15's update checker needs real installs-as-an-update to ever work: Android refuses
+    // to install an "update" whose signing certificate doesn't match the already-installed app's,
+    // so every release from now on needs the *same* stable key, not whatever ad-hoc signing (or
+    // none at all) `assembleRelease` produced before this mattered. Reads from CI secrets/local
+    // env vars rather than a committed keystore; with none set, `release` stays unsigned exactly
+    // like before this change, so CI (which has none of these secrets yet) keeps passing as-is.
+    val releaseKeystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+    signingConfigs {
+        if (releaseKeystorePath != null) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -30,6 +48,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (releaseKeystorePath != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false

@@ -10,6 +10,28 @@ requirement-to-phase mapping live in `docs/PLAN.md` — read that first for
 - Hilt (DI), Room (local DB), Coroutines/Flow (async), WorkManager (background jobs: weekly log purge, duplicate scans).
 - Coil (images), Media3/ExoPlayer (video/audio), Android `PdfRenderer` (PDF preview).
 - `androidx.security.crypto` (Keystore-backed encryption) for sensitive prefs and the encrypted vault.
+- **Network access exists, but exactly one call, user-initiated only.** `data/update/UpdateCheckRepository`
+  (Settings' "Check for updates" button) is this app's only code path that ever touches the
+  internet — plain `HttpURLConnection` against GitHub's public Releases API, no new networking
+  dependency. Never add a second network call, and never make this one automatic/background,
+  without updating this note and re-justifying it the same way the `INTERNET` permission's own
+  manifest comment does.
+
+## Release signing (needed for the update checker to actually work end-to-end)
+
+`app/build.gradle.kts`'s `release` build type only signs with a real key when
+`RELEASE_KEYSTORE_PATH`/`RELEASE_KEYSTORE_PASSWORD`/`RELEASE_KEY_ALIAS`/`RELEASE_KEY_PASSWORD`
+are set (CI reads them from repo secrets — `RELEASE_KEYSTORE_BASE64` plus the three
+passwords/alias — decoding the keystore to a temp file only when that secret exists; see
+`.github/workflows/android-ci.yml`'s "Decode release keystore" step). **Until a real keystore is
+generated and those secrets are added to the repo, `release` stays unsigned, same as always** —
+CI still builds and R8-shrinks it, but nobody can actually install it as an update, since Android
+refuses to install an "update" whose signing certificate doesn't match the currently-installed
+app's. Generating that keystore, deciding where it's backed up, and adding the GitHub secrets is
+a one-time step outside what any sandbox session can do on its own (it's a durable secret with
+permanent consequences if lost — losing it means no future release can ever update an install
+signed with the old one) — flag it to whoever owns the repo rather than generating one blindly.
+Every release from the first signed one onward must keep using that exact same key.
 
 ## Package layout (grows as phases land — do not pre-create empty packages)
 
@@ -20,8 +42,10 @@ com.efm.filemanager/
   ui/theme/           Color.kt, Theme.kt, Type.kt
   data/                (Phase 1+) repositories, Room entities/DAOs, SAF/MediaStore access
   data/prefs/          (Phase 2+) DataStore-backed preferences repository (appearance, language, defaults) — shared by every settings-adjacent feature, not reinvented per screen
+  data/update/         (Phase 15+) GitHub-Releases update check, APK download, signing-certificate verification — this app's only network access
+  data/share/          (Phase 16+) share-sheet Intent factories — file sharing (ShareIntentFactory) and sharing the app itself (AppShareFactory)
   domain/              (Phase 1+) use cases, models
-  ui/feature/<name>/   (Phase 1+) one package per feature screen (browse, settings, favorites, duplicates, logs, audit, ...)
+  ui/feature/<name>/   (Phase 1+) one package per feature screen (browse, settings, favorites, duplicates, logs, audit, update, ...)
 ```
 
 ## Conventions

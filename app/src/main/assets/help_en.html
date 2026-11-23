@@ -47,7 +47,26 @@ about when it isn't certain.</p>
   shortcut to the system app-settings page.</li>
   <li><b>Display</b> and <b>Logs</b> — reserved sections; their real controls arrive
   in upcoming updates.</li>
+  <li><b>About</b> — your installed version number, a <b>Check for updates</b> button,
+  and two buttons to share the app itself (see below).</li>
 </ul>
+
+<h2 id="updates">Checking for updates</h2>
+<p>Settings → About → <b>Check for updates</b> checks GitHub for a newer release. This
+is the only time the app ever uses the internet — it never checks automatically or in
+the background, only when you tap the button.</p>
+<p>If a newer version exists, you'll see its release notes with a <b>Download</b>
+button. The update downloads in the background (you can watch its progress in your
+notifications); once it's done, the app verifies the downloaded file is signed with
+the exact same certificate as your currently-installed app before offering to install
+it — if that check fails, the install is refused rather than risking an untrusted file.
+Android may first ask you to allow the app to install unknown apps; this is normal and
+only applies to updates installed this way.</p>
+
+<h2 id="sharing-app">Sharing the app</h2>
+<p>Settings → About has two buttons, <b>Share via WhatsApp</b> and <b>Share via
+email</b>, that send a link to the project to a contact of your choice. If WhatsApp
+isn't installed, the WhatsApp button falls back to your device's regular share menu.</p>
 
 <h2 id="coming-soon">Coming soon</h2>
 <p>Create/rename/delete/move/copy, archive extract, duplicate detection, previews,
