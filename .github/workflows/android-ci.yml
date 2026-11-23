@@ -61,8 +61,27 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug
 
+      # Phase 15's update checker needs real, consistently-signed release builds to ever work as
+      # an "update" (see app/build.gradle.kts' own signingConfigs comment) -- this decodes a
+      # release keystore from a repo secret only when one has actually been provisioned, so CI
+      # keeps producing an unsigned (but still compiling/R8-shrunk) release APK exactly as before
+      # until that secret exists. The `secrets` context isn't allowed directly in `if:` (GitHub
+      # rejects the whole workflow file at parse time if it is) -- routed through `env:` first,
+      # per GitHub's own documented workaround for conditioning a step on whether a secret exists.
+      - name: Decode release keystore
+        if: ${{ env.RELEASE_KEYSTORE_BASE64 != '' }}
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "RELEASE_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
       - name: Assemble release APK (R8/ProGuard)
         run: ./gradlew assembleRelease
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
 
       - name: Upload test reports
         if: always()

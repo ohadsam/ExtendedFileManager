@@ -61,10 +61,16 @@ consistent across every screen (mirrored icons, start/end-only padding, locale-a
 with one small fix landed (a breadcrumb bar's separator); adaptive foldable/tablet layouts have
 since landed too (a tablet/unfolded-foldable-width screen now gets an always-visible nav drawer
 instead of a hamburger, at Material's own 840dp breakpoint) -- an actual visual RTL/font-scale/
-tablet-layout pass is still open, needing a real device this sandbox doesn't have. Phase 15 (versioning & updates) has also
-started: a "What's New" sheet now shows once after an upgrade (never on a fresh install),
-catching this release up on the Logs and Audit screens; the GitHub-Releases update checker is
-deferred to a later slice. Phase 16 (cloud upload & sharing) is done too: a new "Share"
+tablet-layout pass is still open, needing a real device this sandbox doesn't have. Phase 15
+(versioning & updates) is now done: a "What's New" sheet shows once after an upgrade (never on
+a fresh install), and Settings gained a new "About" section with a "Check for updates" button --
+this app's first and only network access, and strictly opt-in (never automatic). It checks GitHub
+Releases for a newer version, downloads it through the system DownloadManager, and verifies the
+downloaded file is signed with this app's own certificate before ever offering to install it,
+refusing outright on a mismatch rather than trusting the download blindly. The same section can
+also share the app itself via WhatsApp or email (distinct from sharing files, which Phase 16
+already covers), falling back to the system share sheet if WhatsApp isn't installed. Phase 16
+(cloud upload & sharing) is done too: a new "Share"
 action -- now on every screen that shows files, not just Browse -- opens the system share sheet
 for selected files, and a new "Upload to…" action reuses the same destination picker as Move/Copy
 to upload to any folder -- including a Google Drive folder -- in the background, with a status

@@ -21,6 +21,11 @@ val whatsNewEntries =
             titleRes = R.string.whats_new_v37_title,
             bodyRes = R.string.whats_new_v37_body,
         ),
+        WhatsNewEntry(
+            versionCode = 71,
+            titleRes = R.string.whats_new_v71_title,
+            bodyRes = R.string.whats_new_v71_body,
+        ),
     )
 
 /**

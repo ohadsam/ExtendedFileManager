@@ -27,12 +27,31 @@ Not one merged skim. Each persona looks for different things; do all four, in or
    shared confirmation component and emit an audit event (once Phase 3 exists)? Any new dependency
    justified and pinned in `gradle/libs.versions.toml` (no stray version strings inline)? Any new
    background work correctly scoped to WorkManager rather than a raw thread/coroutine that dies
-   with the process? Flag anything that quietly widens permissions (a new `MANAGE_EXTERNAL_STORAGE`
-   request, a new broad `<uses-permission>`) without an in-app justification screen. Also, per
-   `CLAUDE.md`'s conventions: is there new logic that duplicates something an existing
-   repository/component already does (should it be promoted to `internal` and reused instead)? Is
-   any file/function large enough that it's doing more than one job (a real split, like
-   `ui/feature/browse/`'s, not just a threshold dodge)? Does a non-obvious piece of logic (a
+   with the process -- unless it's a short-lived, user-initiated poll (e.g. watching a
+   `DownloadManager` download finish) tied to a `ViewModel`'s own scope, where the actual durable
+   work is already owned by a system service that survives process death on its own; name which
+   case it is rather than assuming WorkManager is always required. Flag anything that quietly
+   widens permissions (a new `MANAGE_EXTERNAL_STORAGE` request, a new broad `<uses-permission>`)
+   without an in-app justification screen. Also, per `CLAUDE.md`'s conventions: is there new logic
+   that duplicates something an existing repository/component already does (should it be promoted
+   to `internal` and reused instead)? Is any file/function large enough that it's doing more than
+   one job (a real split, like `ui/feature/browse/`'s, not just a threshold dodge)? **Count every
+   changed file's top-level/member function count against detekt's `TooManyFunctions` thresholds
+   (`thresholdInFiles: 20`, `thresholdInClasses: 25` per `config/detekt/detekt.yml`) by hand** --
+   a file sitting a few functions under the limit before a batch can cross it silently; a real
+   grep (`grep -cE "^(private |internal )?fun " <file>`) catches this before CI does, and the fix
+   is the same file-split this item already calls for. **Any edited `.xml` (manifest, resources,
+   `res/xml/*`): grep the file for a literal `--` inside an `<!-- -->` comment.** XML comments
+   cannot contain `--` anywhere in their body, even as part of a longer dash -- this compiles
+   clean by eye but fails `aapt2` at build time; the Kotlin KDoc "--" em-dash convention this
+   project uses everywhere does not carry over to XML, and the fix is a plain hyphen or colon
+   instead. **Any edited `.github/workflows/*.yml`: grep every `if:` line for a bare `secrets.`
+   reference.** The `secrets` context is not available in a job- or step-level `if:` at all --
+   GitHub rejects the *entire workflow file* at parse time, before scheduling any job (the
+   tell-tale symptom: the run completes instantly with conclusion "failure", zero jobs ever
+   created, and the run's displayed name falls back to the file path because GitHub couldn't even
+   read the `name:` field). Route the secret through that step's own `env:` first, then test
+   `env.SOME_VAR` in `if:` instead. Does a non-obvious piece of logic (a
    platform quirk, a workaround, a deliberate scope boundary) have a short comment explaining why,
    and is anything commented that didn't need it (self-explanatory code restated in prose)?
 2. **UI expert.** Compose conventions: no business logic inside composables, state hoisted
@@ -57,8 +76,9 @@ Fix everything found before moving on. If a pass finds nothing, say so and conti
 - Bump `versionName`/`versionCode` in `app/build.gradle.kts` (semver: features → minor, fixes-only
   → patch; bump `versionCode` every release regardless).
 - Add an entry to `docs/CHANGELOG.md` (create it on the first release if it doesn't exist yet) —
-  short, user-facing highlights, not implementation detail. This is also the source for the in-app
-  "What's New" sheet once Phase 15 builds it.
+  short, user-facing highlights, not implementation detail. Also add a matching
+  `WhatsNewEntry` (`ui/feature/whatsnew/WhatsNewEntry.kt`, keyed by the new `versionCode`) when
+  this batch is user-visible enough to deserve one — the in-app "What's New" sheet Phase 15 built.
 
 ## 3. Docs
 
@@ -113,6 +133,16 @@ landing:
   Keystore-backed storage, or is plaintext genuinely fine for this data?
 - Any new dependency checked for known vulnerabilities (once the Phase 11/18 CI scanning job exists,
   confirm it actually ran clean for this change).
+- Any new permission with a real "is this actually enforced" story, not just a manifest line — e.g.
+  `REQUEST_INSTALL_PACKAGES` only matters once there's real signature verification refusing a
+  mismatched install, not just the permission existing.
+- **A new secret/credential/keystore dependency (CI signing secrets, API tokens, anything a build
+  now reads from the environment) is a human-only provisioning step.** Wire the code to read it
+  when present and degrade to today's behavior when absent (never fabricate a placeholder value,
+  never commit one, never invent one "to make it work"), then flag exactly what needs provisioning
+  and why in `CLAUDE.md` — generating/storing the real thing is a durable, often irreversible
+  decision (a lost signing key means no future release can ever update an old install) that belongs
+  to whoever owns the repo, not to a sandbox session.
 
 ## 7. Skills — including a self-review of this checklist
 

@@ -44,14 +44,24 @@ import com.efm.filemanager.domain.model.AppearanceMode
 import com.efm.filemanager.domain.model.ViewMode
 import com.efm.filemanager.ui.components.InfoButton
 import com.efm.filemanager.ui.components.labelRes
+import com.efm.filemanager.ui.feature.update.UpdateCheckActions
+import com.efm.filemanager.ui.feature.update.UpdateCheckDialog
+import com.efm.filemanager.ui.feature.update.UpdateViewModel
 
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     navActions: SettingsNavActions,
     viewModel: SettingsViewModel = hiltViewModel(),
+    updateViewModel: UpdateViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val updateState by updateViewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val installPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (canInstallPackages(context)) updateViewModel.startDownload()
+        }
 
     LaunchedEffect(Unit) { viewModel.refreshPermissionsStatus() }
 
@@ -72,8 +82,24 @@ fun SettingsScreen(
             uiState = uiState,
             viewModel = viewModel,
             navActions = navActions,
+            onCheckForUpdates = updateViewModel::checkForUpdate,
         )
     }
+    UpdateCheckDialog(
+        state = updateState,
+        actions =
+            UpdateCheckActions(
+                onDownloadClick = {
+                    if (canInstallPackages(context)) updateViewModel.startDownload() else updateViewModel.needsInstallPermission()
+                },
+                onRequestInstallPermission = { installPermissionLauncher.launch(unknownAppSourcesIntent(context)) },
+                onInstallClick = {
+                    updateViewModel.installIntent()?.let { context.startActivity(it) }
+                    updateViewModel.dismiss()
+                },
+                onDismiss = updateViewModel::dismiss,
+            ),
+    )
 }
 
 @Composable
@@ -82,6 +108,7 @@ private fun SettingsBody(
     uiState: SettingsUiState,
     viewModel: SettingsViewModel,
     navActions: SettingsNavActions,
+    onCheckForUpdates: () -> Unit,
 ) {
     val context = LocalContext.current
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
@@ -132,6 +159,13 @@ private fun SettingsBody(
         AuditSection(onOpenAudit = navActions.onOpenAudit)
         HorizontalDivider()
         HelpSection(onOpenHelp = navActions.onOpenHelp)
+        HorizontalDivider()
+        AboutSection(
+            appVersionName = currentAppVersionName(context),
+            onCheckForUpdates = onCheckForUpdates,
+            onShareWhatsApp = { shareAppViaWhatsApp(context) },
+            onShareEmail = { shareAppViaEmail(context) },
+        )
     }
 }
 
