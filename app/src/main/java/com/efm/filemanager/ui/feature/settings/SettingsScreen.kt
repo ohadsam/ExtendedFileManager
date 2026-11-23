@@ -533,4 +533,3 @@ private fun needsNotificationPermission(
     if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
     return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
 }
-
