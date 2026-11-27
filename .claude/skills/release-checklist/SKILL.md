@@ -159,3 +159,6 @@ The owner's app store (repo `ohadsam/os_app_store`, https://ohadsam.github.io/os
 - New logic has unit tests; CI (`android-ci.yml`) is green on the pushed branch — not just "would
   probably pass locally."
 - Branch pushed, PR opened/updated (or merged, per the convention above).
+
+## Publish the APK (when a version is meant to be installed)
+Run the **Release build** workflow (`release.yml`) after CI is green on `main` and `versionCode` was bumped: it needs the four `KEYSTORE_*` / `KEY_*` Actions secrets and publishes `ExtendedFileManager.apk` (+ `.sha256`) to GitHub Releases; verify `releases/latest/download/ExtendedFileManager.apk` downloads and its checksum matches. Then the store step above.

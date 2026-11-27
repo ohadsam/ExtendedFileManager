@@ -105,3 +105,8 @@ Use the repo-local `release-checklist` skill (`.claude/skills/release-checklist/
 before considering any batch of work "done": version bump, What's New entry,
 multi-persona review (system architect / UI expert / UX expert / QA
 architect), docs/skills refresh, CI green, then merge.
+
+### Publishing the APK (GitHub Release)
+
+`.github/workflows/release.yml` ("Release build", run by hand or on a `v*` tag) builds the **signed** release APK and publishes a GitHub Release `v<versionName>-b<versionCode>` with `ExtendedFileManager-<ver>-b<code>.apk`, `ExtendedFileManager.apk` and `ExtendedFileManager.apk.sha256` (stable names: the OS APPs & Downs store links `releases/latest/download/ExtendedFileManager.apk`). Signing comes ONLY from the Actions secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` (`efm`), `KEY_PASSWORD`; the workflow refuses to run without them, and `app/build.gradle.kts` signs only when `KEYSTORE_FILE` is set (CI's `assembleRelease` stays an unsigned check build). Never commit a keystore. Bump `versionCode` (it is hard-coded) with every published version, or the new APK will not install as an update. The key is the only way to publish updates that install over an existing install: keep it in a password manager.
+

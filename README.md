@@ -7,6 +7,10 @@ duplicate-file detection, previews, favorites, a full audit trail, and Hebrew/En
 - Architecture, conventions, and this repo's sandbox constraints: [`CLAUDE.md`](CLAUDE.md)
 - Release process: [`.claude/skills/release-checklist/SKILL.md`](.claude/skills/release-checklist/SKILL.md)
 
+## Download (Android)
+
+Latest signed APK: https://github.com/ohadsam/ExtendedFileManager/releases/latest/download/ExtendedFileManager.apk (checksum: `.../ExtendedFileManager.apk.sha256`). Android asks once to allow installing from your browser; install steps with pictures: the OS APPs & Downs store (https://ohadsam.github.io/os_app_store/).
+
 ## Status
 
 Phase 0 (project foundation), Phase 1 (core read-only browsing), Phase 2 (Settings screen),
